@@ -121,12 +121,6 @@ class _AddScreenState extends State<AddScreen> {
     if(formKey.currentState!.validate()) {
       formKey.currentState!.save();
 
-      print(expenseName);
-      print(expenseDate);
-      print(expense);
-      print(category);
-      print(detail);
-
       await GetIt.I<LocalDatabase>().createExpense(
         ExpensesCompanion(
           expenseName: Value(expenseName!),

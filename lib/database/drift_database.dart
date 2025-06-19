@@ -32,6 +32,8 @@ class LocalDatabase extends _$LocalDatabase {
           expenseDetail: Value(data.expenseDetail)
         ));
 
+  Future<int> removeExpense(int id) => (delete(expenses)..where((t) => t.id.equals(id))).go();
+
   @override
   int get schemaVersion => 1;
 }

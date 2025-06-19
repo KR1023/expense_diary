@@ -60,7 +60,8 @@ class _DetailScreenState extends State<DetailScreen> {
             children: [
               ExpenseScreenHeader(
                 isAdd: false,
-                onSavePressed: onSavePressed
+                onSavePressed: onSavePressed,
+                id: expenseId,
               ),
               const SizedBox(height: 40),
               Form(
@@ -169,6 +170,5 @@ class _DetailScreenState extends State<DetailScreen> {
       );
     }
   }
-
 }
 
