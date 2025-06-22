@@ -22,7 +22,7 @@ class ExpenseCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final numberFormatter = NumberFormat('#,###');
-    final expenseDateFormat = DateFormat('yyy-MM-dd');
+    final expenseDateFormat = DateFormat('yy.MM.dd');
 
     return GestureDetector(
       onTap: () {
@@ -37,7 +37,6 @@ class ExpenseCard extends StatelessWidget {
               detail: expenseDetail,
             ))
         );
-        print('expense id : ${expenseId}');
       },
       child: Container(
         width: MediaQuery.of(context).size.width * 0.9,
@@ -59,70 +58,70 @@ class ExpenseCard extends StatelessWidget {
             )
         ),
         child: Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Flexible(
-                  flex: 2,
-                  child: Container(
-                    width: double.infinity,
-                    child: Text(
-                      category,
-                      textAlign: TextAlign.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Flexible(
+                flex: 2,
+                child: Container(
+                  width: double.infinity,
+                  child: Text(
+                    category,
+                    textAlign: TextAlign.center,
+                    overflow: TextOverflow.ellipsis,
+                    maxLines: 1,
+                    style: TextStyle(
+                        fontSize: 16
+                    ),
+                  ),
+                )
+            ),
+            Flexible(
+                flex:4,
+                child: Container(
+                  width: double.infinity,
+                  child: Text(
+                      expenseName,
                       overflow: TextOverflow.ellipsis,
                       maxLines: 1,
                       style: TextStyle(
-                          fontSize: 16
-                      ),
-                    ),
+                          fontSize: 28
+                      )
+                  ),
+                )
+            ),
+            Flexible(
+              flex: 4,
+              child: Container(
+                  width: double.infinity,
+                  child: Padding(
+                      padding: EdgeInsets.only(right: 20),
+                      child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
+                            Text(
+                                '${numberFormatter.format(expense)}원',
+                                overflow: TextOverflow.ellipsis,
+                                maxLines: 1,
+                                style: TextStyle(
+                                    fontSize: 22
+                                )
+                            ),
+                            Text(
+                                expenseDateFormat.format(expenseDate),
+                                overflow: TextOverflow.ellipsis,
+                                maxLines: 1,
+                                style: TextStyle(
+                                    fontSize: 14
+                                )
+                            ),
+                          ]
+                      )
                   )
-              ),
-              Flexible(
-                  flex:4,
-                  child: Container(
-                    width: double.infinity,
-                    child: Text(
-                        expenseName,
-                        overflow: TextOverflow.ellipsis,
-                        maxLines: 1,
-                        style: TextStyle(
-                            fontSize: 28
-                        )
-                    ),
-                  )
-              ),
-              Flexible(
-                flex: 4,
-                child: Container(
-                    width: double.infinity,
-                    child: Padding(
-                        padding: EdgeInsets.only(right: 20),
-                        child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            crossAxisAlignment: CrossAxisAlignment.end,
-                            children: [
-                              Text(
-                                  '${numberFormatter.format(expense)}원',
-                                  overflow: TextOverflow.ellipsis,
-                                  maxLines: 1,
-                                  style: TextStyle(
-                                      fontSize: 22
-                                  )
-                              ),
-                              Text(
-                                  expenseDateFormat.format(expenseDate),
-                                  overflow: TextOverflow.ellipsis,
-                                  maxLines: 1,
-                                  style: TextStyle(
-                                      fontSize: 14
-                                  )
-                              ),
-                            ]
-                        )
-                    )
 
-                ),
-              )
-            ]
+              ),
+            )
+          ]
         )
       )
     );

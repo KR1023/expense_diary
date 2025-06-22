@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:expense_diary/component/calendar/expense_calendar.dart';
+import 'package:expense_diary/component/expense_by_date.dart';
 
 class CalendarScreen extends StatefulWidget {
   @override
@@ -7,12 +9,28 @@ class CalendarScreen extends StatefulWidget {
 }
 
 class _CalendarScreenState extends State<CalendarScreen> {
+
+  DateTime selectedDate = DateTime.now();
+
+  void onTapDate(DateTime selectedDay, DateTime focusedDay) {
+    setState(() {
+      selectedDate = selectedDay;
+    });
+  }
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      child: Center(
-        child: Text("Calendar")
-      )
+    return Column(
+      children: [
+        Padding(
+          padding: EdgeInsets.all(20),
+          child: Container(
+              child: ExpenseCalendar(selectedDate: selectedDate, onTapDate: onTapDate)
+          )
+        ),
+        Expanded(
+          child: ExpenseByDate(selectedDate: selectedDate)
+        )
+      ],
     );
   }
 }

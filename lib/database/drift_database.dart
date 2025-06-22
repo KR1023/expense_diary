@@ -16,7 +16,10 @@ part 'drift_database.g.dart';
 class LocalDatabase extends _$LocalDatabase {
   LocalDatabase(): super(_openConnection());
 
-  Stream<List<Expense>> watchExpense() => (select(expenses)).watch();
+  Stream<List<Expense>> watchExpense(DateTime selectedDate) => (
+      select(expenses)
+        ..where ((t) => t.expenseDate.equals(selectedDate))
+  ).watch();
 
   Future<int> createExpense(ExpensesCompanion data) => into(expenses).insert(data);
 

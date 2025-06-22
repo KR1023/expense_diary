@@ -1,5 +1,7 @@
+import 'package:expense_diary/screen/calendar_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:expense_diary/screen/home_screen.dart';
+import 'package:expense_diary/screen/calendar_screen.dart';
 
 class RootScreen extends StatefulWidget {
 
@@ -14,7 +16,7 @@ class _RootScreenState extends State<RootScreen>{
 
   final List<Widget> _screens = [
     HomeScreen(),
-    Center(child:Text("지출 내역")),
+    CalendarScreen(),
     Center(child:Text("설정"))
   ];
 
@@ -27,7 +29,10 @@ class _RootScreenState extends State<RootScreen>{
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: _screens[_selectedIndex],
+      body: IndexedStack(
+        index: _selectedIndex,
+        children: _screens,
+      ),
       bottomNavigationBar: renderBottomNavigation(),
     );
   }
