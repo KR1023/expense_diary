@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:expense_diary/screen/root_screen.dart';
 import 'package:expense_diary/screen/home_screen.dart';
 import 'package:expense_diary/database/drift_database.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -20,7 +21,7 @@ void main() {
           )
         )
       ),
-      home: HomeScreen(),
+      home: RootScreen(),
       localizationsDelegates: [
         GlobalMaterialLocalizations.delegate,
         GlobalWidgetsLocalizations.delegate,
