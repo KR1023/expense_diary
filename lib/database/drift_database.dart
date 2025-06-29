@@ -21,6 +21,25 @@ class LocalDatabase extends _$LocalDatabase {
         ..where ((t) => t.expenseDate.equals(selectedDate))
   ).watch();
 
+  Stream<int> selectMonthExpense(DateTime selectedDate){
+    int selectedMonth = selectedDate.month;
+    final totalExpense = expenses.expense.sum();
+    final query = selectOnly(expenses)
+      ..addColumns([totalExpense])
+      ..where(expenses.expenseDate.month.equals(selectedMonth));
+
+    return query.watchSingle().map((row) => row.read(totalExpense) ?? 0);
+  }
+
+  Stream<int> selectWeekExpense(DateTime startDate, DateTime endDate) {
+    final totalExpense = expenses.expense.sum();
+    final query = selectOnly(expenses)
+      ..addColumns([totalExpense])
+      ..where(expenses.expenseDate.isBetweenValues(startDate, endDate));
+
+    return query.watchSingle().map((row) => row.read(totalExpense) ?? 0);
+  }
+
   Future<int> createExpense(ExpensesCompanion data) => into(expenses).insert(data);
 
   Future<int> updateExpense(Expense data) =>

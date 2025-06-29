@@ -21,6 +21,9 @@ void main() async {
           labelSmall: TextStyle(
             color: Color(0xFFDCDCDC),
             fontSize: 14
+          ),
+          bodyMedium: TextStyle(
+            fontSize: 18
           )
         )
       ),
