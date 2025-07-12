@@ -1,4 +1,5 @@
 import 'package:drift/drift.dart';
+import 'package:expense_diary/model/category_expense.dart';
 import 'package:expense_diary/model/expense.dart';
 import 'package:drift/native.dart';
 import 'package:path_provider/path_provider.dart';
@@ -38,6 +39,31 @@ class LocalDatabase extends _$LocalDatabase {
       ..where(expenses.expenseDate.isBetweenValues(startDate, endDate));
 
     return query.watchSingle().map((row) => row.read(totalExpense) ?? 0);
+  }
+
+  Stream<List<CategoryExpense>> watchMonthlyCategoryExpense(DateTime selectedDate){
+    final formattedMonth = "${selectedDate.year.toString().padLeft(4, '0')}-${selectedDate.month.toString().padLeft(2, '0')}";
+
+    final query = customSelect(
+      '''
+      SELECT category, SUM(expense) AS total
+      FROM expenses
+      WHERE strftime('%Y-%m', expenseDate) = ?
+      GROUP BY category
+      ''',
+      variables: [Variable.withString(formattedMonth)],
+      readsFrom: {expenses}
+    );
+
+    return query.watch().map((rows) {
+      print(rows);
+      return rows.map((row) {
+        return CategoryExpense(
+            category: row.read<String>('category'),
+            total: row.read<int>('total') ?? 0
+        );
+      }).toList();
+    });
   }
 
   Future<int> createExpense(ExpensesCompanion data) => into(expenses).insert(data);

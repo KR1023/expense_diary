@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:expense_diary/component/calendar/expense_calendar.dart';
 import 'package:expense_diary/component/expense_by_date.dart';
 import 'package:expense_diary/component/expense_by_month.dart';
+import 'package:expense_diary/component/expense_by_category.dart';
 
 class CalendarScreen extends StatefulWidget {
   @override
@@ -43,7 +44,8 @@ class _CalendarScreenState extends State<CalendarScreen> {
   List<Widget> PageViewChildren(){
     return [
       ExpenseByDate(selectedDate: selectedDate),
-      ExpenseByMonth(selectedDate: selectedDate)
+      ExpenseByMonth(selectedDate: selectedDate),
+      ExpenseByCategory(selectedDate: selectedDate),
     ];
   }
 }
