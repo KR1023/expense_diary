@@ -13,26 +13,46 @@ class ExpenseByCategory extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('카테고리별 지출'),
+        Padding(
+          padding: EdgeInsets.symmetric(horizontal: 20),
+          child: Text(
+            '카테고리별 지출',
+            style: TextStyle(
+              fontWeight: FontWeight.w600,
+              fontSize: 22
+
+            )
+          ),
+        ),
         StreamBuilder<List<CategoryExpense>>(
           stream: GetIt.I<LocalDatabase>().watchMonthlyCategoryExpense(selectedDate),
           builder: (context, snapshot){
+            print(snapshot.data);
             if(!snapshot.hasData) {
               return Text(
                 "지출이 없습니다!"
               );
             }
 
-            return ListView.builder(
-              itemCount: snapshot.data!.length,
-              itemBuilder: (context, index) {
-                final data = snapshot.data![index];
-                return ListTile(
-                  title: Text('${data.category}'),
-                  subtitle: Text('합계: ${data.total}원')
-                );
-              }
+            return Expanded(
+              child: ListView.builder(
+                itemCount: snapshot.data!.length,
+                itemBuilder: (context, index) {
+                  final data = snapshot.data![index];
+                  String category;
+                  if(data.category != '')
+                    category = data.category;
+                  else
+                    category = '미분류';
+
+                  return ListTile(
+                      title: Text('${category}'),
+                      subtitle: Text('합계: ${data.total}원')
+                  );
+                }
+              )
             );
           }
         )

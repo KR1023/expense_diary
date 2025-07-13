@@ -2,6 +2,7 @@ import 'package:drift/drift.dart';
 import 'package:expense_diary/model/category_expense.dart';
 import 'package:expense_diary/model/expense.dart';
 import 'package:drift/native.dart';
+import 'package:intl/intl.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
 import 'dart:io';
@@ -41,26 +42,20 @@ class LocalDatabase extends _$LocalDatabase {
     return query.watchSingle().map((row) => row.read(totalExpense) ?? 0);
   }
 
-  Stream<List<CategoryExpense>> watchMonthlyCategoryExpense(DateTime selectedDate){
-    final formattedMonth = "${selectedDate.year.toString().padLeft(4, '0')}-${selectedDate.month.toString().padLeft(2, '0')}";
+  Stream<List<CategoryExpense>> watchMonthlyCategoryExpense(DateTime selectedDate) {
+    final start = DateTime(selectedDate.year, selectedDate.month, 1);
+    final end = DateTime(selectedDate.year, selectedDate.month + 1, 1);
 
-    final query = customSelect(
-      '''
-      SELECT category, SUM(expense) AS total
-      FROM expenses
-      WHERE strftime('%Y-%m', expenseDate) = ?
-      GROUP BY category
-      ''',
-      variables: [Variable.withString(formattedMonth)],
-      readsFrom: {expenses}
-    );
+    final query = selectOnly(expenses)
+      ..addColumns([expenses.category, expenses.expense.sum()])
+      ..where(expenses.expenseDate.isBetweenValues(start, end))
+      ..groupBy([expenses.category]);
 
     return query.watch().map((rows) {
-      print(rows);
       return rows.map((row) {
         return CategoryExpense(
-            category: row.read<String>('category'),
-            total: row.read<int>('total') ?? 0
+          category: row.read<String>(expenses.category) ?? '미분류',
+          total: row.read<int>(expenses.expense.sum()) ?? 0,
         );
       }).toList();
     });
