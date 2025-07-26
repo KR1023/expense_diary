@@ -1,10 +1,11 @@
+import 'package:expense_diary/database/drift_database.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:expense_diary/screen/detail_screen.dart';
 
 class ExpenseCard extends StatelessWidget {
   final int expenseId;
-  final int categoryId;
+  final CategoryData category;
   final String expenseName;
   final int expense;
   final DateTime expenseDate;
@@ -12,7 +13,7 @@ class ExpenseCard extends StatelessWidget {
 
   const ExpenseCard({
     required this.expenseId,
-    required this.categoryId,
+    required this.category,
     required this.expenseName,
     required this.expense,
     required this.expenseDate,
@@ -32,7 +33,7 @@ class ExpenseCard extends StatelessWidget {
               expenseId: expenseId,
               expenseName: expenseName,
               expenseDate: expenseDate,
-              categoryId: categoryId,
+              categoryId: category.id,
               expense: expense,
               detail: expenseDetail,
             ))
@@ -65,7 +66,7 @@ class ExpenseCard extends StatelessWidget {
                 child: Container(
                   width: double.infinity,
                   child: Text(
-                    categoryId.toString(),
+                    category.categoryName,
                     textAlign: TextAlign.center,
                     overflow: TextOverflow.ellipsis,
                     maxLines: 1,

@@ -51,7 +51,7 @@ class HomeScreen extends StatelessWidget {
                           child: Center(
                             child: ExpenseCard(
                               expenseId: expense.id,
-                              categoryId: expense.categoryId,
+                              category: category,
                               expenseName: expense.expenseName,
                               expense: expense.expense,
                               expenseDate: expense.expenseDate,
