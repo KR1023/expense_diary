@@ -47,7 +47,7 @@ class _ExpenseByDateState extends State<ExpenseByDate> {
                             fontSize: 16
                         )
                     ),
-                    StreamBuilder<List<Expense>>(
+                    StreamBuilder<List<Map<String, dynamic>>>(
                         stream: GetIt.I<LocalDatabase>().watchExpense(DateTime.parse(formatForSearch.format(widget.selectedDate))),
                         builder: (context, snapshot) {
                           final numberFormat = NumberFormat('#,###');
@@ -61,8 +61,9 @@ class _ExpenseByDateState extends State<ExpenseByDate> {
                             );
                           }
 
-                          for(Expense e in data) {
-                            totalExpense += e.expense;
+                          for(var e in data) {
+                            final expense = e['expenses'] as Expense;
+                            totalExpense += expense.expense;
                           }
 
                           return Text(
@@ -80,7 +81,7 @@ class _ExpenseByDateState extends State<ExpenseByDate> {
               child: Container(
                 child: Padding(
                   padding: EdgeInsets.only(top: 0),
-                  child: StreamBuilder<List<Expense>> (
+                  child: StreamBuilder<List<Map<String, dynamic>>>(
                       stream: GetIt.I<LocalDatabase>().watchExpense(DateTime.parse(formatForSearch.format(widget.selectedDate))),
                       builder: (context, snapshot) {
                         if(!snapshot.hasData || snapshot.data!.isEmpty){
@@ -97,17 +98,20 @@ class _ExpenseByDateState extends State<ExpenseByDate> {
                         return ListView.builder(
                             itemCount: snapshot.data!.length,
                             itemBuilder: (context, index) {
+                              final expense = snapshot.data![index]['expenses'];
+                              final category = snapshot.data![index]['category'];
+
                               final expenseElement = snapshot.data![index];
                               return Padding(
                                 padding: EdgeInsets.only(top: 0, bottom: 15),
                                 child: Center(
                                   child: ExpenseCard(
-                                      expenseId: expenseElement.id,
-                                      category: expenseElement.category!,
-                                      expenseName: expenseElement.expenseName,
-                                      expense: expenseElement.expense,
-                                      expenseDate: expenseElement.expenseDate,
-                                      expenseDetail: expenseElement.expenseDetail!
+                                      expenseId: expense.id,
+                                      categoryId: expense.categoryId!,
+                                      expenseName: expense.expenseName,
+                                      expense: expense.expense,
+                                      expenseDate: expense.expenseDate,
+                                      expenseDetail: expense.expenseDetail!
                                   )
                                 ),
                               );

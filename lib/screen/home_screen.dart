@@ -25,38 +25,41 @@ class HomeScreen extends StatelessWidget {
             children: [
               Flexible(
                 flex: 10,
-                child: StreamBuilder<List<Expense>>(
+                child: StreamBuilder<List<Map<String, dynamic>>>(
                   stream: GetIt.I<LocalDatabase>().watchExpense(selectedDate),
                   builder: (context, snapshot) {
                     if(!snapshot.hasData || snapshot.data!.isEmpty){
                       return Center(
-                          child: Text(
-                            '지출 내역이 없습니다!',
-                            style: TextStyle(
-                              fontSize: 20.0,
-                              color: Color(0xFFD1D1D1),
-                            )
+                        child: Text(
+                          '지출 내역이 없습니다!',
+                          style: TextStyle(
+                            fontSize: 20.0,
+                            color: Color(0xFFD1D1D1),
                           )
+                        )
                       );
                     }
                     return ListView.builder(
-                        itemCount: snapshot.data!.length,
-                        itemBuilder: (context, index) {
-                          final expenseElement = snapshot.data![index];
-                          return Padding(
-                            padding: EdgeInsets.only(top: 10),
-                            child: Center(
-                              child: ExpenseCard(
-                                  expenseId: expenseElement.id,
-                                  category: expenseElement.category!,
-                                  expenseName: expenseElement.expenseName,
-                                  expense: expenseElement.expense,
-                                  expenseDate: expenseElement.expenseDate,
-                                  expenseDetail: expenseElement.expenseDetail!
-                              )
-                            ),
-                          );
-                        }
+                      itemCount: snapshot.data!.length,
+                      itemBuilder: (context, index) {
+                        final expense = snapshot.data![index]['expenses'];
+                        final category = snapshot.data![index]['category'];
+                        // final expenseElement = snapshot.data![index];
+
+                        return Padding(
+                          padding: EdgeInsets.only(top: 10),
+                          child: Center(
+                            child: ExpenseCard(
+                              expenseId: expense.id,
+                              categoryId: expense.categoryId,
+                              expenseName: expense.expenseName,
+                              expense: expense.expense,
+                              expenseDate: expense.expenseDate,
+                              expenseDetail: expense.expenseDetail!
+                            )
+                          ),
+                        );
+                      }
                     );
                   }
                 )
@@ -71,9 +74,11 @@ class HomeScreen extends StatelessWidget {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Expanded(
-                          child: StreamBuilder <List<Expense>>(
+                          child: StreamBuilder<List<Map<String, dynamic>>>(
                             stream: GetIt.I<LocalDatabase>().watchExpense(selectedDate),
                             builder: (context, snapshot) {
+                              final expenses = snapshot.data;
+
                               return Text(
                                   '지출 : ${snapshot.data?.length ?? 0}건'
                               );
@@ -81,7 +86,7 @@ class HomeScreen extends StatelessWidget {
                           ),
                         ),
                         Expanded(
-                          child: StreamBuilder <List<Expense>>(
+                          child: StreamBuilder<List<Map<String, dynamic>>>(
                             stream: GetIt.I<LocalDatabase>().watchExpense(selectedDate),
                             builder: (context, snapshot) {
                               final numberFormatter = NumberFormat('#,###');
@@ -94,8 +99,9 @@ class HomeScreen extends StatelessWidget {
                                 );
                               }
 
-                              for(Expense e in data) {
-                                totalExpense += e.expense;
+                              for(var item in data) {
+                                final expense = item['expenses'] as Expense;
+                                totalExpense += expense.expense;
                               }
 
                               return Text(

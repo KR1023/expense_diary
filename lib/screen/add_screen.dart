@@ -5,6 +5,7 @@ import 'package:expense_diary/component/expense_screen_header.dart';
 import 'package:drift/drift.dart' hide Column;
 import 'package:get_it/get_it.dart';
 import 'package:expense_diary/database/drift_database.dart';
+import 'package:expense_diary/component/category_select.dart';
 
 class AddScreen extends StatefulWidget {
   @override
@@ -17,7 +18,7 @@ class _AddScreenState extends State<AddScreen> {
   String? expenseName;
   DateTime? expenseDate;
   int? expense;
-  String? category;
+  int? categoryId;
   String? detail;
 
   @override
@@ -78,17 +79,30 @@ class _AddScreenState extends State<AddScreen> {
                               },
                               validator: (String? val){},
                             ),
-                            const SizedBox(height: 25),
-                            LabelField(
-                              label: '분류',
-                              isDetail: false,
-                              isDate: false,
-                              isExpense: false,
-                              initValue: null,
-                              onSaved: (String? val){
-                                category = val!;
-                              },
-                              validator: (String? val){},
+                            const SizedBox(height: 40),
+                            // LabelField(
+                            //   label: '분류',
+                            //   isDetail: false,
+                            //   isDate: false,
+                            //   isExpense: false,
+                            //   initValue: null,
+                            //   onSaved: (String? val){
+                            //     print(val);
+                            //     if(val != null)
+                            //       categoryId = int.parse(val!);
+                            //   },
+                            //   validator: (String? val){},
+                            // ),
+                            CategorySelect(
+                              onSavedCategory: (CategoryData? val){
+                                // categoryId = val;
+                                print('category:::${val}');
+                                if(val != null) {
+                                  categoryId = val.id;
+                                } else {
+                                  categoryId = null;
+                                }
+                              }
                             ),
                             const SizedBox(height: 25),
                             LabelField(
@@ -126,7 +140,7 @@ class _AddScreenState extends State<AddScreen> {
           expenseName: Value(expenseName!),
           expenseDate: Value(expenseDate!),
           expense: Value(expense!),
-          category: Value(category!),
+          categoryId: Value(categoryId!),
           expenseDetail: Value(detail!)
         )
       );

@@ -1,5 +1,6 @@
 import 'package:drift/drift.dart';
 import 'package:expense_diary/model/category_expense.dart';
+import 'package:expense_diary/model/category.dart';
 import 'package:expense_diary/model/expense.dart';
 import 'package:drift/native.dart';
 import 'package:intl/intl.dart';
@@ -12,16 +13,31 @@ part 'drift_database.g.dart';
 @DriftDatabase(
   tables: [
     Expenses,
+    Category
   ]
 )
 
 class LocalDatabase extends _$LocalDatabase {
   LocalDatabase(): super(_openConnection());
 
-  Stream<List<Expense>> watchExpense(DateTime selectedDate) => (
-      select(expenses)
-        ..where ((t) => t.expenseDate.equals(selectedDate))
-  ).watch();
+  // Expense
+  Stream<List<Map<String, dynamic>>> watchExpense(DateTime selectedDate) {
+    final query = select(expenses).join(
+        [
+          innerJoin(category, category.id.equalsExp(expenses.categoryId))
+        ]
+    )
+    ..where(expenses.expenseDate.equals(selectedDate));
+
+    return query.watch().map((rows) {
+      return rows.map((row) {
+        return {
+          'expenses': row.readTable(expenses),
+          'category': row.readTable(category)
+        };
+      }).toList();
+    });
+  }
 
   Stream<int> selectMonthExpense(DateTime selectedDate){
     int selectedMonth = selectedDate.month;
@@ -47,14 +63,17 @@ class LocalDatabase extends _$LocalDatabase {
     final end = DateTime(selectedDate.year, selectedDate.month + 1, 1);
 
     final query = selectOnly(expenses)
-      ..addColumns([expenses.category, expenses.expense.sum()])
+    .join([
+      innerJoin(category, category.id.equalsExp(expenses.categoryId))
+    ])
+      ..addColumns([category.categoryName, expenses.expense.sum()])
       ..where(expenses.expenseDate.isBetweenValues(start, end))
-      ..groupBy([expenses.category]);
+      ..groupBy([expenses.categoryId]);
 
     return query.watch().map((rows) {
       return rows.map((row) {
         return CategoryExpense(
-          category: row.read<String>(expenses.category) ?? '미분류',
+          category: row.read<String>(category.categoryName) ?? '미분류',
           total: row.read<int>(expenses.expense.sum()) ?? 0,
         );
       }).toList();
@@ -71,11 +90,18 @@ class LocalDatabase extends _$LocalDatabase {
           expenseName: Value(data.expenseName),
           expenseDate: Value(data.expenseDate),
           expense: Value(data.expense),
-          category: Value(data.category),
+          categoryId: Value(data.categoryId),
           expenseDetail: Value(data.expenseDetail)
         ));
 
   Future<int> removeExpense(int id) => (delete(expenses)..where((t) => t.id.equals(id))).go();
+
+  // Category
+  Future<int> addCategory(CategoryCompanion data) => into(category).insert(data);
+
+  Stream<List<CategoryData>> watchCategory() => (select(category)).watch();
+
+
 
   @override
   int get schemaVersion => 1;

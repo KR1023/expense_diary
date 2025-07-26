@@ -2,6 +2,7 @@ import 'package:expense_diary/screen/calendar_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:expense_diary/screen/home_screen.dart';
 import 'package:expense_diary/screen/calendar_screen.dart';
+import 'package:expense_diary/screen/category_screen.dart';
 
 class RootScreen extends StatefulWidget {
 
@@ -17,6 +18,7 @@ class _RootScreenState extends State<RootScreen>{
   final List<Widget> _screens = [
     HomeScreen(),
     CalendarScreen(),
+    CategoryScreen(),
     Center(child:Text("설정"))
   ];
 
@@ -39,6 +41,7 @@ class _RootScreenState extends State<RootScreen>{
 
   BottomNavigationBar renderBottomNavigation(){
     return BottomNavigationBar(
+      type: BottomNavigationBarType.fixed,
       currentIndex: _selectedIndex,
       onTap: _onItemTapped,
       items: [
@@ -53,6 +56,12 @@ class _RootScreenState extends State<RootScreen>{
                 Icons.list_alt
             ),
             label: '지출 내역'
+        ),
+        BottomNavigationBarItem(
+          icon: Icon(
+            Icons.topic
+          ),
+          label: '분류'
         ),
         BottomNavigationBarItem(
             icon: Icon(

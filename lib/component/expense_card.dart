@@ -4,7 +4,7 @@ import 'package:expense_diary/screen/detail_screen.dart';
 
 class ExpenseCard extends StatelessWidget {
   final int expenseId;
-  final String category;
+  final int categoryId;
   final String expenseName;
   final int expense;
   final DateTime expenseDate;
@@ -12,7 +12,7 @@ class ExpenseCard extends StatelessWidget {
 
   const ExpenseCard({
     required this.expenseId,
-    required this.category,
+    required this.categoryId,
     required this.expenseName,
     required this.expense,
     required this.expenseDate,
@@ -32,7 +32,7 @@ class ExpenseCard extends StatelessWidget {
               expenseId: expenseId,
               expenseName: expenseName,
               expenseDate: expenseDate,
-              category: category,
+              categoryId: categoryId,
               expense: expense,
               detail: expenseDetail,
             ))
@@ -65,7 +65,7 @@ class ExpenseCard extends StatelessWidget {
                 child: Container(
                   width: double.infinity,
                   child: Text(
-                    category,
+                    categoryId.toString(),
                     textAlign: TextAlign.center,
                     overflow: TextOverflow.ellipsis,
                     maxLines: 1,

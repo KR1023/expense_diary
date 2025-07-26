@@ -11,7 +11,7 @@ class DetailScreen extends StatefulWidget {
   final String expenseName;
   final DateTime expenseDate;
   final int expense;
-  final String category;
+  final int categoryId;
   final String detail;
 
 
@@ -20,7 +20,7 @@ class DetailScreen extends StatefulWidget {
     required this.expenseName,
     required this.expenseDate,
     required this.expense,
-    required this.category,
+    required this.categoryId,
     required this.detail
   });
 
@@ -35,7 +35,7 @@ class _DetailScreenState extends State<DetailScreen> {
   String? expenseName;
   DateTime? expenseDate;
   int? expense;
-  String? category;
+  int? categoryId;
   String? detail;
 
   @override
@@ -44,7 +44,7 @@ class _DetailScreenState extends State<DetailScreen> {
     expenseName = widget.expenseName;
     expenseDate = widget.expenseDate;
     expense = widget.expense;
-    category = widget.category;
+    categoryId = widget.categoryId;
     detail = widget.detail;
 
     super.initState();
@@ -110,17 +110,17 @@ class _DetailScreenState extends State<DetailScreen> {
                               validator: (String? val){},
                             ),
                             const SizedBox(height: 25),
-                            LabelField(
-                              label: '분류',
-                              isDetail: false,
-                              isDate: false,
-                              isExpense: false,
-                              initValue: category,
-                              onSaved: (String? val){
-                                category = val!;
-                              },
-                              validator: (String? val){},
-                            ),
+                            // LabelField(
+                            //   label: '분류',
+                            //   isDetail: false,
+                            //   isDate: false,
+                            //   isExpense: false,
+                            //   initValue: categoryId,
+                            //   onSaved: (String? val){
+                            //     categoryId = int.parse(val!);
+                            //   },
+                            //   validator: (String? val){},
+                            // ),
                             const SizedBox(height: 25),
                             LabelField(
                               label: '지출상세내용',
@@ -155,7 +155,7 @@ class _DetailScreenState extends State<DetailScreen> {
       print(expenseName);
       print(expenseDate);
       print(expense);
-      print(category);
+      // print(categoryName);
       print(detail);
 
       await GetIt.I<LocalDatabase>().updateExpense(
@@ -164,7 +164,7 @@ class _DetailScreenState extends State<DetailScreen> {
           expenseName: expenseName!,
           expenseDate: expenseDate!,
           expense: expense!,
-          category: category!,
+          categoryId: categoryId!,
           expenseDetail: detail!,
         )
       );
