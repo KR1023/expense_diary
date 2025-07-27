@@ -4,11 +4,16 @@ import 'package:drift/drift.dart' hide Column;
 import 'package:expense_diary/database/drift_database.dart';
 import 'package:get_it/get_it.dart';
 
-class CategoryScreen extends StatelessWidget {
+class CategoryScreen extends StatefulWidget {
+
+  @override
+  State<StatefulWidget> createState() => CategoryScreenState();
+
+}
+
+class CategoryScreenState extends State<CategoryScreen> {
   @override
   Widget build(BuildContext context) {
-
-
     return SafeArea(
       child: Column(
         children: [
@@ -76,26 +81,45 @@ class CategoryScreen extends StatelessWidget {
           SizedBox(height: 10),
           Expanded(
             child: StreamBuilder(
-                stream: GetIt.I<LocalDatabase>().watchCategory(),
-                builder: (context, snapshot) {
-                  print(snapshot.data);
-                  if(!snapshot.hasData) {
-                    return Center(
-                        child: Text(
-                            '등록된 분류 항목이 없습니다.'
-                        )
-                    );
-                  }
-
-                  return ListView.builder(
-                    itemCount: snapshot.data!.length,
-                    itemBuilder: (context, index) {
-                      final category = snapshot.data![index];
-
-                      return Text(category.categoryName);
-                    }
+              stream: GetIt.I<LocalDatabase>().watchCategory(),
+              builder: (context, snapshot) {
+                print(snapshot.data);
+                if(!snapshot.hasData) {
+                  return Center(
+                      child: Text(
+                          '등록된 분류 항목이 없습니다.'
+                      )
                   );
                 }
+
+                return ListView.builder(
+                  itemCount: snapshot.data!.length,
+                  itemBuilder: (context, index) {
+                    final category = snapshot.data![index];
+
+                    return Container(
+                      width: MediaQuery.of(context).size.width - 10,
+                      height: 45,
+                      decoration: BoxDecoration(
+                        border: Border(
+                          bottom: BorderSide(
+                            color: Color(0xFFC8C8C8)
+                          )
+                        )
+                      ),
+                      child: Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                        child: Text(
+                          category.categoryName,
+                          style: TextStyle(
+                            fontSize: 20
+                          )
+                        ),
+                      )
+                    );
+                  }
+                );
+              }
             )
           )
         ]

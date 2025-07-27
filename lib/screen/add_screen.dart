@@ -140,7 +140,7 @@ class _AddScreenState extends State<AddScreen> {
           expenseName: Value(expenseName!),
           expenseDate: Value(expenseDate!),
           expense: Value(expense!),
-          categoryId: Value(categoryId!),
+          categoryId: Value(categoryId != null ? categoryId! : null),
           expenseDetail: Value(detail!)
         )
       );

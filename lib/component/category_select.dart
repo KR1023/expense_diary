@@ -4,15 +4,14 @@ import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
 
 class CategorySelect extends StatefulWidget {
-  int? categoryId;
   String? categoryName;
   CategoryData? selectedValue;
   final FormFieldSetter<CategoryData> onSavedCategory;
 
 
   CategorySelect({
-    this.categoryId,
     this.categoryName,
+    this.selectedValue,
     required this.onSavedCategory
   });
 
@@ -21,6 +20,15 @@ class CategorySelect extends StatefulWidget {
 }
 
 class _CategorySelectState extends State<CategorySelect> {
+
+  @override
+  void initState() {
+    super.initState();
+    if(widget.selectedValue != null){
+      widget.selectedValue = widget.selectedValue;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<List<CategoryData>>(

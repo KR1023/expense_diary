@@ -18,7 +18,7 @@ class ExpenseByCategory extends StatelessWidget {
         Padding(
           padding: EdgeInsets.symmetric(horizontal: 20),
           child: Text(
-            '카테고리별 지출',
+            '분류별 지출',
             style: TextStyle(
               fontWeight: FontWeight.w600,
               fontSize: 22
@@ -30,7 +30,7 @@ class ExpenseByCategory extends StatelessWidget {
           stream: GetIt.I<LocalDatabase>().watchMonthlyCategoryExpense(selectedDate),
           builder: (context, snapshot){
             print(snapshot.data);
-            if(!snapshot.hasData) {
+            if(!snapshot.hasData || snapshot.data?.length == 0) {
               return Text(
                 "지출이 없습니다!"
               );
@@ -41,6 +41,7 @@ class ExpenseByCategory extends StatelessWidget {
                 itemCount: snapshot.data!.length,
                 itemBuilder: (context, index) {
                   final data = snapshot.data![index];
+                  print('category data ::: ${data.category}');
                   String category;
                   if(data.category != '')
                     category = data.category;

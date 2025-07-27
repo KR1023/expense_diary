@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:expense_diary/component/label_field.dart';
 import 'package:expense_diary/component/expense_screen_header.dart';
+import 'package:expense_diary/component/category_select.dart';
 import 'package:drift/drift.dart' hide Column;
 import 'package:get_it/get_it.dart';
 import 'package:expense_diary/database/drift_database.dart';
@@ -11,7 +12,7 @@ class DetailScreen extends StatefulWidget {
   final String expenseName;
   final DateTime expenseDate;
   final int expense;
-  final int categoryId;
+  final CategoryData? category;
   final String detail;
 
 
@@ -20,7 +21,7 @@ class DetailScreen extends StatefulWidget {
     required this.expenseName,
     required this.expenseDate,
     required this.expense,
-    required this.categoryId,
+    this.category,
     required this.detail
   });
 
@@ -36,6 +37,7 @@ class _DetailScreenState extends State<DetailScreen> {
   DateTime? expenseDate;
   int? expense;
   int? categoryId;
+  CategoryData? category;
   String? detail;
 
   @override
@@ -44,7 +46,8 @@ class _DetailScreenState extends State<DetailScreen> {
     expenseName = widget.expenseName;
     expenseDate = widget.expenseDate;
     expense = widget.expense;
-    categoryId = widget.categoryId;
+    categoryId = widget.category != null ? widget.category!.id : null;
+    category = widget.category != null ? widget.category : null;
     detail = widget.detail;
 
     super.initState();
@@ -121,6 +124,16 @@ class _DetailScreenState extends State<DetailScreen> {
                             //   },
                             //   validator: (String? val){},
                             // ),
+                            CategorySelect(
+                              selectedValue: category,
+                              onSavedCategory: (CategoryData? val){
+                                if(val != null) {
+                                  categoryId = val.id;
+                                } else {
+                                  categoryId = null;
+                                }
+                              }
+                            ),
                             const SizedBox(height: 25),
                             LabelField(
                               label: '지출상세내용',
@@ -152,11 +165,11 @@ class _DetailScreenState extends State<DetailScreen> {
     if(formKey.currentState!.validate()) {
       formKey.currentState!.save();
 
-      print(expenseName);
-      print(expenseDate);
-      print(expense);
-      // print(categoryName);
-      print(detail);
+      print('expenseName ::: ${expenseName}');
+      print('expenseDate ::: ${expenseDate}');
+      print('expense ::: ${expense}');
+      print('categoryId ::: ${categoryId}');
+      print('detail ::: ${detail}');
 
       await GetIt.I<LocalDatabase>().updateExpense(
         Expense(

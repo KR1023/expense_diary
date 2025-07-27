@@ -22,18 +22,19 @@ class LocalDatabase extends _$LocalDatabase {
 
   // Expense
   Stream<List<Map<String, dynamic>>> watchExpense(DateTime selectedDate) {
-    final query = select(expenses).join(
-        [
-          innerJoin(category, category.id.equalsExp(expenses.categoryId))
-        ]
-    )
-    ..where(expenses.expenseDate.equals(selectedDate));
+    final query = select(expenses)
+      .join([
+        leftOuterJoin(category, category.id.equalsExp(expenses.categoryId))
+      ])
+      ..where(expenses.expenseDate.equals(selectedDate));
 
     return query.watch().map((rows) {
       return rows.map((row) {
+        final expense = row.readTable(expenses);
+        final cat = row.readTableOrNull(category);
         return {
-          'expenses': row.readTable(expenses),
-          'category': row.readTable(category)
+          'expenses': expense,
+          'category': cat
         };
       }).toList();
     });
@@ -64,7 +65,7 @@ class LocalDatabase extends _$LocalDatabase {
 
     final query = selectOnly(expenses)
     .join([
-      innerJoin(category, category.id.equalsExp(expenses.categoryId))
+      leftOuterJoin(category, category.id.equalsExp(expenses.categoryId))
     ])
       ..addColumns([category.categoryName, expenses.expense.sum()])
       ..where(expenses.expenseDate.isBetweenValues(start, end))
@@ -90,7 +91,7 @@ class LocalDatabase extends _$LocalDatabase {
           expenseName: Value(data.expenseName),
           expenseDate: Value(data.expenseDate),
           expense: Value(data.expense),
-          categoryId: Value(data.categoryId),
+          categoryId: Value(data.categoryId != null ? data.categoryId : null),
           expenseDetail: Value(data.expenseDetail)
         ));
 
