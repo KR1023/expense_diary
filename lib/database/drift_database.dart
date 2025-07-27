@@ -102,7 +102,25 @@ class LocalDatabase extends _$LocalDatabase {
 
   Stream<List<CategoryData>> watchCategory() => (select(category)).watch();
 
+  Future<int> updateCategory(CategoryData data) =>
+      (update(category)..where(
+          (t) => t.id.equals(data.id)
+      )).write(
+        CategoryCompanion(
+          categoryName: Value(data.categoryName)
+      ));
 
+  Future<int> deleteCategory(int id) => (delete(category)..where((t) => t.id.equals(id))).go();
+
+  Future<int> countExpensesByCategory(int categoryId) async {
+    final countExpense = expenses.id.count();
+    final query = selectOnly(expenses)
+      ..addColumns([countExpense])
+      ..where(expenses.categoryId.equals(categoryId));
+
+    final result = await query.getSingle();
+    return result.read(countExpense) ?? 0;
+  }
 
   @override
   int get schemaVersion => 1;
