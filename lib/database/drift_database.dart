@@ -100,7 +100,16 @@ class LocalDatabase extends _$LocalDatabase {
   // Category
   Future<int> addCategory(CategoryCompanion data) => into(category).insert(data);
 
-  Stream<List<CategoryData>> watchCategory() => (select(category)).watch();
+  Stream<List<CategoryData>> watchCategory(String? keyword){
+      if(keyword != null && keyword != '') {
+        return
+          (select(category)
+            ..where((t) => t.categoryName.like('%$keyword%'))
+          ).watch();
+      } else {
+        return (select(category).watch());
+      }
+  }
 
   Future<int> updateCategory(CategoryData data) =>
       (update(category)..where(

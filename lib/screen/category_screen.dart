@@ -13,6 +13,25 @@ class CategoryScreen extends StatefulWidget {
 
 class CategoryScreenState extends State<CategoryScreen> {
   String? _errorText = null;
+  TextEditingController _inputCategoryController = TextEditingController();
+  String _keyword = '';
+
+
+  @override
+  void initState() {
+    super.initState();
+    _inputCategoryController.addListener(() {
+      setState(() {
+        _keyword = _inputCategoryController.text;
+      });
+    });
+  }
+
+  @override
+  void dispose() {
+    _inputCategoryController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -45,6 +64,7 @@ class CategoryScreenState extends State<CategoryScreen> {
             padding: EdgeInsets.symmetric(horizontal: 25, vertical: 10),
             child: Center(
               child: TextField(
+                controller: _inputCategoryController,
                 decoration: InputDecoration(
                   hintText: '검색',
                   hintStyle: TextStyle(
@@ -83,7 +103,7 @@ class CategoryScreenState extends State<CategoryScreen> {
           SizedBox(height: 10),
           Expanded(
             child: StreamBuilder(
-              stream: GetIt.I<LocalDatabase>().watchCategory(),
+              stream: GetIt.I<LocalDatabase>().watchCategory(_keyword.isEmpty ? null : _keyword),
               builder: (context, snapshot) {
                 print(snapshot.data);
                 if(!snapshot.hasData) {

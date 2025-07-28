@@ -32,7 +32,7 @@ class _CategorySelectState extends State<CategorySelect> {
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<List<CategoryData>>(
-      stream: GetIt.I<LocalDatabase>().watchCategory(),
+      stream: GetIt.I<LocalDatabase>().watchCategory(null),
       builder: (context, snapshot) {
         if(!snapshot.hasData) {
           return Container(
