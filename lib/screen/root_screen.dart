@@ -1,8 +1,8 @@
 import 'package:expense_diary/screen/calendar_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:expense_diary/screen/home_screen.dart';
-import 'package:expense_diary/screen/calendar_screen.dart';
 import 'package:expense_diary/screen/category_screen.dart';
+import 'package:expense_diary/screen/config_screen.dart';
 
 class RootScreen extends StatefulWidget {
 
@@ -19,7 +19,7 @@ class _RootScreenState extends State<RootScreen>{
     HomeScreen(),
     CalendarScreen(),
     CategoryScreen(),
-    Center(child:Text("설정"))
+    ConfigScreen()
   ];
 
   void _onItemTapped(int index) {
