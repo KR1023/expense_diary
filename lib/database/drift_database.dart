@@ -3,6 +3,7 @@ import 'package:expense_diary/model/category_expense.dart';
 import 'package:expense_diary/model/category.dart';
 import 'package:expense_diary/model/expense.dart';
 import 'package:drift/native.dart';
+import 'package:get_it/get_it.dart';
 import 'package:intl/intl.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
@@ -129,6 +130,15 @@ class LocalDatabase extends _$LocalDatabase {
 
     final result = await query.getSingle();
     return result.read(countExpense) ?? 0;
+  }
+
+  Future<void> deleteAllData() async {
+    final db = this;
+
+    await db.transaction(() async {
+      await db.delete(db.expenses).go();
+      await db.delete(db.category).go();
+    });
   }
 
   @override
