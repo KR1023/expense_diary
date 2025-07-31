@@ -86,7 +86,11 @@ class _LabelFieldState extends State<LabelField> {
                   fillColor: Color(0xFFFBFBFB),
                   suffixText: widget.isExpense ? '원' : '',
                   border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(7)
+                    borderRadius: BorderRadius.circular(7),
+                    borderSide: BorderSide(
+                      color: Color(0xFFDFDBDB),
+                      width: 2,
+                    )
                   ),
                   enabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(10),
@@ -104,8 +108,15 @@ class _LabelFieldState extends State<LabelField> {
                   ),
                   errorBorder: OutlineInputBorder(
                     borderSide: BorderSide(
-                        color: Color(0xFFF00),
+                        color: Color(0x66FF0000),
                         width: 2
+                    ),
+                    borderRadius: BorderRadius.circular(7)
+                  ),
+                  focusedErrorBorder: OutlineInputBorder(
+                    borderSide: BorderSide(
+                    color: Color(0x66FF0000),
+                    width: 2
                     ),
                     borderRadius: BorderRadius.circular(7)
                   )

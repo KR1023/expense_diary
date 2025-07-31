@@ -40,8 +40,8 @@ class ExpenseScreenHeader extends StatelessWidget {
               height: 29,
               child: OutlinedButton(
                   onPressed: () {
-                    onSavePressed();
-                    Navigator.pop(context);
+                    onSavePressed(context);
+                    // Navigator.pop(context);
                   },
                   style: OutlinedButton.styleFrom(
                       foregroundColor: Color(0xFFFFFFFF),

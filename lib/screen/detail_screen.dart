@@ -85,7 +85,13 @@ class _DetailScreenState extends State<DetailScreen> {
                               onSaved: (String? val){
                                 expenseName = val!;
                               },
-                              validator: (String? val){},
+                              validator: (String? val){
+                                if(val == '' || val == null){
+                                  return '지출명을 입력해 주세요.';
+                                } else {
+                                  return null;
+                                }
+                              },
                             ),
                             const SizedBox(height: 25),
                             LabelField(
@@ -110,7 +116,13 @@ class _DetailScreenState extends State<DetailScreen> {
                               onSaved: (String? val){
                                 expense = int.parse(val!);
                               },
-                              validator: (String? val){},
+                              validator: (String? val){
+                                if(val == '' || val == null){
+                                  return "금액을 입력해 주세요.";
+                                } else {
+                                  return null;
+                                }
+                              },
                             ),
                             const SizedBox(height: 25),
                             // LabelField(
@@ -161,15 +173,9 @@ class _DetailScreenState extends State<DetailScreen> {
     );
   }
 
-  void onSavePressed() async {
+  void onSavePressed(BuildContext context) async {
     if(formKey.currentState!.validate()) {
       formKey.currentState!.save();
-
-      print('expenseName ::: ${expenseName}');
-      print('expenseDate ::: ${expenseDate}');
-      print('expense ::: ${expense}');
-      print('categoryId ::: ${categoryId}');
-      print('detail ::: ${detail}');
 
       await GetIt.I<LocalDatabase>().updateExpense(
         Expense(
@@ -177,10 +183,12 @@ class _DetailScreenState extends State<DetailScreen> {
           expenseName: expenseName!,
           expenseDate: expenseDate!,
           expense: expense!,
-          categoryId: categoryId!,
+          categoryId: categoryId,
           expenseDetail: detail!,
         )
       );
+
+      Navigator.pop(context);
     }
   }
 }

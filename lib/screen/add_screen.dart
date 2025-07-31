@@ -52,7 +52,13 @@ class _AddScreenState extends State<AddScreen> {
                               onSaved: (String? val){
                                 expenseName = val!;
                               },
-                              validator: (String? val){},
+                              validator: (String? val){
+                                if(val == '' || val == null){
+                                  return '지출명을 입력해 주세요.';
+                                } else {
+                                  return null;
+                                }
+                              },
                             ),
                             const SizedBox(height: 25),
                             LabelField(
@@ -77,7 +83,13 @@ class _AddScreenState extends State<AddScreen> {
                               onSaved: (String? val){
                                 expense = int.parse(val!);
                               },
-                              validator: (String? val){},
+                              validator: (String? val){
+                                if(val == '' || val == null){
+                                  return "금액을 입력해 주세요.";
+                                } else {
+                                  return null;
+                                }
+                              },
                             ),
                             const SizedBox(height: 40),
                             // LabelField(
@@ -131,7 +143,7 @@ class _AddScreenState extends State<AddScreen> {
     );
   }
 
-  void onSavePressed() async {
+  void onSavePressed(BuildContext context) async {
     if(formKey.currentState!.validate()) {
       formKey.currentState!.save();
 
@@ -140,10 +152,12 @@ class _AddScreenState extends State<AddScreen> {
           expenseName: Value(expenseName!),
           expenseDate: Value(expenseDate!),
           expense: Value(expense!),
-          categoryId: Value(categoryId != null ? categoryId! : null),
+          categoryId: Value(categoryId),
           expenseDetail: Value(detail!)
         )
       );
+
+      Navigator.pop(context);
     }
   }
 
