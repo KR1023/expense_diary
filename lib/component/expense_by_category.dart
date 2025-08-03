@@ -29,7 +29,6 @@ class ExpenseByCategory extends StatelessWidget {
         StreamBuilder<List<CategoryExpense>>(
           stream: GetIt.I<LocalDatabase>().watchMonthlyCategoryExpense(selectedDate),
           builder: (context, snapshot){
-            print(snapshot.data);
             if(!snapshot.hasData || snapshot.data?.length == 0) {
               return SizedBox(
                 height: MediaQuery.of(context).size.height / 5,
@@ -55,7 +54,6 @@ class ExpenseByCategory extends StatelessWidget {
                 itemCount: snapshot.data!.length,
                 itemBuilder: (context, index) {
                   final data = snapshot.data![index];
-                  print('category data ::: ${data.category}');
                   String category;
                   if(data.category != '')
                     category = data.category;

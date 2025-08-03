@@ -154,8 +154,6 @@ class _LabelFieldState extends State<LabelField> {
         _textController.text = pickedDate.toString().split(' ')[0];
       }
     }
-
-    print('pickedDate: ${pickedDate}');
   }
 
 }

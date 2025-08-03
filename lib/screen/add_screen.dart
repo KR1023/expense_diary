@@ -92,23 +92,9 @@ class _AddScreenState extends State<AddScreen> {
                               },
                             ),
                             const SizedBox(height: 40),
-                            // LabelField(
-                            //   label: '분류',
-                            //   isDetail: false,
-                            //   isDate: false,
-                            //   isExpense: false,
-                            //   initValue: null,
-                            //   onSaved: (String? val){
-                            //     print(val);
-                            //     if(val != null)
-                            //       categoryId = int.parse(val!);
-                            //   },
-                            //   validator: (String? val){},
-                            // ),
                             CategorySelect(
                               onSavedCategory: (CategoryData? val){
                                 // categoryId = val;
-                                print('category:::${val}');
                                 if(val != null) {
                                   categoryId = val.id;
                                 } else {

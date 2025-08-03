@@ -15,7 +15,6 @@ class ConfigScreen extends StatelessWidget{
           ),
           TextButton(
             onPressed: (){
-              print('초기화');
               initConfirmDialog(context);
             },
             style: TextButton.styleFrom(

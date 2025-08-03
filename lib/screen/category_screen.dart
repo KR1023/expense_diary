@@ -55,7 +55,6 @@ class CategoryScreenState extends State<CategoryScreen> {
               IconButton(
                 icon: Icon(Icons.add),
                 onPressed: () {
-                  print('Clicked Button!');
                   _showInputDialog(context);
                 }
               )
@@ -106,7 +105,6 @@ class CategoryScreenState extends State<CategoryScreen> {
             child: StreamBuilder(
               stream: GetIt.I<LocalDatabase>().watchCategory(_keyword.isEmpty ? null : _keyword),
               builder: (context, snapshot) {
-                print(snapshot.data);
                 if(!snapshot.hasData || snapshot.data!.length == 0) {
                   return Center(
                       child: Text(
@@ -153,7 +151,6 @@ class CategoryScreenState extends State<CategoryScreen> {
                                 icon: Icon(Icons.delete),
                                 highlightColor: Colors.transparent,
                                 onPressed: () async {
-                                  print('category id ::: ${category.id}');
                                   int count = await GetIt.I<LocalDatabase>().countExpensesByCategory(category.id);
                                   if(count > 0) {
                                     _showAlertDialog(context, '관련 지출 항목이 있어 삭제할 수 없습니다.');
@@ -161,7 +158,6 @@ class CategoryScreenState extends State<CategoryScreen> {
                                   } else {
                                     GetIt.I<LocalDatabase>().deleteCategory(category.id);
                                   }
-                                  print(count);
                                 }
                               )
                             ]
@@ -298,7 +294,6 @@ class CategoryScreenState extends State<CategoryScreen> {
                                   )
                               );
                             }catch(e){
-                              print(e);
                               bool conflictName = e.toString().contains('2067');
                               if(conflictName){
                                 setState(() {
