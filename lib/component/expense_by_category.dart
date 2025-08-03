@@ -31,8 +31,22 @@ class ExpenseByCategory extends StatelessWidget {
           builder: (context, snapshot){
             print(snapshot.data);
             if(!snapshot.hasData || snapshot.data?.length == 0) {
-              return Text(
-                "지출이 없습니다!"
+              return SizedBox(
+                height: MediaQuery.of(context).size.height / 5,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Center(
+                        child: Text(
+                            "지출이 없습니다!",
+                          style: TextStyle(
+                            fontSize: 20.0,
+                            color: Color(0xFFD1D1D1),
+                          ),
+                        )
+                    )
+                  ],
+                )
               );
             }
 

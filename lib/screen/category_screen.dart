@@ -106,10 +106,14 @@ class CategoryScreenState extends State<CategoryScreen> {
               stream: GetIt.I<LocalDatabase>().watchCategory(_keyword.isEmpty ? null : _keyword),
               builder: (context, snapshot) {
                 print(snapshot.data);
-                if(!snapshot.hasData) {
+                if(!snapshot.hasData || snapshot.data!.length == 0) {
                   return Center(
                       child: Text(
-                        '등록된 분류 항목이 없습니다.'
+                        '등록된 분류 항목이 없습니다.',
+                        style: TextStyle(
+                          fontSize: 20.0,
+                          color: Color(0xFFD1D1D1),
+                        ),
                       )
                   );
                 }
