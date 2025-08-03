@@ -1,3 +1,4 @@
+import 'package:expense_diary/component/banner_ad_widget.dart';
 import 'package:expense_diary/model/category_expense.dart';
 import 'package:flutter/material.dart';
 import 'package:drift/drift.dart' hide Column;
@@ -173,7 +174,8 @@ class CategoryScreenState extends State<CategoryScreen> {
                 );
               }
             )
-          )
+          ),
+          BannerAdWidget()
         ]
       )
     );

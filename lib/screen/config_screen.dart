@@ -1,3 +1,4 @@
+import 'package:expense_diary/component/banner_ad_widget.dart';
 import 'package:expense_diary/database/drift_database.dart';
 import 'package:flutter/material.dart';
 import 'package:drift/drift.dart' hide Column;
@@ -32,7 +33,8 @@ class ConfigScreen extends StatelessWidget{
                 )
               )
             )
-          )
+          ),
+          BannerAdWidget()
         ],
       )
     );
@@ -61,7 +63,7 @@ class ConfigScreen extends StatelessWidget{
                 Navigator.of(context).pop();
               },
               child: Text('취소')
-            )
+            ),
           ]
         );
       }

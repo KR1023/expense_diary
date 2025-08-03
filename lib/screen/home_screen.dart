@@ -1,3 +1,4 @@
+import 'package:expense_diary/component/banner_ad_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:expense_diary/component/expense_card.dart';
 import 'package:expense_diary/screen/add_screen.dart';
@@ -23,6 +24,7 @@ class HomeScreen extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.start,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+              BannerAdWidget(),
               Flexible(
                 flex: 10,
                 child: StreamBuilder<List<Map<String, dynamic>>>(
