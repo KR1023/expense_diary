@@ -29,6 +29,8 @@ class _ExpenseCalendarState extends State<ExpenseCalendar> {
       firstDay: DateTime(1900, 1, 1),
       lastDay: DateTime(2999,12, 31),
       locale: 'ko_kr',
+      rowHeight: 48,
+      daysOfWeekHeight: 28,
       onDaySelected: widget.onTapDate,
       selectedDayPredicate: (DateTime day) {
         return
