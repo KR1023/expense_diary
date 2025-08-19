@@ -1,6 +1,7 @@
 import 'package:expense_diary/model/category_expense.dart';
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
+import 'package:intl/intl.dart';
 import 'package:expense_diary/database/drift_database.dart';
 
 class ExpenseByCategory extends StatelessWidget {
@@ -12,6 +13,8 @@ class ExpenseByCategory extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final numberFormatter = NumberFormat('#,###');
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -60,10 +63,37 @@ class ExpenseByCategory extends StatelessWidget {
                   else
                     category = '미분류';
 
-                  return ListTile(
-                      title: Text('${category}'),
-                      subtitle: Text('합계: ${data.total}원')
+                  return Container(
+                    width: MediaQuery.of(context).size.width,
+                    height: 50,
+                    child: Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 23),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                              '${category}',
+                              style: TextStyle(
+                                fontSize: 20,
+                                fontWeight: FontWeight.w500
+                              )
+                          ),
+                          Text(
+                            '${numberFormatter.format(data.total)} 원',
+                            style: TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.w400
+                            )
+                          )
+                        ],
+                      )
+                    )
+
                   );
+                  //   ListTile(
+                  //     title: Text('${category}'),
+                  //     subtitle: Text('합계: ${data.total}원')
+                  // );
                 }
               )
             );
