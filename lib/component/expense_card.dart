@@ -25,106 +25,79 @@ class ExpenseCard extends StatelessWidget {
     final numberFormatter = NumberFormat('#,###');
     final expenseDateFormat = DateFormat('yy.MM.dd');
 
-    return GestureDetector(
-      onTap: () {
-        Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => DetailScreen(
-              expenseId: expenseId,
-              expenseName: expenseName,
-              expenseDate: expenseDate,
-              category: category,
-              expense: expense,
-              detail: expenseDetail,
-            ))
-        );
-      },
-      child: Container(
-        width: MediaQuery.of(context).size.width * 0.9,
-        height: 85,
-        decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(8.0),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.1),
-                offset: Offset(2, 6),
-                blurRadius: 6,
-                spreadRadius: 1,
-              )
-            ],
-            border: Border.all(
-                color: Color(0xffebebeb),
-                width: 2.0
-            )
-        ),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            Flexible(
-                flex: 2,
-                child: Container(
-                  width: double.infinity,
-                  child: Text(
-                    category != null ? category!.categoryName : '미분류',
-                    textAlign: TextAlign.center,
+    return Card(
+      margin: EdgeInsets.zero,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(18),
+        onTap: () {
+          Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => DetailScreen(
+                expenseId: expenseId,
+                expenseName: expenseName,
+                expenseDate: expenseDate,
+                category: category,
+                expense: expense,
+                detail: expenseDetail,
+              ))
+          );
+        },
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.primary.withOpacity(0.08),
+                  borderRadius: BorderRadius.circular(999),
+                ),
+                child: Text(
+                  category != null ? category!.categoryName : '미분류',
+                  overflow: TextOverflow.ellipsis,
+                  maxLines: 1,
+                  style: Theme.of(context).textTheme.labelLarge,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  expenseName,
+                  overflow: TextOverflow.ellipsis,
+                  maxLines: 1,
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Text(
+                    '${numberFormatter.format(expense)}원',
                     overflow: TextOverflow.ellipsis,
                     maxLines: 1,
-                    style: TextStyle(
-                        fontSize: 16
-                    ),
+                    style: Theme.of(context)
+                        .textTheme
+                        .titleMedium
+                        ?.copyWith(fontWeight: FontWeight.w700),
                   ),
-                )
-            ),
-            Flexible(
-                flex:4,
-                child: Container(
-                  width: double.infinity,
-                  child: Text(
-                      expenseName,
-                      overflow: TextOverflow.ellipsis,
-                      maxLines: 1,
-                      style: TextStyle(
-                          fontSize: 28
-                      )
+                  const SizedBox(height: 4),
+                  Text(
+                    expenseDateFormat.format(expenseDate),
+                    overflow: TextOverflow.ellipsis,
+                    maxLines: 1,
+                    style: Theme.of(context)
+                        .textTheme
+                        .bodySmall
+                        ?.copyWith(color: Colors.grey.shade600),
                   ),
-                )
-            ),
-            Flexible(
-              flex: 4,
-              child: Container(
-                  width: double.infinity,
-                  child: Padding(
-                      padding: EdgeInsets.only(right: 20),
-                      child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          crossAxisAlignment: CrossAxisAlignment.end,
-                          children: [
-                            Text(
-                                '${numberFormatter.format(expense)}원',
-                                overflow: TextOverflow.ellipsis,
-                                maxLines: 1,
-                                style: TextStyle(
-                                    fontSize: 22
-                                )
-                            ),
-                            Text(
-                                expenseDateFormat.format(expenseDate),
-                                overflow: TextOverflow.ellipsis,
-                                maxLines: 1,
-                                style: TextStyle(
-                                    fontSize: 14
-                                )
-                            ),
-                          ]
-                      )
-                  )
-
+                ],
               ),
-            )
-          ]
-        )
-      )
+            ],
+          ),
+        ),
+      ),
     );
   }
 }

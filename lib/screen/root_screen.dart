@@ -31,48 +31,40 @@ class _RootScreenState extends State<RootScreen>{
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: SafeArea(
-        child: IndexedStack(
-          index: _selectedIndex,
-          children: _screens,
-        ),
+      body: IndexedStack(
+        index: _selectedIndex,
+        children: _screens,
       ),
       bottomNavigationBar: renderBottomNavigation(),
     );
   }
 
-  BottomNavigationBar renderBottomNavigation(){
-    return BottomNavigationBar(
-      type: BottomNavigationBarType.fixed,
-      currentIndex: _selectedIndex,
-      onTap: _onItemTapped,
-      items: [
-        BottomNavigationBarItem(
-            icon: Icon(
-                Icons.paid
-            ),
-            label: '지출'
+  Widget renderBottomNavigation(){
+    return NavigationBar(
+      selectedIndex: _selectedIndex,
+      onDestinationSelected: _onItemTapped,
+      destinations: const [
+        NavigationDestination(
+          icon: Icon(Icons.paid_outlined),
+          selectedIcon: Icon(Icons.paid),
+          label: '지출',
         ),
-        BottomNavigationBarItem(
-            icon: Icon(
-                Icons.list_alt
-            ),
-            label: '지출 내역'
+        NavigationDestination(
+          icon: Icon(Icons.calendar_today_outlined),
+          selectedIcon: Icon(Icons.calendar_today),
+          label: '지출 내역',
         ),
-        BottomNavigationBarItem(
-          icon: Icon(
-            Icons.topic
-          ),
-          label: '분류'
+        NavigationDestination(
+          icon: Icon(Icons.topic_outlined),
+          selectedIcon: Icon(Icons.topic),
+          label: '분류',
         ),
-        BottomNavigationBarItem(
-            icon: Icon(
-                Icons.settings
-            ),
-            label: '설정'
+        NavigationDestination(
+          icon: Icon(Icons.tune_outlined),
+          selectedIcon: Icon(Icons.tune),
+          label: '설정',
         ),
-      ]
+      ],
     );
   }
 }
-

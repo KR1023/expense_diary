@@ -82,57 +82,21 @@ class _LabelFieldState extends State<LabelField> {
                   FilteringTextInputFormatter.digitsOnly
                 ] : [],
                 decoration: InputDecoration(
-                  filled: true,
-                  fillColor: Color(0xFFFBFBFB),
                   suffixText: widget.isExpense ? '원' : '',
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(7),
-                    borderSide: BorderSide(
-                      color: Color(0xFFDFDBDB),
-                      width: 2,
-                    )
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
-                    borderSide: BorderSide(
-                        color: Color(0xFFDFDBDB),
-                        width: 2,
-                    )
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderSide: BorderSide(
-                        color: Color(0xFF9F9C9C),
-                        width: 2
-                    ),
-                    borderRadius: BorderRadius.circular(7)
-                  ),
-                  errorBorder: OutlineInputBorder(
-                    borderSide: BorderSide(
-                        color: Color(0x66FF0000),
-                        width: 2
-                    ),
-                    borderRadius: BorderRadius.circular(7)
-                  ),
-                  focusedErrorBorder: OutlineInputBorder(
-                    borderSide: BorderSide(
-                    color: Color(0x66FF0000),
-                    width: 2
-                    ),
-                    borderRadius: BorderRadius.circular(7)
-                  )
+                  suffixStyle: textTheme.labelLarge,
                 ),
                 maxLines: widget.isDetail ? null : 1,
               )
             ),
-            widget.isDate ? IconButton(
-              icon: Icon(Icons.calendar_month),
-              onPressed: (){
-                _expenseDate(context);
-              },
-            ) : Container(),
-            widget.isDate ? SizedBox(
-                width: MediaQuery.of(context).size.width * 0.25
-            ) : Container()
+            if (widget.isDate)
+              IconButton(
+                icon: Icon(Icons.calendar_month_outlined),
+                onPressed: () {
+                  _expenseDate(context);
+                },
+              ),
+            if (widget.isDate)
+              SizedBox(width: MediaQuery.of(context).size.width * 0.2),
           ],
         )
       ]
@@ -151,7 +115,7 @@ class _LabelFieldState extends State<LabelField> {
       final formattedDate = DateFormat('yyyy-MM-dd').format(pickedDate);
 
       if(widget.isDate) {
-        _textController.text = pickedDate.toString().split(' ')[0];
+        _textController.text = formattedDate;
       }
     }
   }

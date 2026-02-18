@@ -58,8 +58,14 @@ class _BannerAdWidgetState extends State<BannerAdWidget> {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      height: 75,
-      child: AdWidget(ad: banner) // 광고 위젯에 banner  변수 입력
+      height: 80,
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(16),
+        child: DecoratedBox(
+          decoration: BoxDecoration(color: Colors.white),
+          child: AdWidget(ad: banner),
+        ),
+      )
     );
   }
 }

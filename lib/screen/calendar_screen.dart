@@ -3,6 +3,8 @@ import 'package:expense_diary/component/calendar/expense_calendar.dart';
 import 'package:expense_diary/component/expense_by_date.dart';
 import 'package:expense_diary/component/expense_by_month.dart';
 import 'package:expense_diary/component/expense_by_category.dart';
+import 'package:expense_diary/component/common/app_background.dart';
+import 'package:expense_diary/const/app_colors.dart';
 
 class CalendarScreen extends StatefulWidget {
   @override
@@ -22,22 +24,47 @@ class _CalendarScreenState extends State<CalendarScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Padding(
-          padding: EdgeInsets.all(20),
-          child: Container(
-              child: ExpenseCalendar(selectedDate: selectedDate, onTapDate: onTapDate)
-          )
+    return Scaffold(
+      backgroundColor: Colors.transparent,
+      body: AppBackground(
+        padding: EdgeInsets.fromLTRB(20, 12, 20, 0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              '캘린더',
+              style: Theme.of(context).textTheme.titleLarge,
+            ),
+            Text(
+              '일별, 주별, 분류별로 지출을 확인하세요',
+              style: Theme.of(context)
+                  .textTheme
+                  .bodyMedium
+                  ?.copyWith(color: AppColors.muted),
+            ),
+            const SizedBox(height: 12),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: AppColors.surface,
+                borderRadius: BorderRadius.circular(18),
+                border: Border.all(color: AppColors.outline),
+              ),
+              child: ExpenseCalendar(
+                selectedDate: selectedDate,
+                onTapDate: onTapDate,
+              ),
+            ),
+            const SizedBox(height: 12),
+            Expanded(
+              child: PageView(
+                controller: _pageController,
+                children: PageViewChildren(),
+              ),
+            ),
+          ],
         ),
-        Expanded(
-          child: PageView(
-            controller: _pageController,
-            children: PageViewChildren()
-          )
-          // child: ExpenseByDate(selectedDate: selectedDate)
-        )
-      ],
+      ),
     );
   }
 

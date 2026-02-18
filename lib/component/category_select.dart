@@ -62,20 +62,6 @@ class _CategorySelectState extends State<CategorySelect> {
                 child: DropdownButtonFormField<CategoryData>(
                   decoration: InputDecoration(
                     labelText: '분류',
-                    enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(6),
-                        borderSide: BorderSide(
-                            color: Color(0xFF9F9C9C),
-                            width: 1.5
-                        )
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(6),
-                        borderSide: BorderSide(
-                            color: Color(0xFF9F9C9C),
-                            width: 1.5
-                        )
-                    )
                   ),
                   value: widget.selectedValue,
                   items: categories.map((category) {
@@ -131,4 +117,3 @@ class _CategorySelectState extends State<CategorySelect> {
     // );
   }
 }
-

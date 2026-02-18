@@ -1,5 +1,6 @@
 import 'package:table_calendar/table_calendar.dart';
 import 'package:flutter/material.dart';
+import 'package:expense_diary/const/app_colors.dart';
 
 class ExpenseCalendar extends StatefulWidget {
   DateTime selectedDate;
@@ -41,7 +42,41 @@ class _ExpenseCalendarState extends State<ExpenseCalendar> {
       headerStyle: HeaderStyle(
         titleCentered: true,
         formatButtonVisible: false,
-
+        leftChevronIcon: Icon(Icons.chevron_left, color: AppColors.muted),
+        rightChevronIcon: Icon(Icons.chevron_right, color: AppColors.muted),
+        titleTextStyle: Theme.of(context).textTheme.titleMedium ??
+            const TextStyle(color: AppColors.ink, fontWeight: FontWeight.w600),
+      ),
+      daysOfWeekStyle: DaysOfWeekStyle(
+        weekdayStyle: Theme.of(context)
+                .textTheme
+                .labelLarge
+                ?.copyWith(color: AppColors.muted) ??
+            const TextStyle(color: AppColors.muted),
+        weekendStyle: Theme.of(context)
+                .textTheme
+                .labelLarge
+                ?.copyWith(color: AppColors.muted) ??
+            const TextStyle(color: AppColors.muted),
+      ),
+      calendarStyle: CalendarStyle(
+        outsideDaysVisible: false,
+        defaultTextStyle: Theme.of(context).textTheme.bodyMedium!,
+        weekendTextStyle: Theme.of(context).textTheme.bodyMedium!,
+        todayTextStyle: Theme.of(context)
+            .textTheme
+            .bodyMedium!
+            .copyWith(color: AppColors.primary, fontWeight: FontWeight.w600),
+        selectedTextStyle:
+            Theme.of(context).textTheme.bodyMedium!.copyWith(color: Colors.white),
+        todayDecoration: BoxDecoration(
+          color: AppColors.primary.withOpacity(0.15),
+          shape: BoxShape.circle,
+        ),
+        selectedDecoration: BoxDecoration(
+          color: AppColors.primary,
+          shape: BoxShape.circle,
+        ),
       ),
     );
   }

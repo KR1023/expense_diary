@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
 import 'package:expense_diary/database/drift_database.dart';
 import 'package:intl/intl.dart';
+import 'package:expense_diary/const/app_colors.dart';
 
 class ExpenseByWeek extends StatelessWidget {
   final DateTime selectedDate;
@@ -59,67 +60,39 @@ class ExpenseByWeek extends StatelessWidget {
         Column(
           mainAxisAlignment: MainAxisAlignment.start,
           children: [
-            Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                      '1주차'
-                  ),
-                  getWeeklyExpenses(firstWeek.first, firstWeek.last)
-                ]
+            _WeekRow(
+              label: '1주차',
+              child: getWeeklyExpenses(firstWeek.first, firstWeek.last),
             ),
-            SizedBox(height: 5),
-            Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                      '2주차'
-                  ),
-                  getWeeklyExpenses(secondWeek.first, secondWeek.last)
-                ]
+            SizedBox(height: 8),
+            _WeekRow(
+              label: '2주차',
+              child: getWeeklyExpenses(secondWeek.first, secondWeek.last),
             ),
-            SizedBox(height: 5),
-            Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                      '3주차'
-                  ),
-                  getWeeklyExpenses(thirdWeek.first, thirdWeek.last)
-                ]
+            SizedBox(height: 8),
+            _WeekRow(
+              label: '3주차',
+              child: getWeeklyExpenses(thirdWeek.first, thirdWeek.last),
             ),
-            SizedBox(height: 5),
-            Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                      '4주차'
-                  ),
-                  getWeeklyExpenses(fourthWeek.first, fourthWeek.last)
-                ]
+            SizedBox(height: 8),
+            _WeekRow(
+              label: '4주차',
+              child: getWeeklyExpenses(fourthWeek.first, fourthWeek.last),
             ),
-            SizedBox(height: 5),
-            fifthWeek.length > 0 ?
-              Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                        '5주차'
-                    ),
-                    getWeeklyExpenses(fifthWeek.first, fifthWeek.last)
-                  ]
-              ) : Container(),
-            SizedBox(height: 5),
-            sixthWeek.length > 0 ?
-              Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                        '6주차'
-                    ),
-                    getWeeklyExpenses(sixthWeek.first, sixthWeek.last)
-                  ]
-              ) : Container()
+            SizedBox(height: 8),
+            fifthWeek.length > 0
+                ? _WeekRow(
+                    label: '5주차',
+                    child: getWeeklyExpenses(fifthWeek.first, fifthWeek.last),
+                  )
+                : Container(),
+            SizedBox(height: 8),
+            sixthWeek.length > 0
+                ? _WeekRow(
+                    label: '6주차',
+                    child: getWeeklyExpenses(sixthWeek.first, sixthWeek.last),
+                  )
+                : Container()
           ]
         )
       );
@@ -133,14 +106,51 @@ class ExpenseByWeek extends StatelessWidget {
       builder: (context, snapshot) {
         if(!snapshot.hasData){
           return Text(
-              '0원'
+              '0원',
+              style: Theme.of(context)
+                  .textTheme
+                  .bodyLarge
+                  ?.copyWith(color: AppColors.muted),
           );
         }
 
         return Text(
-          numberFormat.format(snapshot.data)
+          numberFormat.format(snapshot.data),
+          style: Theme.of(context).textTheme.bodyLarge,
         );
       }
+    );
+  }
+}
+
+class _WeekRow extends StatelessWidget {
+  final String label;
+  final Widget child;
+
+  const _WeekRow({
+    required this.label,
+    required this.child,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: AppColors.outline),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            label,
+            style: Theme.of(context).textTheme.bodyLarge,
+          ),
+          child,
+        ],
+      ),
     );
   }
 }

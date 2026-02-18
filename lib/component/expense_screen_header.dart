@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:expense_diary/database/drift_database.dart';
 import 'package:get_it/get_it.dart';
-import 'package:drift/drift.dart' hide Column;
 import 'package:expense_diary/component/common/toast.dart';
+import 'package:expense_diary/const/app_colors.dart';
 
 class ExpenseScreenHeader extends StatelessWidget {
   final bool isAdd;
@@ -19,58 +19,44 @@ class ExpenseScreenHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceAround,
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        BackButton(
+        IconButton(
           onPressed: () {
             Navigator.pop(context);
           },
+          icon: Icon(Icons.arrow_back),
         ),
-        Text(
+        Expanded(
+          child: Text(
             isAdd ? '지출 내역 추가' : '지출 내역 상세',
-            style: TextStyle(
-                fontSize: 16.0
-            )
+            textAlign: TextAlign.center,
+            style: Theme.of(context).textTheme.titleMedium,
+          ),
         ),
         Row(
           children: [
-            SizedBox(
-              width: 40,
-              height: 29,
-              child: OutlinedButton(
-                  onPressed: () {
-                    onSavePressed(context);
-                    // Navigator.pop(context);
-                  },
-                  style: OutlinedButton.styleFrom(
-                      foregroundColor: Color(0xFFFFFFFF),
-                      backgroundColor: Color(0x9958D68D),
-                      padding: EdgeInsets.symmetric(horizontal: 0, vertical: 0),
-                      minimumSize: Size(0, 0),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(6),
-                      ),
-                      side: BorderSide(
-                          color: Color(0xFFFFF)
-                      )
-                  ),
-                  child: Text(
-                      '+',
-                      style: TextStyle(
-                          fontSize: 20.0
-                      )
-                  )
+            FilledButton(
+              onPressed: () {
+                onSavePressed(context);
+              },
+              style: FilledButton.styleFrom(
+                padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
               ),
+              child: Text(isAdd ? '추가' : '저장'),
             ),
-            isAdd ? Container() :
-            IconButton(
-                onPressed: (){
+            if (!isAdd)
+              IconButton(
+                onPressed: () {
                   onDeletePressed(context, id!);
                 },
-                icon: Icon(Icons.delete)
-            )
-          ]
+                icon: Icon(Icons.delete_outline),
+              ),
+          ],
         )
 
       ],
@@ -78,26 +64,33 @@ class ExpenseScreenHeader extends StatelessWidget {
   }
 
   void onDeletePressed(BuildContext context, int id) async {
-    bool? selected = await showDialog<bool>(
+    await showDialog<bool>(
       context: context,
       barrierDismissible: false,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text('삭제'),
+          title: Row(
+            children: [
+              Icon(Icons.warning_amber_rounded, color: AppColors.danger),
+              SizedBox(width: 8),
+              Text('삭제'),
+            ],
+          ),
           content: Text('정말 삭제하시겠습니까?'),
           actions: [
-            TextButton(
+            OutlinedButton(
               child: Text('취소'),
               onPressed:() {
                 Navigator.of(context).pop(false);
               }
             ),
-            TextButton(
+            FilledButton(
+              style: FilledButton.styleFrom(
+                backgroundColor: AppColors.danger,
+                foregroundColor: Colors.white,
+              ),
               child: Text(
-                '삭제',
-                style: TextStyle(
-                  color: Colors.red
-                )
+                '삭제'
               ),
               onPressed: () async {
                 try{
