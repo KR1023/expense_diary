@@ -122,16 +122,16 @@ class _AddScreenState extends State<AddScreen> {
                             width: double.infinity,
                             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
                             decoration: BoxDecoration(
-                              color: AppColors.surfaceAlt,
+                              color: AppColors.surfaceAltOf(context),
                               borderRadius: BorderRadius.circular(12),
-                              border: Border.all(color: AppColors.outline),
+                              border: Border.all(color: AppColors.outlineOf(context)),
                             ),
                             child: Text(
                               '저장 후에는 홈에서 바로 확인할 수 있어요.',
                               style: Theme.of(context)
                                   .textTheme
                                   .bodySmall
-                                  ?.copyWith(color: AppColors.muted),
+                                  ?.copyWith(color: AppColors.mutedOf(context)),
                             ),
                           ),
                         ],

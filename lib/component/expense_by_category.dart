@@ -41,7 +41,7 @@ class ExpenseByCategory extends StatelessWidget {
                             "지출이 없습니다!",
                           style: TextStyle(
                             fontSize: 20.0,
-                            color: AppColors.muted,
+                            color: AppColors.mutedOf(context),
                           ),
                         )
                     )
@@ -67,9 +67,9 @@ class ExpenseByCategory extends StatelessWidget {
                     child: Container(
                       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
                       decoration: BoxDecoration(
-                        color: AppColors.surface,
+                        color: AppColors.surfaceOf(context),
                         borderRadius: BorderRadius.circular(14),
-                        border: Border.all(color: AppColors.outline),
+                        border: Border.all(color: AppColors.outlineOf(context)),
                       ),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,

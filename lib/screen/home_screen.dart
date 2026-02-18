@@ -36,7 +36,7 @@ class HomeScreen extends StatelessWidget {
               style: Theme.of(context)
                   .textTheme
                   .bodyMedium
-                  ?.copyWith(color: AppColors.muted),
+                  ?.copyWith(color: AppColors.mutedOf(context)),
             ),
             const SizedBox(height: 16),
             StreamBuilder<int>(
@@ -48,11 +48,11 @@ class HomeScreen extends StatelessWidget {
                   width: double.infinity,
                   padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
                   decoration: BoxDecoration(
-                    gradient: AppColors.heroGradient,
+                    gradient: AppColors.heroGradientOf(context),
                     borderRadius: BorderRadius.circular(20),
                     boxShadow: [
                       BoxShadow(
-                        color: AppColors.primary.withOpacity(0.25),
+                        color: AppColors.primary.withValues(alpha: 0.25),
                         blurRadius: 18,
                         offset: Offset(0, 12),
                       )
@@ -82,7 +82,7 @@ class HomeScreen extends StatelessWidget {
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                         decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.18),
+                          color: Colors.white.withValues(alpha: 0.18),
                           borderRadius: BorderRadius.circular(999),
                         ),
                         child: Row(
@@ -123,7 +123,7 @@ class HomeScreen extends StatelessWidget {
                         style: Theme.of(context)
                             .textTheme
                             .bodyLarge
-                            ?.copyWith(color: AppColors.muted),
+                            ?.copyWith(color: AppColors.mutedOf(context)),
                       ),
                     );
                   }

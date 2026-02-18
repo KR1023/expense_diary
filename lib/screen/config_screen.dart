@@ -24,7 +24,7 @@ class ConfigScreen extends StatelessWidget{
               style: Theme.of(context)
                   .textTheme
                   .bodyMedium
-                  ?.copyWith(color: AppColors.muted),
+                  ?.copyWith(color: AppColors.mutedOf(context)),
             ),
             const SizedBox(height: 16),
             Card(

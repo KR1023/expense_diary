@@ -34,8 +34,8 @@ class _ExpenseByDateState extends State<ExpenseByDate> {
               width: double.infinity,
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
               decoration: BoxDecoration(
-                color: AppColors.surface,
-                border: Border.all(color: AppColors.outline, width: 1),
+                color: AppColors.surfaceOf(context),
+                border: Border.all(color: AppColors.outlineOf(context), width: 1),
                 borderRadius: BorderRadius.circular(14),
               ),
               child: Row(
@@ -60,7 +60,7 @@ class _ExpenseByDateState extends State<ExpenseByDate> {
                           style: Theme.of(context)
                               .textTheme
                               .bodyMedium
-                              ?.copyWith(color: AppColors.muted),
+                              ?.copyWith(color: AppColors.mutedOf(context)),
                         );
                       }
 
@@ -93,7 +93,7 @@ class _ExpenseByDateState extends State<ExpenseByDate> {
                                   '지출 내역이 없습니다!',
                                   style: TextStyle(
                                     fontSize: 20.0,
-                                    color: AppColors.muted,
+                                    color: AppColors.mutedOf(context),
                                   )
                               )
                           );

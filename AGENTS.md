@@ -57,3 +57,7 @@ dart run flutter_native_splash:create
 
 ## Generated Files
 - `lib/database/drift_database.g.dart` is generated. Do not edit manually.
+
+## 커밋과 푸시
+- "커밋/푸시" 를 입력하면 현재까지 진행한 사항을 커밋하고 푸시합니다.
+- remote는 origin의 main입니다.

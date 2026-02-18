@@ -79,7 +79,7 @@ class CategoryScreenState extends State<CategoryScreen> {
                           style: Theme.of(context)
                               .textTheme
                               .bodyLarge
-                              ?.copyWith(color: AppColors.muted),
+                              ?.copyWith(color: AppColors.mutedOf(context)),
                         )
                     );
                   }

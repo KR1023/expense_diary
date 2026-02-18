@@ -3,7 +3,6 @@ import 'package:intl/intl.dart';
 import 'package:expense_diary/component/label_field.dart';
 import 'package:expense_diary/component/expense_screen_header.dart';
 import 'package:expense_diary/component/category_select.dart';
-import 'package:drift/drift.dart' hide Column;
 import 'package:get_it/get_it.dart';
 import 'package:expense_diary/database/drift_database.dart';
 import 'package:expense_diary/component/common/app_background.dart';
@@ -155,16 +154,16 @@ class _DetailScreenState extends State<DetailScreen> {
                             width: double.infinity,
                             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
                             decoration: BoxDecoration(
-                              color: AppColors.surfaceAlt,
+                              color: AppColors.surfaceAltOf(context),
                               borderRadius: BorderRadius.circular(12),
-                              border: Border.all(color: AppColors.outline),
+                              border: Border.all(color: AppColors.outlineOf(context)),
                             ),
                             child: Text(
                               '수정 사항은 저장 버튼을 눌러 반영됩니다.',
                               style: Theme.of(context)
                                   .textTheme
                                   .bodySmall
-                                  ?.copyWith(color: AppColors.muted),
+                                  ?.copyWith(color: AppColors.mutedOf(context)),
                             ),
                           ),
                         ],

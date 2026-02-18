@@ -2,6 +2,7 @@ import 'package:expense_diary/database/drift_database.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:expense_diary/screen/detail_screen.dart';
+import 'package:expense_diary/const/app_colors.dart';
 
 class ExpenseCard extends StatelessWidget {
   final int expenseId;
@@ -24,6 +25,7 @@ class ExpenseCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final numberFormatter = NumberFormat('#,###');
     final expenseDateFormat = DateFormat('yy.MM.dd');
+    final isDark = AppColors.isDark(context);
 
     return Card(
       margin: EdgeInsets.zero,
@@ -50,7 +52,14 @@ class ExpenseCard extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                 decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.primary.withOpacity(0.08),
+                  color: Theme.of(context).colorScheme.primary.withValues(
+                        alpha: isDark ? 0.24 : 0.08,
+                      ),
+                  border: Border.all(
+                    color: Theme.of(context).colorScheme.primary.withValues(
+                          alpha: isDark ? 0.42 : 0.15,
+                        ),
+                  ),
                   borderRadius: BorderRadius.circular(999),
                 ),
                 child: Text(

@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:expense_diary/screen/root_screen.dart';
-import 'package:expense_diary/screen/home_screen.dart';
 import 'package:expense_diary/database/drift_database.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:get_it/get_it.dart';
@@ -22,6 +21,8 @@ void main() async {
     MaterialApp(
       debugShowCheckedModeBanner: false,
       theme: AppTheme.light(),
+      darkTheme: AppTheme.dark(),
+      themeMode: ThemeMode.system,
       home: RootScreen(),
       localizationsDelegates: [
         GlobalMaterialLocalizations.delegate,

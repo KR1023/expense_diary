@@ -40,15 +40,15 @@ class _CalendarScreenState extends State<CalendarScreen> {
               style: Theme.of(context)
                   .textTheme
                   .bodyMedium
-                  ?.copyWith(color: AppColors.muted),
+                  ?.copyWith(color: AppColors.mutedOf(context)),
             ),
             const SizedBox(height: 12),
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: AppColors.surface,
+                color: AppColors.surfaceOf(context),
                 borderRadius: BorderRadius.circular(18),
-                border: Border.all(color: AppColors.outline),
+                border: Border.all(color: AppColors.outlineOf(context)),
               ),
               child: ExpenseCalendar(
                 selectedDate: selectedDate,

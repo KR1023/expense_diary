@@ -22,7 +22,7 @@ class AppBackground extends StatelessWidget {
 
     return Container(
       decoration: BoxDecoration(
-        gradient: AppColors.backgroundGradient,
+        gradient: AppColors.backgroundGradientOf(context),
       ),
       child: Stack(
         children: [
@@ -31,7 +31,9 @@ class AppBackground extends StatelessWidget {
             right: -30,
             child: _GlowBubble(
               size: 160,
-              color: AppColors.primary.withOpacity(0.12),
+              color: AppColors.primary.withValues(
+                alpha: AppColors.isDark(context) ? 0.18 : 0.12,
+              ),
             ),
           ),
           Positioned(
@@ -39,7 +41,9 @@ class AppBackground extends StatelessWidget {
             left: -30,
             child: _GlowBubble(
               size: 200,
-              color: AppColors.accent.withOpacity(0.12),
+              color: AppColors.accent.withValues(
+                alpha: AppColors.isDark(context) ? 0.18 : 0.12,
+              ),
             ),
           ),
           TweenAnimationBuilder<double>(

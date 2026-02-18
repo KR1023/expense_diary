@@ -32,9 +32,9 @@ class _ExpenseByMonthState extends State<ExpenseByMonth> {
             width: double.infinity,
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
             decoration: BoxDecoration(
-              color: AppColors.surface,
+              color: AppColors.surfaceOf(context),
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: AppColors.outline),
+              border: Border.all(color: AppColors.outlineOf(context)),
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -49,7 +49,7 @@ class _ExpenseByMonthState extends State<ExpenseByMonth> {
                     if(!snapshot.hasData) {
                       return Text(
                         "0원",
-                        style: textTheme.bodyMedium?.copyWith(color: AppColors.muted),
+                        style: textTheme.bodyMedium?.copyWith(color: AppColors.mutedOf(context)),
                       );
                     }
 

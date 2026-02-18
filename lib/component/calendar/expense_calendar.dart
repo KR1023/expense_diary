@@ -42,22 +42,22 @@ class _ExpenseCalendarState extends State<ExpenseCalendar> {
       headerStyle: HeaderStyle(
         titleCentered: true,
         formatButtonVisible: false,
-        leftChevronIcon: Icon(Icons.chevron_left, color: AppColors.muted),
-        rightChevronIcon: Icon(Icons.chevron_right, color: AppColors.muted),
+        leftChevronIcon: Icon(Icons.chevron_left, color: AppColors.mutedOf(context)),
+        rightChevronIcon: Icon(Icons.chevron_right, color: AppColors.mutedOf(context)),
         titleTextStyle: Theme.of(context).textTheme.titleMedium ??
-            const TextStyle(color: AppColors.ink, fontWeight: FontWeight.w600),
+            TextStyle(color: AppColors.inkOf(context), fontWeight: FontWeight.w600),
       ),
       daysOfWeekStyle: DaysOfWeekStyle(
         weekdayStyle: Theme.of(context)
                 .textTheme
                 .labelLarge
-                ?.copyWith(color: AppColors.muted) ??
-            const TextStyle(color: AppColors.muted),
+                ?.copyWith(color: AppColors.mutedOf(context)) ??
+            TextStyle(color: AppColors.mutedOf(context)),
         weekendStyle: Theme.of(context)
                 .textTheme
                 .labelLarge
-                ?.copyWith(color: AppColors.muted) ??
-            const TextStyle(color: AppColors.muted),
+                ?.copyWith(color: AppColors.mutedOf(context)) ??
+            TextStyle(color: AppColors.mutedOf(context)),
       ),
       calendarStyle: CalendarStyle(
         outsideDaysVisible: false,
@@ -70,7 +70,7 @@ class _ExpenseCalendarState extends State<ExpenseCalendar> {
         selectedTextStyle:
             Theme.of(context).textTheme.bodyMedium!.copyWith(color: Colors.white),
         todayDecoration: BoxDecoration(
-          color: AppColors.primary.withOpacity(0.15),
+          color: AppColors.primary.withValues(alpha: 0.15),
           shape: BoxShape.circle,
         ),
         selectedDecoration: BoxDecoration(
