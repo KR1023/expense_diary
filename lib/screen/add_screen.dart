@@ -1,3 +1,4 @@
+import 'package:expense_diary/component/common/toast.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:expense_diary/component/label_field.dart';
@@ -142,10 +143,9 @@ class _AddScreenState extends State<AddScreen> {
           expenseDetail: Value(detail!)
         )
       );
-
+      showBasicToast(message: "지출을 추가했습니다.");
       Navigator.pop(context);
     }
   }
 
 }
-

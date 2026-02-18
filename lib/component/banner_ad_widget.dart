@@ -16,8 +16,14 @@ class _BannerAdWidgetState extends State<BannerAdWidget> {
     super.initState();
 
     // 사용할 테스트 광고 ID 설정
+    // final adUnitId = Platform.isIOS ?
+    //     'ca-app-pub-3940256099942544/2934735716'
+    //     : 'ca-app-pub-3940256099942544/6300978111';
+
+
+    // real ID
     final adUnitId = Platform.isIOS ?
-        'ca-app-pub-3940256099942544/2934735716'
+        'ca-app-pub-5444803558030319/5504549409'
         : 'ca-app-pub-3940256099942544/6300978111';
 
     // 광고 생성
@@ -25,9 +31,16 @@ class _BannerAdWidgetState extends State<BannerAdWidget> {
       size: AdSize.leaderboard,
       adUnitId: adUnitId,
       // 광고의 생명 주기가 변경될 때마다 실행할 함수들을 설정
-      listener: BannerAdListener(onAdFailedToLoad: (ad, error) {
-        ad.dispose();
-      }),
+      listener: BannerAdListener(
+        onAdLoaded: (ad) {
+          print("banner loaded.");
+          print(ad);
+        },
+        onAdFailedToLoad: (ad, error) {
+          print(error);
+          ad.dispose();
+        }
+      ),
       // 광고 요청 정보를 담고 있는 클래스
       request: AdRequest()
     );
