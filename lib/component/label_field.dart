@@ -74,7 +74,7 @@ class _LabelFieldState extends State<LabelField> {
             Expanded(
               child: TextFormField(
                 controller: _textController,
-                enabled: widget.isDate ? false : true,
+                readOnly: widget.isDate,
                 onSaved: widget.onSaved,
                 validator: widget.validator,
                 keyboardType: widget.isExpense ? TextInputType.number : TextInputType.multiline,

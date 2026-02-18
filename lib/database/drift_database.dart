@@ -1,13 +1,12 @@
-import 'package:drift/drift.dart';
-import 'package:expense_diary/model/category_expense.dart';
-import 'package:expense_diary/model/category.dart';
-import 'package:expense_diary/model/expense.dart';
-import 'package:drift/native.dart';
-import 'package:get_it/get_it.dart';
-import 'package:intl/intl.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:path/path.dart' as p;
 import 'dart:io';
+
+import 'package:drift/drift.dart';
+import 'package:drift/native.dart';
+import 'package:expense_diary/model/category.dart';
+import 'package:expense_diary/model/category_expense.dart';
+import 'package:expense_diary/model/expense.dart';
+import 'package:path/path.dart' as p;
+import 'package:path_provider/path_provider.dart';
 
 part 'drift_database.g.dart';
 
@@ -41,12 +40,24 @@ class LocalDatabase extends _$LocalDatabase {
     });
   }
 
-  Stream<int> selectMonthExpense(DateTime selectedDate){
-    int selectedMonth = selectedDate.month;
+  Stream<int> selectDayExpense(DateTime selectedDate) {
+    final start = DateTime(selectedDate.year, selectedDate.month, selectedDate.day);
+    final end = start.add(const Duration(days: 1));
     final totalExpense = expenses.expense.sum();
     final query = selectOnly(expenses)
       ..addColumns([totalExpense])
-      ..where(expenses.expenseDate.month.equals(selectedMonth));
+      ..where(expenses.expenseDate.isBetweenValues(start, end));
+
+    return query.watchSingle().map((row) => row.read(totalExpense) ?? 0);
+  }
+
+  Stream<int> selectMonthExpense(DateTime selectedDate) {
+    final start = DateTime(selectedDate.year, selectedDate.month, 1);
+    final end = DateTime(selectedDate.year, selectedDate.month + 1, 1);
+    final totalExpense = expenses.expense.sum();
+    final query = selectOnly(expenses)
+      ..addColumns([totalExpense])
+      ..where(expenses.expenseDate.isBetweenValues(start, end));
 
     return query.watchSingle().map((row) => row.read(totalExpense) ?? 0);
   }

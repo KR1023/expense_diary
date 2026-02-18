@@ -11,8 +11,8 @@ class HomeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final DateFormat dateFormat = DateFormat('yyyy-MM-dd');
-    DateTime selectedDate = dateFormat.parse(DateTime.now().toString());
+    final now = DateTime.now();
+    final selectedDate = DateTime(now.year, now.month, now.day);
 
     return Scaffold(
       floatingActionButton: floatingActionButton(context),
@@ -25,98 +25,80 @@ class HomeScreen extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               BannerAdWidget(),
-              Flexible(
-                flex: 10,
+              Expanded(
                 child: StreamBuilder<List<Map<String, dynamic>>>(
                   stream: GetIt.I<LocalDatabase>().watchExpense(selectedDate),
                   builder: (context, snapshot) {
-                    if(!snapshot.hasData || snapshot.data!.isEmpty){
-                      return Center(
-                        child: Text(
-                          '지출 내역이 없습니다!',
-                          style: TextStyle(
-                            fontSize: 20.0,
-                            color: Color(0xFFD1D1D1),
-                          )
-                        )
-                      );
-                    }
-                    return ListView.builder(
-                      itemCount: snapshot.data!.length,
-                      itemBuilder: (context, index) {
-                        final expense = snapshot.data![index]['expenses'];
-                        final category = snapshot.data![index]['category'];
-                        // final expenseElement = snapshot.data![index];
+                    final data = snapshot.data ?? [];
 
-                        return Padding(
-                          padding: EdgeInsets.only(top: 10),
-                          child: Center(
-                            child: ExpenseCard(
-                              expenseId: expense.id,
-                              category: category,
-                              expenseName: expense.expenseName,
-                              expense: expense.expense,
-                              expenseDate: expense.expenseDate,
-                              expenseDetail: expense.expenseDetail!
-                            )
-                          ),
-                        );
-                      }
-                    );
-                  }
-                )
-              ),
-              Expanded(
-                child: Container(
-                  width: double.infinity,
-                  color: Color(0xFFFFF6F6),
-                  child: Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 15),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    return Column(
                       children: [
                         Expanded(
-                          child: StreamBuilder<List<Map<String, dynamic>>>(
-                            stream: GetIt.I<LocalDatabase>().watchExpense(selectedDate),
-                            builder: (context, snapshot) {
-                              final expenses = snapshot.data;
+                          child: data.isEmpty
+                              ? Center(
+                                  child: Text(
+                                    '지출 내역이 없습니다!',
+                                    style: TextStyle(
+                                      fontSize: 20.0,
+                                      color: Color(0xFFD1D1D1),
+                                    ),
+                                  ),
+                                )
+                              : ListView.builder(
+                                  itemCount: data.length,
+                                  itemBuilder: (context, index) {
+                                    final expense = data[index]['expenses'];
+                                    final category = data[index]['category'];
 
-                              return Text(
-                                  '지출 : ${snapshot.data?.length ?? 0}건'
-                              );
-                            }
+                                    return Padding(
+                                      padding: EdgeInsets.only(top: 10),
+                                      child: Center(
+                                        child: ExpenseCard(
+                                          expenseId: expense.id,
+                                          category: category,
+                                          expenseName: expense.expenseName,
+                                          expense: expense.expense,
+                                          expenseDate: expense.expenseDate,
+                                          expenseDetail: expense.expenseDetail!,
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                ),
+                        ),
+                        Container(
+                          width: double.infinity,
+                          color: Color(0xFFFFF6F6),
+                          child: Padding(
+                            padding: EdgeInsets.symmetric(horizontal: 15),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Expanded(
+                                  child: Text('지출 : ${data.length}건'),
+                                ),
+                                Expanded(
+                                  child: StreamBuilder<int>(
+                                    stream: GetIt.I<LocalDatabase>()
+                                        .selectDayExpense(selectedDate),
+                                    builder: (context, totalSnapshot) {
+                                      final numberFormatter = NumberFormat('#,###');
+                                      final total = totalSnapshot.data ?? 0;
+                                      return Text(
+                                        "합계 : ${numberFormatter.format(total)}원",
+                                      );
+                                    },
+                                  ),
+                                )
+                              ],
+                            ),
                           ),
                         ),
-                        Expanded(
-                          child: StreamBuilder<List<Map<String, dynamic>>>(
-                            stream: GetIt.I<LocalDatabase>().watchExpense(selectedDate),
-                            builder: (context, snapshot) {
-                              final numberFormatter = NumberFormat('#,###');
-                              int totalExpense = 0;
-
-                              final data = snapshot.data;
-                              if(data == null || data.isEmpty) {
-                                return Text(
-                                    "지출 합계 : 0원"
-                                );
-                              }
-
-                              for(var item in data) {
-                                final expense = item['expenses'] as Expense;
-                                totalExpense += expense.expense;
-                              }
-
-                              return Text(
-                                "합계 : ${numberFormatter.format(totalExpense)}원"
-                              );
-                            }
-                          )
-                        )
-                      ]
-                    )
-                  )
-                )
-              )
+                      ],
+                    );
+                  },
+                ),
+              ),
             ],
           )
         )
