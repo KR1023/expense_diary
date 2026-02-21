@@ -42,6 +42,12 @@
   },
   "settings": {
     "subtitle": "Manage and reset your app data.",
+    "currency": {
+      "title": "Currency",
+      "subtitle": "Set the currency used for expense amounts.",
+      "option_krw": "KRW (Won)",
+      "option_usd": "USD ($)"
+    },
     "language": {
       "title": "Language",
       "subtitle": "Choose the language used in the app.",

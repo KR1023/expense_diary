@@ -6,6 +6,7 @@ import 'package:expense_diary/component/common/app_background.dart';
 import 'package:expense_diary/const/app_colors.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:expense_diary/service/app_settings.dart';
 
 class ConfigScreen extends StatefulWidget {
   const ConfigScreen({super.key});
@@ -17,10 +18,12 @@ class ConfigScreen extends StatefulWidget {
 class _ConfigScreenState extends State<ConfigScreen> {
   bool _followSystemLocale = true;
   String _selectedLanguage = 'en';
+  String _selectedCurrency = AppSettings.defaultCurrency;
 
   @override
   void initState() {
     super.initState();
+    _selectedCurrency = GetIt.I<AppSettings>().currencyCode;
     _loadLocaleSettings();
   }
 
@@ -83,6 +86,14 @@ class _ConfigScreenState extends State<ConfigScreen> {
     });
   }
 
+  Future<void> _setCurrency(String currencyCode) async {
+    await GetIt.I<AppSettings>().setCurrencyCode(currencyCode);
+    if (!mounted) return;
+    setState(() {
+      _selectedCurrency = currencyCode;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -141,6 +152,40 @@ class _ConfigScreenState extends State<ConfigScreen> {
                         },
                       ),
                     ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 12),
+            Card(
+              margin: EdgeInsets.zero,
+              child: Column(
+                children: [
+                  ListTile(
+                    leading: Icon(Icons.attach_money, color: AppColors.primary),
+                    title: Text('settings.currency.title'.tr()),
+                    subtitle: Text('settings.currency.subtitle'.tr()),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+                    child: DropdownButtonFormField<String>(
+                      value: _selectedCurrency,
+                      decoration: const InputDecoration(isDense: true),
+                      items: [
+                        DropdownMenuItem(
+                          value: 'KRW',
+                          child: Text('settings.currency.option_krw'.tr()),
+                        ),
+                        DropdownMenuItem(
+                          value: 'USD',
+                          child: Text('settings.currency.option_usd'.tr()),
+                        ),
+                      ],
+                      onChanged: (value) {
+                        if (value == null) return;
+                        _setCurrency(value);
+                      },
+                    ),
+                  ),
                 ],
               ),
             ),

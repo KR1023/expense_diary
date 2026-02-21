@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
 import 'package:expense_diary/database/drift_database.dart';
-import 'package:intl/intl.dart';
 import 'package:expense_diary/component/expense_by_week.dart';
 import 'package:expense_diary/const/app_colors.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:expense_diary/const/currency_utils.dart';
+import 'package:expense_diary/service/app_settings.dart';
 
 class ExpenseByMonth extends StatefulWidget {
   final DateTime selectedDate;
@@ -16,11 +17,10 @@ class ExpenseByMonth extends StatefulWidget {
 }
 
 class _ExpenseByMonthState extends State<ExpenseByMonth> {
-  final numberFormat = NumberFormat('#,###');
-
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
+    final currencyCode = GetIt.I<AppSettings>().currencyCode;
 
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: 12),
@@ -50,7 +50,7 @@ class _ExpenseByMonthState extends State<ExpenseByMonth> {
                   builder: (context, snapshot) {
                     if (!snapshot.hasData) {
                       return Text(
-                        '0${'common.currency_suffix'.tr()}',
+                        CurrencyUtils.formatAmount(0, currencyCode),
                         style: textTheme.bodyMedium?.copyWith(
                           color: AppColors.mutedOf(context),
                         ),
@@ -58,7 +58,10 @@ class _ExpenseByMonthState extends State<ExpenseByMonth> {
                     }
 
                     return Text(
-                      '${numberFormat.format(snapshot.data)}${'common.currency_suffix'.tr()}',
+                      CurrencyUtils.formatAmount(
+                        snapshot.data ?? 0,
+                        currencyCode,
+                      ),
                       style: textTheme.titleMedium,
                     );
                   },

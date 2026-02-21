@@ -5,6 +5,8 @@ import 'package:intl/intl.dart';
 import 'package:expense_diary/component/expense_card.dart';
 import 'package:expense_diary/const/app_colors.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:expense_diary/const/currency_utils.dart';
+import 'package:expense_diary/service/app_settings.dart';
 
 class ExpenseByDate extends StatefulWidget {
   final DateTime selectedDate;
@@ -54,12 +56,15 @@ class _ExpenseByDateState extends State<ExpenseByDate> {
                       ),
                     ),
                     builder: (context, snapshot) {
-                      final numberFormat = NumberFormat('#,###');
+                      final currencyCode = GetIt.I<AppSettings>().currencyCode;
                       int totalExpense = 0;
 
                       final data = snapshot.data;
                       if (data == null || data.isEmpty) {
-                        final amount = '0${'common.currency_suffix'.tr()}';
+                        final amount = CurrencyUtils.formatAmount(
+                          0,
+                          currencyCode,
+                        );
                         return Text(
                           'calendar.expense_total'.tr(
                             namedArgs: {'amount': amount},
@@ -78,8 +83,10 @@ class _ExpenseByDateState extends State<ExpenseByDate> {
                       return Text(
                         'calendar.total'.tr(
                           namedArgs: {
-                            'amount':
-                                '${numberFormat.format(totalExpense)}${'common.currency_suffix'.tr()}',
+                            'amount': CurrencyUtils.formatAmount(
+                              totalExpense,
+                              currencyCode,
+                            ),
                           },
                         ),
                         maxLines: 1,

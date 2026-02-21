@@ -7,6 +7,7 @@ import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:expense_diary/const/app_theme.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:expense_diary/service/app_settings.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -19,9 +20,15 @@ void main() async {
   final prefs = await SharedPreferences.getInstance();
   final followSystemLocale = prefs.getBool('follow_system_locale') ?? true;
   final userLocale = prefs.getString('user_locale') ?? 'en';
+  final userCurrency =
+      prefs.getString(AppSettings.currencyPreferenceKey) ??
+      AppSettings.defaultCurrency;
 
   final database = LocalDatabase();
   GetIt.I.registerSingleton<LocalDatabase>(database);
+  GetIt.I.registerSingleton<AppSettings>(
+    AppSettings(currencyCode: userCurrency),
+  );
 
   runApp(
     EasyLocalization(
@@ -39,15 +46,20 @@ class ExpenseDiaryApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      theme: AppTheme.light(),
-      darkTheme: AppTheme.dark(),
-      themeMode: ThemeMode.system,
-      home: const RootScreen(),
-      localizationsDelegates: context.localizationDelegates,
-      supportedLocales: context.supportedLocales,
-      locale: context.locale,
+    return AnimatedBuilder(
+      animation: GetIt.I<AppSettings>(),
+      builder: (_, __) {
+        return MaterialApp(
+          debugShowCheckedModeBanner: false,
+          theme: AppTheme.light(),
+          darkTheme: AppTheme.dark(),
+          themeMode: ThemeMode.system,
+          home: const RootScreen(),
+          localizationsDelegates: context.localizationDelegates,
+          supportedLocales: context.supportedLocales,
+          locale: context.locale,
+        );
+      },
     );
   }
 }

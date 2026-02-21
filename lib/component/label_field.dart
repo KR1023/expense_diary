@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:get_it/get_it.dart';
+import 'package:expense_diary/const/currency_utils.dart';
+import 'package:expense_diary/service/app_settings.dart';
 
 class LabelField extends StatefulWidget {
   final String label;
@@ -55,6 +58,7 @@ class _LabelFieldState extends State<LabelField> {
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
+    final currencyCode = GetIt.I<AppSettings>().currencyCode;
 
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
@@ -80,7 +84,9 @@ class _LabelFieldState extends State<LabelField> {
                         : [],
                 decoration: InputDecoration(
                   suffixText:
-                      widget.isExpense ? 'common.currency_suffix'.tr() : '',
+                      widget.isExpense
+                          ? CurrencyUtils.inputSuffix(currencyCode)
+                          : '',
                   suffixStyle: textTheme.labelLarge,
                 ),
                 maxLines: widget.isDetail ? null : 1,

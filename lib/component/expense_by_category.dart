@@ -1,10 +1,11 @@
 import 'package:expense_diary/model/category_expense.dart';
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
-import 'package:intl/intl.dart';
 import 'package:expense_diary/database/drift_database.dart';
 import 'package:expense_diary/const/app_colors.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:expense_diary/const/currency_utils.dart';
+import 'package:expense_diary/service/app_settings.dart';
 
 class ExpenseByCategory extends StatelessWidget {
   final DateTime selectedDate;
@@ -13,7 +14,7 @@ class ExpenseByCategory extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final numberFormatter = NumberFormat('#,###');
+    final currencyCode = GetIt.I<AppSettings>().currencyCode;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -86,7 +87,10 @@ class ExpenseByCategory extends StatelessWidget {
                             style: Theme.of(context).textTheme.bodyLarge,
                           ),
                           Text(
-                            '${numberFormatter.format(data.total)}${'common.currency_suffix'.tr()}',
+                            CurrencyUtils.formatAmount(
+                              data.total,
+                              currencyCode,
+                            ),
                             style: Theme.of(context).textTheme.bodyLarge,
                           ),
                         ],

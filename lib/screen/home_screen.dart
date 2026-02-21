@@ -8,6 +8,8 @@ import 'package:intl/intl.dart';
 import 'package:expense_diary/component/common/app_background.dart';
 import 'package:expense_diary/const/app_colors.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:expense_diary/const/currency_utils.dart';
+import 'package:expense_diary/service/app_settings.dart';
 
 class HomeScreen extends StatelessWidget {
   @override
@@ -40,7 +42,7 @@ class HomeScreen extends StatelessWidget {
             StreamBuilder<int>(
               stream: GetIt.I<LocalDatabase>().selectDayExpense(selectedDate),
               builder: (context, totalSnapshot) {
-                final numberFormatter = NumberFormat('#,###');
+                final currencyCode = GetIt.I<AppSettings>().currencyCode;
                 final total = totalSnapshot.data ?? 0;
                 return Container(
                   width: double.infinity,
@@ -72,7 +74,7 @@ class HomeScreen extends StatelessWidget {
                           ),
                           const SizedBox(height: 6),
                           Text(
-                            '${numberFormatter.format(total)}${'common.currency_suffix'.tr()}',
+                            CurrencyUtils.formatAmount(total, currencyCode),
                             style: Theme.of(context).textTheme.displaySmall
                                 ?.copyWith(color: Colors.white),
                           ),

@@ -1,9 +1,12 @@
 import 'package:expense_diary/database/drift_database.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:get_it/get_it.dart';
 import 'package:expense_diary/screen/detail_screen.dart';
 import 'package:expense_diary/const/app_colors.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:expense_diary/const/currency_utils.dart';
+import 'package:expense_diary/service/app_settings.dart';
 
 class ExpenseCard extends StatelessWidget {
   final int expenseId;
@@ -24,9 +27,9 @@ class ExpenseCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final numberFormatter = NumberFormat('#,###');
     final expenseDateFormat = DateFormat('yy.MM.dd');
     final isDark = AppColors.isDark(context);
+    final currencyCode = GetIt.I<AppSettings>().currencyCode;
 
     return Card(
       margin: EdgeInsets.zero,
@@ -92,7 +95,7 @@ class ExpenseCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
                   Text(
-                    '${numberFormatter.format(expense)}${'common.currency_suffix'.tr()}',
+                    CurrencyUtils.formatAmount(expense, currencyCode),
                     overflow: TextOverflow.ellipsis,
                     maxLines: 1,
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(

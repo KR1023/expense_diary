@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
 import 'package:expense_diary/database/drift_database.dart';
-import 'package:intl/intl.dart';
 import 'package:expense_diary/const/app_colors.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:expense_diary/const/currency_utils.dart';
+import 'package:expense_diary/service/app_settings.dart';
 
 class ExpenseByWeek extends StatelessWidget {
   final DateTime selectedDate;
@@ -96,14 +97,14 @@ class ExpenseByWeek extends StatelessWidget {
   }
 
   StreamBuilder<int> getWeeklyExpenses(DateTime startDate, DateTime endDate) {
-    NumberFormat numberFormat = NumberFormat('#,###');
+    final currencyCode = GetIt.I<AppSettings>().currencyCode;
 
     return StreamBuilder<int>(
       stream: GetIt.I<LocalDatabase>().selectWeekExpense(startDate, endDate),
       builder: (context, snapshot) {
         if (!snapshot.hasData) {
           return Text(
-            '0${'common.currency_suffix'.tr()}',
+            CurrencyUtils.formatAmount(0, currencyCode),
             style: Theme.of(
               context,
             ).textTheme.bodyLarge?.copyWith(color: AppColors.mutedOf(context)),
@@ -111,7 +112,7 @@ class ExpenseByWeek extends StatelessWidget {
         }
 
         return Text(
-          '${numberFormat.format(snapshot.data)}${'common.currency_suffix'.tr()}',
+          CurrencyUtils.formatAmount(snapshot.data ?? 0, currencyCode),
           style: Theme.of(context).textTheme.bodyLarge,
         );
       },
