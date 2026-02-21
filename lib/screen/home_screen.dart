@@ -7,10 +7,9 @@ import 'package:expense_diary/database/drift_database.dart';
 import 'package:intl/intl.dart';
 import 'package:expense_diary/component/common/app_background.dart';
 import 'package:expense_diary/const/app_colors.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 class HomeScreen extends StatelessWidget {
-
-
   @override
   Widget build(BuildContext context) {
     final now = DateTime.now();
@@ -28,15 +27,14 @@ class HomeScreen extends StatelessWidget {
             BannerAdWidget(),
             const SizedBox(height: 12),
             Text(
-              '오늘 지출',
+              'home.title'.tr(),
               style: Theme.of(context).textTheme.titleLarge,
             ),
             Text(
               DateFormat('yyyy.MM.dd').format(selectedDate),
-              style: Theme.of(context)
-                  .textTheme
-                  .bodyMedium
-                  ?.copyWith(color: AppColors.mutedOf(context)),
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                color: AppColors.mutedOf(context),
+              ),
             ),
             const SizedBox(height: 16),
             StreamBuilder<int>(
@@ -46,7 +44,10 @@ class HomeScreen extends StatelessWidget {
                 final total = totalSnapshot.data ?? 0;
                 return Container(
                   width: double.infinity,
-                  padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 18,
+                    vertical: 16,
+                  ),
                   decoration: BoxDecoration(
                     gradient: AppColors.heroGradientOf(context),
                     borderRadius: BorderRadius.circular(20),
@@ -55,7 +56,7 @@ class HomeScreen extends StatelessWidget {
                         color: AppColors.primary.withValues(alpha: 0.25),
                         blurRadius: 18,
                         offset: Offset(0, 12),
-                      )
+                      ),
                     ],
                   ),
                   child: Row(
@@ -65,39 +66,47 @@ class HomeScreen extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            '오늘 합계',
-                            style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                                  color: Colors.white70,
-                                ),
+                            'home.today_total'.tr(),
+                            style: Theme.of(context).textTheme.labelLarge
+                                ?.copyWith(color: Colors.white70),
                           ),
                           const SizedBox(height: 6),
                           Text(
-                            '${numberFormatter.format(total)}원',
-                            style: Theme.of(context).textTheme.displaySmall?.copyWith(
-                                  color: Colors.white,
-                                ),
+                            '${numberFormatter.format(total)}${'common.currency_suffix'.tr()}',
+                            style: Theme.of(context).textTheme.displaySmall
+                                ?.copyWith(color: Colors.white),
                           ),
                         ],
                       ),
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 8,
+                        ),
                         decoration: BoxDecoration(
                           color: Colors.white.withValues(alpha: 0.18),
                           borderRadius: BorderRadius.circular(999),
                         ),
                         child: Row(
                           children: [
-                            const Icon(Icons.receipt_long, color: Colors.white, size: 18),
+                            const Icon(
+                              Icons.receipt_long,
+                              color: Colors.white,
+                              size: 18,
+                            ),
                             const SizedBox(width: 6),
                             StreamBuilder<List<Map<String, dynamic>>>(
-                              stream: GetIt.I<LocalDatabase>().watchExpense(selectedDate),
+                              stream: GetIt.I<LocalDatabase>().watchExpense(
+                                selectedDate,
+                              ),
                               builder: (context, countSnapshot) {
                                 final count = countSnapshot.data?.length ?? 0;
                                 return Text(
-                                  '$count건',
-                                  style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                                        color: Colors.white,
-                                      ),
+                                  'home.count_label'.tr(
+                                    namedArgs: {'count': '$count'},
+                                  ),
+                                  style: Theme.of(context).textTheme.labelLarge
+                                      ?.copyWith(color: Colors.white),
                                 );
                               },
                             ),
@@ -119,11 +128,10 @@ class HomeScreen extends StatelessWidget {
                   if (data.isEmpty) {
                     return Center(
                       child: Text(
-                        '지출 내역이 없습니다!',
-                        style: Theme.of(context)
-                            .textTheme
-                            .bodyLarge
-                            ?.copyWith(color: AppColors.mutedOf(context)),
+                        'home.empty'.tr(),
+                        style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                          color: AppColors.mutedOf(context),
+                        ),
                       ),
                     );
                   }
@@ -171,14 +179,14 @@ class HomeScreen extends StatelessWidget {
 
   FloatingActionButton floatingActionButton(BuildContext context) {
     return FloatingActionButton.extended(
-      onPressed: (){
+      onPressed: () {
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (context) => AddScreen())
+          MaterialPageRoute(builder: (context) => AddScreen()),
         );
       },
       icon: Icon(Icons.add),
-      label: Text('추가'),
+      label: Text('common.add'.tr()),
     );
   }
 }

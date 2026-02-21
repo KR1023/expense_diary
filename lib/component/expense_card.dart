@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:expense_diary/screen/detail_screen.dart';
 import 'package:expense_diary/const/app_colors.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 class ExpenseCard extends StatelessWidget {
   final int expenseId;
@@ -18,7 +19,7 @@ class ExpenseCard extends StatelessWidget {
     required this.expenseName,
     required this.expense,
     required this.expenseDate,
-    required this.expenseDetail
+    required this.expenseDetail,
   });
 
   @override
@@ -33,15 +34,18 @@ class ExpenseCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(18),
         onTap: () {
           Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => DetailScreen(
-                expenseId: expenseId,
-                expenseName: expenseName,
-                expenseDate: expenseDate,
-                category: category,
-                expense: expense,
-                detail: expenseDetail,
-              ))
+            context,
+            MaterialPageRoute(
+              builder:
+                  (context) => DetailScreen(
+                    expenseId: expenseId,
+                    expenseName: expenseName,
+                    expenseDate: expenseDate,
+                    category: category,
+                    expense: expense,
+                    detail: expenseDetail,
+                  ),
+            ),
           );
         },
         child: Padding(
@@ -50,20 +54,25 @@ class ExpenseCard extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 6,
+                ),
                 decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.primary.withValues(
-                        alpha: isDark ? 0.24 : 0.08,
-                      ),
+                  color: Theme.of(
+                    context,
+                  ).colorScheme.primary.withValues(alpha: isDark ? 0.24 : 0.08),
                   border: Border.all(
                     color: Theme.of(context).colorScheme.primary.withValues(
-                          alpha: isDark ? 0.42 : 0.15,
-                        ),
+                      alpha: isDark ? 0.42 : 0.15,
+                    ),
                   ),
                   borderRadius: BorderRadius.circular(999),
                 ),
                 child: Text(
-                  category != null ? category!.categoryName : '미분류',
+                  category != null
+                      ? category!.categoryName
+                      : 'common.unclassified'.tr(),
                   overflow: TextOverflow.ellipsis,
                   maxLines: 1,
                   style: Theme.of(context).textTheme.labelLarge,
@@ -83,23 +92,21 @@ class ExpenseCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
                   Text(
-                    '${numberFormatter.format(expense)}원',
+                    '${numberFormatter.format(expense)}${'common.currency_suffix'.tr()}',
                     overflow: TextOverflow.ellipsis,
                     maxLines: 1,
-                    style: Theme.of(context)
-                        .textTheme
-                        .titleMedium
-                        ?.copyWith(fontWeight: FontWeight.w700),
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w700,
+                    ),
                   ),
                   const SizedBox(height: 4),
                   Text(
                     expenseDateFormat.format(expenseDate),
                     overflow: TextOverflow.ellipsis,
                     maxLines: 1,
-                    style: Theme.of(context)
-                        .textTheme
-                        .bodySmall
-                        ?.copyWith(color: Colors.grey.shade600),
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: Colors.grey.shade600,
+                    ),
                   ),
                 ],
               ),

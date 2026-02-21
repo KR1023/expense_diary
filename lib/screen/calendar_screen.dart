@@ -5,16 +5,16 @@ import 'package:expense_diary/component/expense_by_month.dart';
 import 'package:expense_diary/component/expense_by_category.dart';
 import 'package:expense_diary/component/common/app_background.dart';
 import 'package:expense_diary/const/app_colors.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 class CalendarScreen extends StatefulWidget {
   @override
   State<StatefulWidget> createState() => _CalendarScreenState();
-
 }
 
 class _CalendarScreenState extends State<CalendarScreen> {
   DateTime selectedDate = DateTime.now();
-  final PageController _pageController= PageController(initialPage: 0);
+  final PageController _pageController = PageController(initialPage: 0);
 
   void onTapDate(DateTime selectedDay, DateTime focusedDay) {
     setState(() {
@@ -32,15 +32,14 @@ class _CalendarScreenState extends State<CalendarScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              '캘린더',
+              'calendar.title'.tr(),
               style: Theme.of(context).textTheme.titleLarge,
             ),
             Text(
-              '일별, 주별, 분류별로 지출을 확인하세요',
-              style: Theme.of(context)
-                  .textTheme
-                  .bodyMedium
-                  ?.copyWith(color: AppColors.mutedOf(context)),
+              'calendar.subtitle'.tr(),
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                color: AppColors.mutedOf(context),
+              ),
             ),
             const SizedBox(height: 12),
             Container(
@@ -68,7 +67,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
     );
   }
 
-  List<Widget> PageViewChildren(){
+  List<Widget> PageViewChildren() {
     return [
       ExpenseByDate(selectedDate: selectedDate),
       ExpenseByMonth(selectedDate: selectedDate),

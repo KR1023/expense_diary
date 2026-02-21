@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 class LabelField extends StatefulWidget {
   final String label;
@@ -12,8 +13,6 @@ class LabelField extends StatefulWidget {
   final FormFieldSetter<String> onSaved;
   final FormFieldValidator<String> validator;
 
-
-
   LabelField({
     required this.label,
     required this.isDetail,
@@ -21,12 +20,11 @@ class LabelField extends StatefulWidget {
     required this.isExpense,
     required this.onSaved,
     required this.validator,
-    required this.initValue
+    required this.initValue,
   });
 
   @override
   State<LabelField> createState() => _LabelFieldState();
-
 }
 
 class _LabelFieldState extends State<LabelField> {
@@ -34,18 +32,19 @@ class _LabelFieldState extends State<LabelField> {
 
   @override
   void initState() {
-    if(widget.initValue == null) {
-      if(widget.isDate) {
+    if (widget.initValue == null) {
+      if (widget.isDate) {
         DateTime now = DateTime.now();
 
-        String formattedDate = "${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}";
+        String formattedDate =
+            "${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}";
         _textController.text = formattedDate;
       }
-    }else if(widget.initValue != null ) {
-      if(widget.isDate){
-        String expenseDate = widget.initValue!.substring(0,10);
+    } else if (widget.initValue != null) {
+      if (widget.isDate) {
+        String expenseDate = widget.initValue!.substring(0, 10);
         _textController.text = expenseDate;
-      }else {
+      } else {
         _textController.text = widget.initValue!;
       }
     }
@@ -57,17 +56,11 @@ class _LabelFieldState extends State<LabelField> {
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
 
-
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        SizedBox(
-          child: Text(
-            widget.label,
-            style: textTheme.labelSmall
-          )
-        ),
+        SizedBox(child: Text(widget.label, style: textTheme.labelSmall)),
         const SizedBox(height: 5),
         Row(
           children: [
@@ -77,16 +70,21 @@ class _LabelFieldState extends State<LabelField> {
                 readOnly: widget.isDate,
                 onSaved: widget.onSaved,
                 validator: widget.validator,
-                keyboardType: widget.isExpense ? TextInputType.number : TextInputType.multiline,
-                inputFormatters: widget.isExpense ? [
-                  FilteringTextInputFormatter.digitsOnly
-                ] : [],
+                keyboardType:
+                    widget.isExpense
+                        ? TextInputType.number
+                        : TextInputType.multiline,
+                inputFormatters:
+                    widget.isExpense
+                        ? [FilteringTextInputFormatter.digitsOnly]
+                        : [],
                 decoration: InputDecoration(
-                  suffixText: widget.isExpense ? '원' : '',
+                  suffixText:
+                      widget.isExpense ? 'common.currency_suffix'.tr() : '',
                   suffixStyle: textTheme.labelLarge,
                 ),
                 maxLines: widget.isDetail ? null : 1,
-              )
+              ),
             ),
             if (widget.isDate)
               IconButton(
@@ -98,26 +96,25 @@ class _LabelFieldState extends State<LabelField> {
             if (widget.isDate)
               SizedBox(width: MediaQuery.of(context).size.width * 0.2),
           ],
-        )
-      ]
+        ),
+      ],
     );
   }
 
-  Future<void> _expenseDate(BuildContext context) async{
+  Future<void> _expenseDate(BuildContext context) async {
     final DateTime? pickedDate = await showDatePicker(
-        context: context,
-        firstDate: DateTime(2000),
-        lastDate: DateTime(2100),
-        locale: const Locale('ko')
+      context: context,
+      firstDate: DateTime(2000),
+      lastDate: DateTime(2100),
+      locale: context.locale,
     );
 
-    if(pickedDate != null) {
+    if (pickedDate != null) {
       final formattedDate = DateFormat('yyyy-MM-dd').format(pickedDate);
 
-      if(widget.isDate) {
+      if (widget.isDate) {
         _textController.text = formattedDate;
       }
     }
   }
-
 }

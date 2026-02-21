@@ -2,17 +2,17 @@ import 'package:expense_diary/database/drift_database.dart';
 import 'package:expense_diary/model/category.dart';
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 class CategorySelect extends StatefulWidget {
   String? categoryName;
   CategoryData? selectedValue;
   final FormFieldSetter<CategoryData> onSavedCategory;
 
-
   CategorySelect({
     this.categoryName,
     this.selectedValue,
-    required this.onSavedCategory
+    required this.onSavedCategory,
   });
 
   @override
@@ -20,11 +20,10 @@ class CategorySelect extends StatefulWidget {
 }
 
 class _CategorySelectState extends State<CategorySelect> {
-
   @override
   void initState() {
     super.initState();
-    if(widget.selectedValue != null){
+    if (widget.selectedValue != null) {
       widget.selectedValue = widget.selectedValue;
     }
   }
@@ -34,19 +33,22 @@ class _CategorySelectState extends State<CategorySelect> {
     return StreamBuilder<List<CategoryData>>(
       stream: GetIt.I<LocalDatabase>().watchCategory(null),
       builder: (context, snapshot) {
-        if(!snapshot.hasData) {
+        if (!snapshot.hasData) {
           return Container(
             width: MediaQuery.of(context).size.width,
-            child: DropdownButtonFormField<String> (
-              items: [].map((value) {
-                return DropdownMenuItem<String>(
-                    value: value,
-                    child: Text(value)
-                );
-              }).toList(),
-              decoration: InputDecoration(labelText: '분류'),
-              onChanged: (String? value) {  },
-            )
+            child: DropdownButtonFormField<String>(
+              items:
+                  [].map((value) {
+                    return DropdownMenuItem<String>(
+                      value: value,
+                      child: Text(value),
+                    );
+                  }).toList(),
+              decoration: InputDecoration(
+                labelText: 'category.select_label'.tr(),
+              ),
+              onChanged: (String? value) {},
+            ),
           );
         }
 
@@ -61,44 +63,40 @@ class _CategorySelectState extends State<CategorySelect> {
                 width: MediaQuery.of(context).size.width,
                 child: DropdownButtonFormField<CategoryData>(
                   decoration: InputDecoration(
-                    labelText: '분류',
+                    labelText: 'category.select_label'.tr(),
                   ),
                   value: widget.selectedValue,
-                  items: categories.map((category) {
-                    return DropdownMenuItem<CategoryData>(
-                      value: category,
-                      child: Container(
-                          child: Text(category.categoryName)
-                      )
-                    );
-                  }).toList(),
+                  items:
+                      categories.map((category) {
+                        return DropdownMenuItem<CategoryData>(
+                          value: category,
+                          child: Container(child: Text(category.categoryName)),
+                        );
+                      }).toList(),
                   onChanged: (newCategory) {
                     setState(() {
                       widget.selectedValue = newCategory;
                     });
                   },
                   onSaved: widget.onSavedCategory,
-                )
-              )
+                ),
+              ),
             ),
             Flexible(
               flex: 1,
               child: IconButton(
                 icon: Icon(Icons.cancel),
-                onPressed: (){
+                onPressed: () {
                   setState(() {
                     widget.selectedValue = null;
                   });
                 },
-              )
-            )
-          ]
+              ),
+            ),
+          ],
         );
-      }
+      },
     );
-
-
-
 
     //   DropdownButtonFormField<String> (
     //     decoration: InputDecoration(labelText: '분류'),

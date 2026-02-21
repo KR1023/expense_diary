@@ -7,6 +7,7 @@ import 'package:get_it/get_it.dart';
 import 'package:expense_diary/database/drift_database.dart';
 import 'package:expense_diary/component/common/app_background.dart';
 import 'package:expense_diary/const/app_colors.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 class DetailScreen extends StatefulWidget {
   final int expenseId;
@@ -16,14 +17,13 @@ class DetailScreen extends StatefulWidget {
   final CategoryData? category;
   final String detail;
 
-
   DetailScreen({
     required this.expenseId,
     required this.expenseName,
     required this.expenseDate,
     required this.expense,
     this.category,
-    required this.detail
+    required this.detail,
   });
 
   @override
@@ -79,17 +79,17 @@ class _DetailScreenState extends State<DetailScreen> {
                       child: Column(
                         children: [
                           LabelField(
-                            label: '지출명',
+                            label: 'expense.form.name'.tr(),
                             isDetail: false,
                             isDate: false,
                             isExpense: false,
                             initValue: expenseName,
-                            onSaved: (String? val){
+                            onSaved: (String? val) {
                               expenseName = val!;
                             },
-                            validator: (String? val){
-                              if(val == '' || val == null){
-                                return '지출명을 입력해 주세요.';
+                            validator: (String? val) {
+                              if (val == '' || val == null) {
+                                return 'expense.form.name_required'.tr();
                               } else {
                                 return null;
                               }
@@ -97,30 +97,30 @@ class _DetailScreenState extends State<DetailScreen> {
                           ),
                           const SizedBox(height: 20),
                           LabelField(
-                            label: '지출일자',
+                            label: 'expense.form.date'.tr(),
                             isDetail: false,
                             isDate: true,
                             isExpense: false,
                             initValue: expenseDate.toString(),
-                            onSaved: (String? val){
+                            onSaved: (String? val) {
                               DateFormat formatter = DateFormat('yyyy-MM-dd');
                               expenseDate = formatter.parse(val!);
                             },
-                            validator: (String? val){},
+                            validator: (String? val) {},
                           ),
                           const SizedBox(height: 20),
                           LabelField(
-                            label: '지출금액',
+                            label: 'expense.form.amount'.tr(),
                             isDetail: false,
                             isDate: false,
                             isExpense: true,
                             initValue: expense.toString(),
-                            onSaved: (String? val){
+                            onSaved: (String? val) {
                               expense = int.parse(val!);
                             },
-                            validator: (String? val){
-                              if(val == '' || val == null){
-                                return "금액을 입력해 주세요.";
+                            validator: (String? val) {
+                              if (val == '' || val == null) {
+                                return 'expense.form.amount_required'.tr();
                               } else {
                                 return null;
                               }
@@ -129,40 +129,43 @@ class _DetailScreenState extends State<DetailScreen> {
                           const SizedBox(height: 20),
                           CategorySelect(
                             selectedValue: category,
-                            onSavedCategory: (CategoryData? val){
-                              if(val != null) {
+                            onSavedCategory: (CategoryData? val) {
+                              if (val != null) {
                                 categoryId = val.id;
                               } else {
                                 categoryId = null;
                               }
-                            }
+                            },
                           ),
                           const SizedBox(height: 20),
                           LabelField(
-                            label: '지출상세내용',
+                            label: 'expense.form.detail'.tr(),
                             isDetail: true,
                             isDate: false,
                             isExpense: false,
                             initValue: detail,
-                            onSaved: (String? val){
+                            onSaved: (String? val) {
                               detail = val!;
                             },
-                            validator: (String? val){},
+                            validator: (String? val) {},
                           ),
                           const SizedBox(height: 20),
                           Container(
                             width: double.infinity,
-                            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 14,
+                              vertical: 12,
+                            ),
                             decoration: BoxDecoration(
                               color: AppColors.surfaceAltOf(context),
                               borderRadius: BorderRadius.circular(12),
-                              border: Border.all(color: AppColors.outlineOf(context)),
+                              border: Border.all(
+                                color: AppColors.outlineOf(context),
+                              ),
                             ),
                             child: Text(
-                              '수정 사항은 저장 버튼을 눌러 반영됩니다.',
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .bodySmall
+                              'expense.detail_hint'.tr(),
+                              style: Theme.of(context).textTheme.bodySmall
                                   ?.copyWith(color: AppColors.mutedOf(context)),
                             ),
                           ),
@@ -180,7 +183,7 @@ class _DetailScreenState extends State<DetailScreen> {
   }
 
   void onSavePressed(BuildContext context) async {
-    if(formKey.currentState!.validate()) {
+    if (formKey.currentState!.validate()) {
       formKey.currentState!.save();
 
       await GetIt.I<LocalDatabase>().updateExpense(
@@ -191,7 +194,7 @@ class _DetailScreenState extends State<DetailScreen> {
           expense: expense!,
           categoryId: categoryId,
           expenseDetail: detail!,
-        )
+        ),
       );
 
       Navigator.pop(context);

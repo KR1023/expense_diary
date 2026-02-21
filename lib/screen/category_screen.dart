@@ -5,19 +5,17 @@ import 'package:expense_diary/database/drift_database.dart';
 import 'package:get_it/get_it.dart';
 import 'package:expense_diary/component/common/app_background.dart';
 import 'package:expense_diary/const/app_colors.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 class CategoryScreen extends StatefulWidget {
-
   @override
   State<StatefulWidget> createState() => CategoryScreenState();
-
 }
 
 class CategoryScreenState extends State<CategoryScreen> {
   String? _errorText = null;
   TextEditingController _inputCategoryController = TextEditingController();
   String _keyword = '';
-
 
   @override
   void initState() {
@@ -46,7 +44,7 @@ class CategoryScreenState extends State<CategoryScreen> {
             Row(
               children: [
                 Text(
-                  '분류 관리',
+                  'category.manage_title'.tr(),
                   style: Theme.of(context).textTheme.titleLarge,
                 ),
                 const Spacer(),
@@ -55,7 +53,7 @@ class CategoryScreenState extends State<CategoryScreen> {
                     _showInputDialog(context);
                   },
                   icon: Icon(Icons.add),
-                  label: Text('추가'),
+                  label: Text('common.add'.tr()),
                 ),
               ],
             ),
@@ -63,24 +61,25 @@ class CategoryScreenState extends State<CategoryScreen> {
             TextField(
               controller: _inputCategoryController,
               decoration: InputDecoration(
-                hintText: '검색',
+                hintText: 'category.search_hint'.tr(),
                 prefixIcon: Icon(Icons.search),
               ),
             ),
             SizedBox(height: 12),
             Expanded(
               child: StreamBuilder(
-                stream: GetIt.I<LocalDatabase>().watchCategory(_keyword.isEmpty ? null : _keyword),
+                stream: GetIt.I<LocalDatabase>().watchCategory(
+                  _keyword.isEmpty ? null : _keyword,
+                ),
                 builder: (context, snapshot) {
-                  if(!snapshot.hasData || snapshot.data!.length == 0) {
+                  if (!snapshot.hasData || snapshot.data!.length == 0) {
                     return Center(
-                        child: Text(
-                          '등록된 분류 항목이 없습니다.',
-                          style: Theme.of(context)
-                              .textTheme
-                              .bodyLarge
-                              ?.copyWith(color: AppColors.mutedOf(context)),
-                        )
+                      child: Text(
+                        'category.empty'.tr(),
+                        style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                          color: AppColors.mutedOf(context),
+                        ),
+                      ),
                     );
                   }
 
@@ -102,24 +101,30 @@ class CategoryScreenState extends State<CategoryScreen> {
                             trailing: IconButton(
                               icon: Icon(Icons.delete_outline),
                               onPressed: () async {
-                                int count = await GetIt.I<LocalDatabase>().countExpensesByCategory(category.id);
-                                if(count > 0) {
-                                  _showAlertDialog(context, '관련 지출 항목이 있어 삭제할 수 없습니다.');
+                                int count = await GetIt.I<LocalDatabase>()
+                                    .countExpensesByCategory(category.id);
+                                if (count > 0) {
+                                  _showAlertDialog(
+                                    context,
+                                    'category.delete_blocked'.tr(),
+                                  );
                                   return;
                                 } else {
-                                  GetIt.I<LocalDatabase>().deleteCategory(category.id);
+                                  GetIt.I<LocalDatabase>().deleteCategory(
+                                    category.id,
+                                  );
                                 }
                               },
                             ),
                           ),
                         ),
                       );
-                    }
+                    },
                   );
-                }
-              )
+                },
+              ),
             ),
-            BannerAdWidget()
+            BannerAdWidget(),
           ],
         ),
       ),
@@ -135,20 +140,20 @@ class CategoryScreenState extends State<CategoryScreen> {
             children: [
               Icon(Icons.info_outline, color: AppColors.primary),
               SizedBox(width: 8),
-              Text('알림'),
+              Text('category.alert_title'.tr()),
             ],
           ),
           content: Text(message),
           actions: [
             FilledButton(
-              onPressed: (){
+              onPressed: () {
                 Navigator.of(context).pop();
               },
-              child: Text('확인'),
-            )
-          ]
+              child: Text('common.confirm'.tr()),
+            ),
+          ],
         );
-      }
+      },
     );
   }
 
@@ -157,143 +162,144 @@ class CategoryScreenState extends State<CategoryScreen> {
     _errorText = null;
 
     await showDialog<String>(
-        context: context,
-        builder: (BuildContext context) {
-          return StatefulBuilder(
-              builder: (context, setState) {
-                return AlertDialog(
-                  title: Row(
-                    children: [
-                      Icon(Icons.label_outline, color: AppColors.primary),
-                      SizedBox(width: 8),
-                      Text('분류명 입력'),
-                    ],
-                  ),
-                  content: TextField(
-                    controller: textController,
-                    autofocus: true,
-                    decoration: InputDecoration(
-                      hintText: '내용을 입력하세요.',
-                      errorText: _errorText
-                    ),
-                  ),
-                  actions: <Widget>[
-                    OutlinedButton(
-                      child: Text('취소'),
-                      onPressed: () {
+      context: context,
+      builder: (BuildContext context) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              title: Row(
+                children: [
+                  Icon(Icons.label_outline, color: AppColors.primary),
+                  SizedBox(width: 8),
+                  Text('category.input_title'.tr()),
+                ],
+              ),
+              content: TextField(
+                controller: textController,
+                autofocus: true,
+                decoration: InputDecoration(
+                  hintText: 'category.input_hint'.tr(),
+                  errorText: _errorText,
+                ),
+              ),
+              actions: <Widget>[
+                OutlinedButton(
+                  child: Text('common.cancel'.tr()),
+                  onPressed: () {
+                    setState(() {
+                      _errorText = null;
+                    });
+                    Navigator.of(context).pop();
+                  },
+                ),
+                FilledButton(
+                  child: Text('common.confirm'.tr()),
+                  onPressed: () async {
+                    try {
+                      await GetIt.I<LocalDatabase>().addCategory(
+                        CategoryCompanion(
+                          categoryName: Value(textController.text),
+                        ),
+                      );
+                      setState(() {
+                        _errorText = null;
+                      });
+                    } catch (e) {
+                      bool conflictName = e.toString().contains('2067');
+                      if (conflictName) {
                         setState(() {
-                          _errorText = null;
+                          _errorText = 'category.duplicate_error'.tr();
                         });
-                        Navigator.of(context).pop();
+                        return;
                       }
-                    ),
-                    FilledButton(
-                      child: Text('확인'),
-                      onPressed: () async {
-                        try{
-                          await GetIt.I<LocalDatabase>().addCategory(
-                            CategoryCompanion(
-                              categoryName: Value(textController.text),
-                            )
-                          );
-                          setState(() {
-                            _errorText = null;
-                          });
-                        }catch(e){
-                          bool conflictName = e.toString().contains('2067');
-                          if(conflictName) {
-                            setState(() {
-                              _errorText = '이미 존재하는 분류명입니다!';
-                            });
-                            return;
-                          }
-                        }
+                    }
 
-                        setState(() {
-                          _errorText = null;
-                        });
+                    setState(() {
+                      _errorText = null;
+                    });
 
-                        Navigator.of(context).pop(textController.text);
-                      }
-                    ),
-                  ]
-                );
-              }
-          );
-        }
+                    Navigator.of(context).pop(textController.text);
+                  },
+                ),
+              ],
+            );
+          },
+        );
+      },
     );
   }
 
-
-
-  Future<void> _showUpdateDialog(BuildContext context, CategoryData category) async {
+  Future<void> _showUpdateDialog(
+    BuildContext context,
+    CategoryData category,
+  ) async {
     TextEditingController textController = TextEditingController();
     textController.text = category.categoryName;
     _errorText = null;
 
     await showDialog<String>(
-        context: context,
-        builder: (BuildContext context) {
-          return StatefulBuilder(
-              builder: (context, setState) {
-                return AlertDialog(
-                  title: Row(
-                    children: [
-                      Icon(Icons.edit_outlined, color: AppColors.primary),
-                      SizedBox(width: 8),
-                      Text('분류명 수정'),
-                    ],
-                  ),
-                  content: TextField(
-                    controller: textController,
-                    autofocus: true,
-                    decoration: InputDecoration(
-                      hintText: '수정할 이름을 입력하세요.',
-                      errorText: _errorText
-                    ),
-                  ),
-                  actions: <Widget>[
-                    OutlinedButton(
-                      child: Text('취소'),
-                      onPressed: () {
-                        setState(() {
-                          _errorText = null;
-                        });
+      context: context,
+      builder: (BuildContext context) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              title: Row(
+                children: [
+                  Icon(Icons.edit_outlined, color: AppColors.primary),
+                  SizedBox(width: 8),
+                  Text('category.edit_title'.tr()),
+                ],
+              ),
+              content: TextField(
+                controller: textController,
+                autofocus: true,
+                decoration: InputDecoration(
+                  hintText: 'category.edit_hint'.tr(),
+                  errorText: _errorText,
+                ),
+              ),
+              actions: <Widget>[
+                OutlinedButton(
+                  child: Text('common.cancel'.tr()),
+                  onPressed: () {
+                    setState(() {
+                      _errorText = null;
+                    });
 
-                        Navigator.of(context).pop();
-                      }
-                    ),
-                    FilledButton(
-                      child: Text('확인'),
-                      onPressed: () async {
-                        try{
-                          await GetIt.I<LocalDatabase>().updateCategory(
-                            CategoryData(
-                              id: category.id,
-                              categoryName: textController.text,
-                            )
-                          );
-                        }catch(e){
-                          bool conflictName = e.toString().contains('2067');
-                          if(conflictName){
-                            setState(() {
-                              _errorText = '이미 존재하는 분류명입니다!';
-                            });
-                            return;
-                          }
-                        }
+                    Navigator.of(context).pop();
+                  },
+                ),
+                FilledButton(
+                  child: Text('common.confirm'.tr()),
+                  onPressed: () async {
+                    try {
+                      await GetIt.I<LocalDatabase>().updateCategory(
+                        CategoryData(
+                          id: category.id,
+                          categoryName: textController.text,
+                        ),
+                      );
+                    } catch (e) {
+                      bool conflictName = e.toString().contains('2067');
+                      if (conflictName) {
                         setState(() {
-                          _errorText = null;
+                          _errorText = 'category.duplicate_error'.tr();
                         });
-
-                        Navigator.of(context).pop(textController.text);
+                        return;
                       }
-                    ),
-                  ]
-                );
-              }
-          );
-        }
+                    }
+                    setState(() {
+                      _errorText = null;
+                    });
+
+                    Navigator.of(context).pop(textController.text);
+                  },
+                ),
+              ],
+            );
+          },
+        );
+      },
     );
   }
 }

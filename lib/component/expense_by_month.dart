@@ -4,21 +4,19 @@ import 'package:expense_diary/database/drift_database.dart';
 import 'package:intl/intl.dart';
 import 'package:expense_diary/component/expense_by_week.dart';
 import 'package:expense_diary/const/app_colors.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 class ExpenseByMonth extends StatefulWidget {
   final DateTime selectedDate;
 
-  const ExpenseByMonth({
-    required this.selectedDate
-  });
+  const ExpenseByMonth({required this.selectedDate});
 
   @override
   State<StatefulWidget> createState() => _ExpenseByMonthState();
 }
 
 class _ExpenseByMonthState extends State<ExpenseByMonth> {
-  final numberFormat = NumberFormat('#,###원');
-
+  final numberFormat = NumberFormat('#,###');
 
   @override
   Widget build(BuildContext context) {
@@ -40,37 +38,43 @@ class _ExpenseByMonthState extends State<ExpenseByMonth> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  '${widget.selectedDate.month}월 지출',
+                  'month.title'.tr(
+                    namedArgs: {'month': '${widget.selectedDate.month}'},
+                  ),
                   style: textTheme.titleMedium,
                 ),
                 StreamBuilder<int>(
-                  stream: GetIt.I<LocalDatabase>().selectMonthExpense(widget.selectedDate),
+                  stream: GetIt.I<LocalDatabase>().selectMonthExpense(
+                    widget.selectedDate,
+                  ),
                   builder: (context, snapshot) {
-                    if(!snapshot.hasData) {
+                    if (!snapshot.hasData) {
                       return Text(
-                        "0원",
-                        style: textTheme.bodyMedium?.copyWith(color: AppColors.mutedOf(context)),
+                        '0${'common.currency_suffix'.tr()}',
+                        style: textTheme.bodyMedium?.copyWith(
+                          color: AppColors.mutedOf(context),
+                        ),
                       );
                     }
 
                     return Text(
-                      numberFormat.format(snapshot.data),
+                      '${numberFormat.format(snapshot.data)}${'common.currency_suffix'.tr()}',
                       style: textTheme.titleMedium,
                     );
-                  }
-                )
+                  },
+                ),
               ],
             ),
           ),
           SizedBox(height: 12),
           Expanded(
             child: Container(
-                width: MediaQuery.of(context).size.width,
-                child: ExpenseByWeek(selectedDate: widget.selectedDate)
-            )
-          )
+              width: MediaQuery.of(context).size.width,
+              child: ExpenseByWeek(selectedDate: widget.selectedDate),
+            ),
+          ),
         ],
-      )
+      ),
     );
   }
 }

@@ -1,0 +1,92 @@
+{
+  "tab": {
+    "expense": "Expense",
+    "history": "History",
+    "category": "Category",
+    "settings": "Settings"
+  },
+  "home": {
+    "title": "Today's Expenses",
+    "today_total": "Today's Total",
+    "count_label": "{count} items",
+    "empty": "No expenses yet!"
+  },
+  "calendar": {
+    "title": "Calendar",
+    "subtitle": "Check your expenses by day, week, and category",
+    "expense_total": "Expense total: {amount}",
+    "total": "Total: {amount}"
+  },
+  "month": {
+    "title": "Month {month} Expenses"
+  },
+  "week": {
+    "label": "Week {week}"
+  },
+  "category": {
+    "manage_title": "Manage Categories",
+    "search_hint": "Search",
+    "empty": "No categories found.",
+    "delete_blocked": "Cannot delete this category because it has related expenses.",
+    "alert_title": "Notice",
+    "input_title": "Add Category",
+    "input_hint": "Enter a category name.",
+    "edit_title": "Edit Category",
+    "edit_hint": "Enter a new category name.",
+    "duplicate_error": "This category name already exists!",
+    "select_label": "Category"
+  },
+  "category_expense": {
+    "title": "Expenses by Category",
+    "empty": "No expenses!"
+  },
+  "settings": {
+    "subtitle": "Manage and reset your app data.",
+    "language": {
+      "title": "Language",
+      "subtitle": "Choose the language used in the app.",
+      "follow_system": "Follow system language",
+      "select": "App language",
+      "option_ko": "Korean",
+      "option_en": "English"
+    },
+    "reset": {
+      "title": "Reset all data",
+      "subtitle": "This action cannot be undone.",
+      "dialog_title": "Delete data",
+      "dialog_content": "Are you sure you want to delete all data?"
+    }
+  },
+  "expense": {
+    "header_add": "Add Expense",
+    "header_detail": "Expense Detail",
+    "add_hint": "After saving, you can view it right away on Home.",
+    "detail_hint": "Tap Save to apply your changes.",
+    "delete_title": "Delete",
+    "delete_confirm": "Are you sure you want to delete this item?",
+    "toast_added": "Expense added.",
+    "toast_deleted": "Deleted.",
+    "form": {
+      "name": "Expense Name",
+      "date": "Date",
+      "amount": "Amount",
+      "detail": "Detail",
+      "name_required": "Please enter an expense name.",
+      "amount_required": "Please enter an amount."
+    }
+  },
+  "common": {
+    "cancel": "Cancel",
+    "confirm": "Confirm",
+    "ok": "OK",
+    "add": "Add",
+    "save": "Save",
+    "delete": "Delete",
+    "currency_suffix": " KRW",
+    "unclassified": "Uncategorized"
+  },
+  "error": {
+    "unsupported_locale": "This language is not supported.",
+    "generic": "An error occurred."
+  }
+}

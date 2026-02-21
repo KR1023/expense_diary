@@ -9,6 +9,7 @@ import 'package:expense_diary/database/drift_database.dart';
 import 'package:expense_diary/component/category_select.dart';
 import 'package:expense_diary/component/common/app_background.dart';
 import 'package:expense_diary/const/app_colors.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 class AddScreen extends StatefulWidget {
   @override
@@ -32,10 +33,7 @@ class _AddScreenState extends State<AddScreen> {
         padding: EdgeInsets.fromLTRB(20, 12, 20, 0),
         child: Column(
           children: [
-            ExpenseScreenHeader(
-              isAdd: true,
-              onSavePressed: onSavePressed,
-            ),
+            ExpenseScreenHeader(isAdd: true, onSavePressed: onSavePressed),
             const SizedBox(height: 16),
             Expanded(
               child: Form(
@@ -48,7 +46,7 @@ class _AddScreenState extends State<AddScreen> {
                       child: Column(
                         children: [
                           LabelField(
-                            label: '지출명',
+                            label: 'expense.form.name'.tr(),
                             isDetail: false,
                             isDate: false,
                             isExpense: false,
@@ -58,7 +56,7 @@ class _AddScreenState extends State<AddScreen> {
                             },
                             validator: (String? val) {
                               if (val == '' || val == null) {
-                                return '지출명을 입력해 주세요.';
+                                return 'expense.form.name_required'.tr();
                               } else {
                                 return null;
                               }
@@ -66,7 +64,7 @@ class _AddScreenState extends State<AddScreen> {
                           ),
                           const SizedBox(height: 20),
                           LabelField(
-                            label: '지출일자',
+                            label: 'expense.form.date'.tr(),
                             isDetail: false,
                             isDate: true,
                             isExpense: false,
@@ -79,7 +77,7 @@ class _AddScreenState extends State<AddScreen> {
                           ),
                           const SizedBox(height: 20),
                           LabelField(
-                            label: '지출금액',
+                            label: 'expense.form.amount'.tr(),
                             isDetail: false,
                             isDate: false,
                             isExpense: true,
@@ -89,7 +87,7 @@ class _AddScreenState extends State<AddScreen> {
                             },
                             validator: (String? val) {
                               if (val == '' || val == null) {
-                                return "금액을 입력해 주세요.";
+                                return 'expense.form.amount_required'.tr();
                               } else {
                                 return null;
                               }
@@ -107,7 +105,7 @@ class _AddScreenState extends State<AddScreen> {
                           ),
                           const SizedBox(height: 20),
                           LabelField(
-                            label: '지출상세내용',
+                            label: 'expense.form.detail'.tr(),
                             isDetail: true,
                             isDate: false,
                             isExpense: false,
@@ -120,17 +118,20 @@ class _AddScreenState extends State<AddScreen> {
                           const SizedBox(height: 20),
                           Container(
                             width: double.infinity,
-                            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 14,
+                              vertical: 12,
+                            ),
                             decoration: BoxDecoration(
                               color: AppColors.surfaceAltOf(context),
                               borderRadius: BorderRadius.circular(12),
-                              border: Border.all(color: AppColors.outlineOf(context)),
+                              border: Border.all(
+                                color: AppColors.outlineOf(context),
+                              ),
                             ),
                             child: Text(
-                              '저장 후에는 홈에서 바로 확인할 수 있어요.',
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .bodySmall
+                              'expense.add_hint'.tr(),
+                              style: Theme.of(context).textTheme.bodySmall
                                   ?.copyWith(color: AppColors.mutedOf(context)),
                             ),
                           ),
@@ -148,7 +149,7 @@ class _AddScreenState extends State<AddScreen> {
   }
 
   void onSavePressed(BuildContext context) async {
-    if(formKey.currentState!.validate()) {
+    if (formKey.currentState!.validate()) {
       formKey.currentState!.save();
 
       await GetIt.I<LocalDatabase>().createExpense(
@@ -157,12 +158,11 @@ class _AddScreenState extends State<AddScreen> {
           expenseDate: Value(expenseDate!),
           expense: Value(expense!),
           categoryId: Value(categoryId),
-          expenseDetail: Value(detail!)
-        )
+          expenseDetail: Value(detail!),
+        ),
       );
-      showBasicToast(message: "지출을 추가했습니다.");
+      showBasicToast(message: 'expense.toast_added'.tr());
       Navigator.pop(context);
     }
   }
-
 }

@@ -3,23 +3,23 @@ import 'package:flutter/material.dart';
 import 'package:expense_diary/screen/home_screen.dart';
 import 'package:expense_diary/screen/category_screen.dart';
 import 'package:expense_diary/screen/config_screen.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 class RootScreen extends StatefulWidget {
+  const RootScreen({super.key});
 
   @override
   State<RootScreen> createState() => _RootScreenState();
-
 }
 
-class _RootScreenState extends State<RootScreen>{
-
+class _RootScreenState extends State<RootScreen> {
   int _selectedIndex = 0;
 
   final List<Widget> _screens = [
     HomeScreen(),
     CalendarScreen(),
     CategoryScreen(),
-    ConfigScreen()
+    ConfigScreen(),
   ];
 
   void _onItemTapped(int index) {
@@ -30,39 +30,39 @@ class _RootScreenState extends State<RootScreen>{
 
   @override
   Widget build(BuildContext context) {
+    final locale = context.locale;
+
     return Scaffold(
-      body: IndexedStack(
-        index: _selectedIndex,
-        children: _screens,
-      ),
+      key: ValueKey('root_${locale.languageCode}'),
+      body: IndexedStack(index: _selectedIndex, children: _screens),
       bottomNavigationBar: renderBottomNavigation(),
     );
   }
 
-  Widget renderBottomNavigation(){
+  Widget renderBottomNavigation() {
     return NavigationBar(
       selectedIndex: _selectedIndex,
       onDestinationSelected: _onItemTapped,
-      destinations: const [
+      destinations: [
         NavigationDestination(
-          icon: Icon(Icons.paid_outlined),
-          selectedIcon: Icon(Icons.paid),
-          label: '지출',
+          icon: const Icon(Icons.paid_outlined),
+          selectedIcon: const Icon(Icons.paid),
+          label: 'tab.expense'.tr(),
         ),
         NavigationDestination(
-          icon: Icon(Icons.calendar_today_outlined),
-          selectedIcon: Icon(Icons.calendar_today),
-          label: '지출 내역',
+          icon: const Icon(Icons.calendar_today_outlined),
+          selectedIcon: const Icon(Icons.calendar_today),
+          label: 'tab.history'.tr(),
         ),
         NavigationDestination(
-          icon: Icon(Icons.topic_outlined),
-          selectedIcon: Icon(Icons.topic),
-          label: '분류',
+          icon: const Icon(Icons.topic_outlined),
+          selectedIcon: const Icon(Icons.topic),
+          label: 'tab.category'.tr(),
         ),
         NavigationDestination(
-          icon: Icon(Icons.tune_outlined),
-          selectedIcon: Icon(Icons.tune),
-          label: '설정',
+          icon: const Icon(Icons.tune_outlined),
+          selectedIcon: const Icon(Icons.tune),
+          label: 'tab.settings'.tr(),
         ),
       ],
     );

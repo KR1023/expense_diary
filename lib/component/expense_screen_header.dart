@@ -3,6 +3,7 @@ import 'package:expense_diary/database/drift_database.dart';
 import 'package:get_it/get_it.dart';
 import 'package:expense_diary/component/common/toast.dart';
 import 'package:expense_diary/const/app_colors.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 class ExpenseScreenHeader extends StatelessWidget {
   final bool isAdd;
@@ -13,7 +14,7 @@ class ExpenseScreenHeader extends StatelessWidget {
     required this.isAdd,
     required this.onSavePressed,
     this.id,
-    super.key
+    super.key,
   });
 
   @override
@@ -30,7 +31,7 @@ class ExpenseScreenHeader extends StatelessWidget {
         ),
         Expanded(
           child: Text(
-            isAdd ? '지출 내역 추가' : '지출 내역 상세',
+            isAdd ? 'expense.header_add'.tr() : 'expense.header_detail'.tr(),
             textAlign: TextAlign.center,
             style: Theme.of(context).textTheme.titleMedium,
           ),
@@ -47,7 +48,7 @@ class ExpenseScreenHeader extends StatelessWidget {
                   borderRadius: BorderRadius.circular(12),
                 ),
               ),
-              child: Text(isAdd ? '추가' : '저장'),
+              child: Text(isAdd ? 'common.add'.tr() : 'common.save'.tr()),
             ),
             if (!isAdd)
               IconButton(
@@ -57,8 +58,7 @@ class ExpenseScreenHeader extends StatelessWidget {
                 icon: Icon(Icons.delete_outline),
               ),
           ],
-        )
-
+        ),
       ],
     );
   }
@@ -73,40 +73,38 @@ class ExpenseScreenHeader extends StatelessWidget {
             children: [
               Icon(Icons.warning_amber_rounded, color: AppColors.danger),
               SizedBox(width: 8),
-              Text('삭제'),
+              Text('expense.delete_title'.tr()),
             ],
           ),
-          content: Text('정말 삭제하시겠습니까?'),
+          content: Text('expense.delete_confirm'.tr()),
           actions: [
             OutlinedButton(
-              child: Text('취소'),
-              onPressed:() {
+              child: Text('common.cancel'.tr()),
+              onPressed: () {
                 Navigator.of(context).pop(false);
-              }
+              },
             ),
             FilledButton(
               style: FilledButton.styleFrom(
                 backgroundColor: AppColors.danger,
                 foregroundColor: Colors.white,
               ),
-              child: Text(
-                '삭제'
-              ),
+              child: Text('common.delete'.tr()),
               onPressed: () async {
-                try{
+                try {
                   await GetIt.I<LocalDatabase>().removeExpense(id);
-                  showBasicToast(message: "삭제되었습니다.");
+                  showBasicToast(message: 'expense.toast_deleted'.tr());
                   Navigator.pop(context);
                   Navigator.pop(context);
-                } catch(e){
+                } catch (e) {
                   print(e);
-                  showBasicToast(message: "오류가 발생했습니다.");
+                  showBasicToast(message: 'error.generic'.tr());
                 }
-              }
-            )
-          ]
+              },
+            ),
+          ],
         );
-      }
+      },
     );
   }
 }
