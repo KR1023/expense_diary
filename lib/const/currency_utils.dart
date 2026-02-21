@@ -15,4 +15,12 @@ class CurrencyUtils {
     if (currencyCode == 'USD') return 'USD';
     return '원';
   }
+
+  static String formatCompactAmount(int amount, String currencyCode) {
+    final compact = NumberFormat.compact().format(amount);
+    if (currencyCode == 'USD') {
+      return '\$$compact';
+    }
+    return '$compact원';
+  }
 }

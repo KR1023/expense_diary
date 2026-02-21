@@ -15,7 +15,12 @@
     "title": "Calendar",
     "subtitle": "Check your expenses by day, week, and category",
     "expense_total": "Expense total: {amount}",
-    "total": "Total: {amount}"
+    "total": "Total: {amount}",
+    "detail_view": "View Details",
+    "detail_title": "Expense Details",
+    "section_expenses": "Daily Expenses",
+    "section_weekly": "Weekly Totals",
+    "section_category": "Category Totals"
   },
   "month": {
     "title": "Month {month} Expenses"
