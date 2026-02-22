@@ -107,181 +107,208 @@ class _ConfigScreenState extends State<ConfigScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              'tab.settings'.tr(),
-              style: Theme.of(context).textTheme.titleLarge,
-            ),
-            Text(
-              'settings.subtitle'.tr(),
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: AppColors.mutedOf(context),
-              ),
-            ),
-            const SizedBox(height: 20),
-            Card(
-              margin: EdgeInsets.zero,
-              child: Column(
-                children: [
-                  ListTile(
-                    leading: Icon(Icons.language, color: AppColors.primary),
-                    title: Text('settings.language.title'.tr()),
-                    subtitle: Text('settings.language.subtitle'.tr()),
-                  ),
-                  SwitchListTile(
-                    title: Text('settings.language.follow_system'.tr()),
-                    value: _followSystemLocale,
-                    onChanged: _setFollowSystemLocale,
-                  ),
-                  if (!_followSystemLocale)
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
-                      child: DropdownButtonFormField<String>(
-                        value: _selectedLanguage,
-                        decoration: InputDecoration(
-                          labelText: 'settings.language.select'.tr(),
-                        ),
-                        items: [
-                          DropdownMenuItem(
-                            value: 'ko',
-                            child: Text('settings.language.option_ko'.tr()),
+            Expanded(
+              child: SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'tab.settings'.tr(),
+                      style: Theme.of(context).textTheme.titleLarge,
+                    ),
+                    Text(
+                      'settings.subtitle'.tr(),
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: AppColors.mutedOf(context),
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    Card(
+                      margin: EdgeInsets.zero,
+                      child: Column(
+                        children: [
+                          ListTile(
+                            leading: Icon(Icons.language, color: AppColors.primary),
+                            title: Text('settings.language.title'.tr()),
+                            subtitle: Text('settings.language.subtitle'.tr()),
                           ),
-                          DropdownMenuItem(
-                            value: 'en',
-                            child: Text('settings.language.option_en'.tr()),
+                          SwitchListTile(
+                            title: Text('settings.language.follow_system'.tr()),
+                            value: _followSystemLocale,
+                            onChanged: _setFollowSystemLocale,
+                          ),
+                          if (!_followSystemLocale)
+                            Padding(
+                              padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+                              child: DropdownButtonFormField<String>(
+                                value: _selectedLanguage,
+                                decoration: InputDecoration(
+                                  labelText: 'settings.language.select'.tr(),
+                                ),
+                                items: [
+                                  DropdownMenuItem(
+                                    value: 'ko',
+                                    child: Text(
+                                      'settings.language.option_ko'.tr(),
+                                    ),
+                                  ),
+                                  DropdownMenuItem(
+                                    value: 'en',
+                                    child: Text(
+                                      'settings.language.option_en'.tr(),
+                                    ),
+                                  ),
+                                ],
+                                onChanged: (value) {
+                                  if (value == null) return;
+                                  _setManualLocale(value);
+                                },
+                              ),
+                            ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    Card(
+                      margin: EdgeInsets.zero,
+                      child: Column(
+                        children: [
+                          ListTile(
+                            leading: Icon(
+                              Icons.attach_money,
+                              color: AppColors.primary,
+                            ),
+                            title: Text('settings.currency.title'.tr()),
+                            subtitle: Text('settings.currency.subtitle'.tr()),
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+                            child: DropdownButtonFormField<String>(
+                              value: _selectedCurrency,
+                              decoration: const InputDecoration(isDense: true),
+                              items: [
+                                DropdownMenuItem(
+                                  value: 'KRW',
+                                  child: Text(
+                                    'settings.currency.option_krw'.tr(),
+                                  ),
+                                ),
+                                DropdownMenuItem(
+                                  value: 'USD',
+                                  child: Text(
+                                    'settings.currency.option_usd'.tr(),
+                                  ),
+                                ),
+                              ],
+                              onChanged: (value) {
+                                if (value == null) return;
+                                _setCurrency(value);
+                              },
+                            ),
                           ),
                         ],
-                        onChanged: (value) {
-                          if (value == null) return;
-                          _setManualLocale(value);
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    Card(
+                      margin: EdgeInsets.zero,
+                      child: ListTile(
+                        leading: Icon(
+                          Icons.delete_sweep_outlined,
+                          color: AppColors.danger,
+                        ),
+                        title: Text('settings.reset.title'.tr()),
+                        subtitle: Text('settings.reset.subtitle'.tr()),
+                        trailing: const Icon(Icons.chevron_right),
+                        onTap: () {
+                          initConfirmDialog(context);
                         },
                       ),
                     ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 12),
-            Card(
-              margin: EdgeInsets.zero,
-              child: Column(
-                children: [
-                  ListTile(
-                    leading: Icon(Icons.attach_money, color: AppColors.primary),
-                    title: Text('settings.currency.title'.tr()),
-                    subtitle: Text('settings.currency.subtitle'.tr()),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
-                    child: DropdownButtonFormField<String>(
-                      value: _selectedCurrency,
-                      decoration: const InputDecoration(isDense: true),
-                      items: [
-                        DropdownMenuItem(
-                          value: 'KRW',
-                          child: Text('settings.currency.option_krw'.tr()),
-                        ),
-                        DropdownMenuItem(
-                          value: 'USD',
-                          child: Text('settings.currency.option_usd'.tr()),
-                        ),
-                      ],
-                      onChanged: (value) {
-                        if (value == null) return;
-                        _setCurrency(value);
-                      },
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 12),
-            Card(
-              margin: EdgeInsets.zero,
-              child: ListTile(
-                leading: Icon(
-                  Icons.delete_sweep_outlined,
-                  color: AppColors.danger,
-                ),
-                title: Text('settings.reset.title'.tr()),
-                subtitle: Text('settings.reset.subtitle'.tr()),
-                trailing: const Icon(Icons.chevron_right),
-                onTap: () {
-                  initConfirmDialog(context);
-                },
-              ),
-            ),
-            const SizedBox(height: 12),
-            StreamBuilder<User?>(
-              stream: GetIt.I<AuthRepository>().authStateChanges,
-              builder: (context, snapshot) {
-                final user = snapshot.data;
+                    const SizedBox(height: 12),
+                    StreamBuilder<User?>(
+                      stream: GetIt.I<AuthRepository>().authStateChanges,
+                      builder: (context, snapshot) {
+                        final user = snapshot.data;
 
-                return Card(
-                  margin: EdgeInsets.zero,
-                  child: ListTile(
-                    leading: Icon(
-                      user == null ? Icons.login_rounded : Icons.logout_rounded,
-                      color: AppColors.primary,
-                    ),
-                    title: Text(
-                      user == null
-                          ? 'settings.account.login'.tr()
-                          : 'settings.account.logout'.tr(),
-                    ),
-                    subtitle: Text(
-                      user == null
-                          ? 'settings.account.login_subtitle'.tr()
-                          : (user.email?.isNotEmpty ?? false)
-                          ? user.email!
-                          : 'settings.account.subtitle'.tr(),
-                    ),
-                    trailing: const Icon(Icons.chevron_right),
-                    onTap: () async {
-                      if (user == null) {
-                        await Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (_) => const LoginScreen(),
+                        return Card(
+                          margin: EdgeInsets.zero,
+                          child: ListTile(
+                            leading: Icon(
+                              user == null
+                                  ? Icons.login_rounded
+                                  : Icons.logout_rounded,
+                              color: AppColors.primary,
+                            ),
+                            title: Text(
+                              user == null
+                                  ? 'settings.account.login'.tr()
+                                  : 'settings.account.logout'.tr(),
+                            ),
+                            subtitle: Text(
+                              user == null
+                                  ? 'settings.account.login_subtitle'.tr()
+                                  : (user.email?.isNotEmpty ?? false)
+                                  ? user.email!
+                                  : 'settings.account.subtitle'.tr(),
+                            ),
+                            trailing: const Icon(Icons.chevron_right),
+                            onTap: () async {
+                              if (user == null) {
+                                await Navigator.of(context).push(
+                                  MaterialPageRoute(
+                                    builder: (_) => const LoginScreen(),
+                                  ),
+                                );
+                                return;
+                              }
+                              await GetIt.I<AuthRepository>().signOut();
+                            },
                           ),
                         );
-                        return;
-                      }
-                      await GetIt.I<AuthRepository>().signOut();
-                    },
-                  ),
-                );
-              },
-            ),
-            const SizedBox(height: 12),
-            StreamBuilder<User?>(
-              stream: GetIt.I<AuthRepository>().authStateChanges,
-              builder: (context, snapshot) {
-                final user = snapshot.data;
-                return Card(
-                  margin: EdgeInsets.zero,
-                  child: ListTile(
-                    enabled: user != null,
-                    leading: Icon(Icons.cloud_sync_outlined, color: AppColors.primary),
-                    title: Text('settings.cloud_tx.title'.tr()),
-                    subtitle: Text(
-                      user == null
-                          ? 'settings.cloud_tx.login_required'.tr()
-                          : 'settings.cloud_tx.subtitle'.tr(),
+                      },
                     ),
-                    trailing: const Icon(Icons.chevron_right),
-                    onTap:
-                        user == null
-                            ? null
-                            : () async {
-                              await Navigator.of(context).push(
-                                MaterialPageRoute(
-                                  builder: (_) => const CloudTransactionScreen(),
-                                ),
-                              );
-                            },
-                  ),
-                );
-              },
+                    const SizedBox(height: 12),
+                    StreamBuilder<User?>(
+                      stream: GetIt.I<AuthRepository>().authStateChanges,
+                      builder: (context, snapshot) {
+                        final user = snapshot.data;
+                        return Card(
+                          margin: EdgeInsets.zero,
+                          child: ListTile(
+                            enabled: user != null,
+                            leading: Icon(
+                              Icons.cloud_sync_outlined,
+                              color: AppColors.primary,
+                            ),
+                            title: Text('settings.cloud_tx.title'.tr()),
+                            subtitle: Text(
+                              user == null
+                                  ? 'settings.cloud_tx.login_required'.tr()
+                                  : 'settings.cloud_tx.subtitle'.tr(),
+                            ),
+                            trailing: const Icon(Icons.chevron_right),
+                            onTap:
+                                user == null
+                                    ? null
+                                    : () async {
+                                      await Navigator.of(context).push(
+                                        MaterialPageRoute(
+                                          builder:
+                                              (_) =>
+                                                  const CloudTransactionScreen(),
+                                        ),
+                                      );
+                                    },
+                          ),
+                        );
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                  ],
+                ),
+              ),
             ),
-            const Spacer(),
             BannerAdWidget(),
           ],
         ),
