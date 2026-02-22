@@ -197,6 +197,8 @@ service cloud.firestore {
 }
 ```
 
+이 저장소에는 위 정책이 `repo root`의 `firestore.rules` 파일로 포함되어 있습니다.
+
 주의:
 - 이 앱은 로컬 우선 구조이므로 Firebase에는 동기화/백업에 필요한 데이터만 저장하는 방향을 유지합니다.
 - 삭제/병합 정책은 이후 동기화 티켓에서 명확히 정의하세요.
@@ -209,6 +211,16 @@ service cloud.firestore {
 ```bash
 firebase use <project-id>
 firebase deploy --only firestore:rules
+```
+
+스크립트 사용 (권장):
+```bash
+./scripts/firebase_deploy_firestore_rules.sh <project-id>
+```
+
+현재 Firebase CLI 프로젝트가 이미 선택되어 있으면:
+```bash
+./scripts/firebase_deploy_firestore_rules.sh
 ```
 
 권장 운영:
@@ -255,7 +267,8 @@ flutter run --dart-define=USE_FIREBASE_EMULATOR=true
 5. `flutter pub get`
 6. 프로젝트 루트에서 `flutterfire configure`
 7. 필요 시 `firebase use <project-id>`
-8. `flutter run` (또는 플랫폼별 실행)
+8. `./scripts/firebase_deploy_firestore_rules.sh <project-id>` (Rules 배포)
+9. `flutter run` (또는 플랫폼별 실행)
 
 ## 10) 팀 운영 팁 (권장)
 

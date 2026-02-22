@@ -7,6 +7,7 @@ A new Flutter project.
 - `docs/FIREBASE_SETUP.md`
 - `docs/FIREBASE_TROUBLESHOOTING.md`
 - `scripts/firebase_configure.sh` (optional helper for repeatable CLI setup)
+- `scripts/firebase_deploy_firestore_rules.sh` (deploy Firestore security rules)
 
 ## Getting Started
 
