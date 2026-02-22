@@ -1,5 +1,9 @@
+import 'package:expense_diary/auth/auth_repository.dart';
 import 'package:expense_diary/component/banner_ad_widget.dart';
 import 'package:expense_diary/database/drift_database.dart';
+import 'package:expense_diary/screen/cloud_transaction_screen.dart';
+import 'package:expense_diary/screen/login_screen.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
 import 'package:expense_diary/component/common/app_background.dart';
@@ -204,6 +208,78 @@ class _ConfigScreenState extends State<ConfigScreen> {
                   initConfirmDialog(context);
                 },
               ),
+            ),
+            const SizedBox(height: 12),
+            StreamBuilder<User?>(
+              stream: GetIt.I<AuthRepository>().authStateChanges,
+              builder: (context, snapshot) {
+                final user = snapshot.data;
+
+                return Card(
+                  margin: EdgeInsets.zero,
+                  child: ListTile(
+                    leading: Icon(
+                      user == null ? Icons.login_rounded : Icons.logout_rounded,
+                      color: AppColors.primary,
+                    ),
+                    title: Text(
+                      user == null
+                          ? 'settings.account.login'.tr()
+                          : 'settings.account.logout'.tr(),
+                    ),
+                    subtitle: Text(
+                      user == null
+                          ? 'settings.account.login_subtitle'.tr()
+                          : (user.email?.isNotEmpty ?? false)
+                          ? user.email!
+                          : 'settings.account.subtitle'.tr(),
+                    ),
+                    trailing: const Icon(Icons.chevron_right),
+                    onTap: () async {
+                      if (user == null) {
+                        await Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (_) => const LoginScreen(),
+                          ),
+                        );
+                        return;
+                      }
+                      await GetIt.I<AuthRepository>().signOut();
+                    },
+                  ),
+                );
+              },
+            ),
+            const SizedBox(height: 12),
+            StreamBuilder<User?>(
+              stream: GetIt.I<AuthRepository>().authStateChanges,
+              builder: (context, snapshot) {
+                final user = snapshot.data;
+                return Card(
+                  margin: EdgeInsets.zero,
+                  child: ListTile(
+                    enabled: user != null,
+                    leading: Icon(Icons.cloud_sync_outlined, color: AppColors.primary),
+                    title: Text('settings.cloud_tx.title'.tr()),
+                    subtitle: Text(
+                      user == null
+                          ? 'settings.cloud_tx.login_required'.tr()
+                          : 'settings.cloud_tx.subtitle'.tr(),
+                    ),
+                    trailing: const Icon(Icons.chevron_right),
+                    onTap:
+                        user == null
+                            ? null
+                            : () async {
+                              await Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (_) => const CloudTransactionScreen(),
+                                ),
+                              );
+                            },
+                  ),
+                );
+              },
             ),
             const Spacer(),
             BannerAdWidget(),

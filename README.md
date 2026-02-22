@@ -2,6 +2,12 @@
 
 A new Flutter project.
 
+## Firebase Setup Docs
+
+- `docs/FIREBASE_SETUP.md`
+- `docs/FIREBASE_TROUBLESHOOTING.md`
+- `scripts/firebase_configure.sh` (optional helper for repeatable CLI setup)
+
 ## Getting Started
 
 This project is a starting point for a Flutter application.

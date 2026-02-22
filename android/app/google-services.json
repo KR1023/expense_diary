@@ -1,0 +1,62 @@
+{
+  "project_info": {
+    "project_number": "703096841584",
+    "project_id": "expense-diary-4892a",
+    "storage_bucket": "expense-diary-4892a.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:703096841584:android:b1d3640324fd1cc22c1bb5",
+        "android_client_info": {
+          "package_name": "com.ysh.expense_diary"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "703096841584-g1eo391h3fa1nmaesocfjlhvj0gd0vbe.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.ysh.expense_diary",
+            "certificate_hash": "f002d48368f76213eef184d7af905b49d875d817"
+          }
+        },
+        {
+          "client_id": "703096841584-se736dil66pv6u3s20im6upir2pt5s5e.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.ysh.expense_diary",
+            "certificate_hash": "55c533839ef9235ab9041eaa79717e82529f2a41"
+          }
+        },
+        {
+          "client_id": "703096841584-sdk8t1ang9r6lt9bng8dsr2b0g55kqgl.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDCyQw7YQL86xMct_FWBwpR4XPoPcYZisM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "703096841584-sdk8t1ang9r6lt9bng8dsr2b0g55kqgl.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "703096841584-u56b1ikdpgm9qqdovh67v7apgp1g8paj.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.ysh.expenseDiary"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

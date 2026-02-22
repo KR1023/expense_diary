@@ -66,6 +66,88 @@
       "subtitle": "This action cannot be undone.",
       "dialog_title": "Delete data",
       "dialog_content": "Are you sure you want to delete all data?"
+    },
+    "account": {
+      "login": "Sign in / Sign up",
+      "login_subtitle": "Sign in to enable upcoming cloud sync and backup features.",
+      "logout": "Sign out",
+      "subtitle": "Sign out of the currently logged-in account."
+    },
+    "cloud_tx": {
+      "title": "Cloud Transactions (Firebase)",
+      "subtitle": "Test Firestore transaction CRUD for the signed-in user.",
+      "login_required": "Sign in to use this feature."
+    }
+  },
+  "cloud_tx": {
+    "title": "Cloud Transactions",
+    "subtitle": "Firestore transaction CRUD test screen",
+    "month": "Month",
+    "empty": "No cloud transactions for this month.",
+    "saved": "Cloud transaction saved.",
+    "deleted": "Cloud transaction deleted.",
+    "form": {
+      "amount": "Amount",
+      "category": "Category ID (i18n-neutral key)",
+      "memo": "Memo",
+      "spent_at": "Spent At",
+      "clear": "Clear",
+      "create": "Create",
+      "update": "Update"
+    },
+    "type": {
+      "income": "Income",
+      "expense": "Expense"
+    },
+    "error": {
+      "generic": "Failed to process cloud transaction.",
+      "amount": "Enter a valid amount.",
+      "category": "Enter a category ID."
+    }
+  },
+  "auth": {
+    "title": "Sign In",
+    "subtitle": "Sign in with email to prepare cloud sync and backup.",
+    "success": "Signed in successfully.",
+    "email": "Email",
+    "password": "Password",
+    "sign_in": "Sign In",
+    "sign_up": "Create Account",
+    "sign_in_google": "Continue with Google",
+    "no_account": "Don't have an account?",
+    "go_to_sign_up": "Sign up",
+    "loading": "Checking authentication state...",
+    "signup": {
+      "title": "Create Account",
+      "subtitle": "Create an account to prepare for cloud features.",
+      "success": "Account created successfully.",
+      "confirm_password": "Confirm Password",
+      "confirm_password_required": "Please confirm your password.",
+      "password_mismatch": "Passwords do not match.",
+      "agree_terms": "I agree to the Terms of Service and Privacy Policy.",
+      "terms_required": "You must agree to the terms to sign up.",
+      "view_terms": "View Terms",
+      "view_privacy": "View Privacy Policy",
+      "terms_title": "Terms of Service",
+      "privacy_title": "Privacy Policy",
+      "terms_content": "This app uses account authentication to provide cloud sync and backup features. Stored data is processed for service functionality only.",
+      "privacy_content": "When email login or cloud sync is used, authentication and storage may be processed through Firebase. Please avoid entering sensitive personal information in memo fields."
+    },
+    "error": {
+      "generic": "Authentication failed. Please try again.",
+      "enter_email": "Please enter your email.",
+      "invalid_email": "Please enter a valid email address.",
+      "enter_password": "Please enter your password.",
+      "password_min": "Password must be at least 6 characters.",
+      "user_not_found": "No account found for this email.",
+      "wrong_password": "Incorrect password.",
+      "email_already_in_use": "This email is already in use.",
+      "weak_password": "Password is too weak.",
+      "invalid_credential": "Check your email or password.",
+      "email_password_not_enabled": "Email/Password sign-in is disabled in Firebase Console.",
+      "account_exists_different_credential": "An account already exists with a different sign-in method.",
+      "google_token_missing": "Failed to get a Google sign-in token.",
+      "google_sign_in_failed": "Google sign-in failed."
     }
   },
   "expense": {
@@ -92,6 +174,7 @@
     "ok": "OK",
     "add": "Add",
     "save": "Save",
+    "edit": "Edit",
     "delete": "Delete",
     "currency_suffix": " KRW",
     "unclassified": "Uncategorized"
