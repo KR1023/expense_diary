@@ -1,5 +1,9 @@
 import 'package:expense_diary/auth/auth_repository.dart';
+import 'package:expense_diary/core/subscription/subscription_service.dart';
 import 'package:expense_diary/data/firestore/firestore_transaction_repository.dart';
+import 'package:expense_diary/features/backup/data/snapshot_service.dart';
+import 'package:expense_diary/features/report/data/report_csv_service.dart';
+import 'package:expense_diary/features/report/data/report_pdf_service.dart';
 import 'package:flutter/material.dart';
 import 'package:expense_diary/screen/root_screen.dart';
 import 'package:expense_diary/database/drift_database.dart';
@@ -17,9 +21,7 @@ import 'package:expense_diary/firebase_options.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await EasyLocalization.ensureInitialized();
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
   await MobileAds.instance.initialize();
 
@@ -34,15 +36,34 @@ void main() async {
 
   final database = LocalDatabase();
   GetIt.I.registerSingleton<LocalDatabase>(database);
+  final subscriptionService = SubscriptionService();
+  GetIt.I.registerSingleton<SubscriptionService>(subscriptionService);
   final authRepository = AuthRepository(
     googleServerClientId: FirebaseAuthConfig.googleServerClientId,
+    subscriptionService: subscriptionService,
   );
   GetIt.I.registerSingleton<AuthRepository>(authRepository);
   GetIt.I.registerSingleton<FirestoreTransactionRepository>(
     FirestoreTransactionRepository(authRepository: authRepository),
   );
-  GetIt.I.registerSingleton<AppSettings>(
-    AppSettings(currencyCode: userCurrency),
+  final appSettings = AppSettings(currencyCode: userCurrency);
+  GetIt.I.registerSingleton<AppSettings>(appSettings);
+  GetIt.I.registerSingleton<SnapshotService>(
+    SnapshotService(
+      localDatabase: database,
+      sharedPreferences: prefs,
+      appSettings: appSettings,
+    ),
+  );
+  GetIt.I.registerSingleton<ReportCsvService>(
+    ReportCsvService(localDatabase: database),
+  );
+  GetIt.I.registerSingleton<ReportPdfService>(
+    ReportPdfService(localDatabase: database),
+  );
+
+  await subscriptionService.init(
+    initialUserId: authRepository.currentUser?.uid,
   );
 
   runApp(

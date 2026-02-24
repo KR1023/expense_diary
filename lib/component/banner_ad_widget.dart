@@ -1,14 +1,25 @@
 import 'dart:io';
+import 'package:expense_diary/core/subscription/ad_gate.dart';
 import 'package:flutter/material.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 
-class BannerAdWidget extends StatefulWidget {
-  @override
-  State<StatefulWidget> createState() => _BannerAdWidgetState();
+class BannerAdWidget extends StatelessWidget {
+  const BannerAdWidget({super.key});
 
+  @override
+  Widget build(BuildContext context) {
+    return const AdGate(child: _BannerAdContent());
+  }
 }
 
-class _BannerAdWidgetState extends State<BannerAdWidget> {
+class _BannerAdContent extends StatefulWidget {
+  const _BannerAdContent();
+
+  @override
+  State<StatefulWidget> createState() => _BannerAdWidgetState();
+}
+
+class _BannerAdWidgetState extends State<_BannerAdContent> {
   late final BannerAd banner;
 
   @override
@@ -20,11 +31,11 @@ class _BannerAdWidgetState extends State<BannerAdWidget> {
     //     'ca-app-pub-3940256099942544/2934735716'
     //     : 'ca-app-pub-3940256099942544/6300978111';
 
-
     // real ID
-    final adUnitId = Platform.isIOS ?
-        'ca-app-pub-5444803558030319/5504549409'
-        : 'ca-app-pub-3940256099942544/6300978111';
+    final adUnitId =
+        Platform.isIOS
+            ? 'ca-app-pub-5444803558030319/5504549409'
+            : 'ca-app-pub-3940256099942544/6300978111';
 
     // 광고 생성
     banner = BannerAd(
@@ -39,10 +50,10 @@ class _BannerAdWidgetState extends State<BannerAdWidget> {
         onAdFailedToLoad: (ad, error) {
           print(error);
           ad.dispose();
-        }
+        },
       ),
       // 광고 요청 정보를 담고 있는 클래스
-      request: AdRequest()
+      request: AdRequest(),
     );
 
     // 광고 로딩
@@ -65,7 +76,7 @@ class _BannerAdWidgetState extends State<BannerAdWidget> {
           decoration: BoxDecoration(color: Colors.white),
           child: AdWidget(ad: banner),
         ),
-      )
+      ),
     );
   }
 }
