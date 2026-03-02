@@ -74,7 +74,6 @@ class _ReportStatisticsScreenState extends State<ReportStatisticsScreen> {
                 return _MonthlySummaryCard(
                   month: _selectedMonth,
                   expenseTotal: expenseTotal,
-                  incomeTotal: 0,
                   currencyCode: currencyCode,
                 );
               },
@@ -173,18 +172,15 @@ class _MonthlySummaryCard extends StatelessWidget {
   const _MonthlySummaryCard({
     required this.month,
     required this.expenseTotal,
-    required this.incomeTotal,
     required this.currencyCode,
   });
 
   final DateTime month;
   final int expenseTotal;
-  final int incomeTotal;
   final String currencyCode;
 
   @override
   Widget build(BuildContext context) {
-    final net = incomeTotal - expenseTotal;
     return Card(
       margin: EdgeInsets.zero,
       child: Padding(
@@ -201,25 +197,6 @@ class _MonthlySummaryCard extends StatelessWidget {
               label: '총 지출',
               value: CurrencyUtils.formatAmount(expenseTotal, currencyCode),
             ),
-            const SizedBox(height: 6),
-            _SummaryRow(
-              label: '총 수입',
-              value: CurrencyUtils.formatAmount(incomeTotal, currencyCode),
-              muted: true,
-            ),
-            const SizedBox(height: 6),
-            _SummaryRow(
-              label: '순액',
-              value: CurrencyUtils.formatAmount(net, currencyCode),
-              emphasized: true,
-            ),
-            const SizedBox(height: 8),
-            Text(
-              '현재 로컬 SQLite 스키마에는 수입 테이블/필드가 없어 총 수입은 0으로 표시됩니다.',
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: AppColors.mutedOf(context),
-              ),
-            ),
           ],
         ),
       ),
@@ -228,37 +205,24 @@ class _MonthlySummaryCard extends StatelessWidget {
 }
 
 class _SummaryRow extends StatelessWidget {
-  const _SummaryRow({
-    required this.label,
-    required this.value,
-    this.muted = false,
-    this.emphasized = false,
-  });
+  const _SummaryRow({required this.label, required this.value});
 
   final String label;
   final String value;
-  final bool muted;
-  final bool emphasized;
 
   @override
   Widget build(BuildContext context) {
-    final color = muted ? AppColors.mutedOf(context) : null;
     return Row(
       children: [
         Expanded(
           child: Text(
             label,
-            style: Theme.of(
-              context,
-            ).textTheme.bodyMedium?.copyWith(color: color),
+            style: Theme.of(context).textTheme.bodyMedium,
           ),
         ),
         Text(
           value,
-          style: (emphasized
-                  ? Theme.of(context).textTheme.titleMedium
-                  : Theme.of(context).textTheme.bodyMedium)
-              ?.copyWith(color: color),
+          style: Theme.of(context).textTheme.bodyMedium,
         ),
       ],
     );

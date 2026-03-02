@@ -10,9 +10,6 @@ import 'package:expense_diary/core/subscription/plan_guard.dart';
 import 'package:expense_diary/core/time/week_key.dart';
 import 'package:expense_diary/features/backup/data/snapshot_service.dart';
 import 'package:expense_diary/screen/paywall_screen.dart';
-import 'package:expense_diary/screen/report_csv_export_screen.dart';
-import 'package:expense_diary/screen/report_pdf_export_screen.dart';
-import 'package:expense_diary/screen/report_statistics_screen.dart';
 import 'package:expense_diary/screen/snapshot_restore_screen.dart';
 import 'package:expense_diary/screen/cloud_transaction_screen.dart';
 import 'package:expense_diary/screen/login_screen.dart';
@@ -750,82 +747,6 @@ class _ConfigScreenState extends State<ConfigScreen> {
                           ),
                         );
                       },
-                    ),
-                    const SizedBox(height: 12),
-                    Card(
-                      margin: EdgeInsets.zero,
-                      child: Column(
-                        children: [
-                          ListTile(
-                            leading: Icon(
-                              Icons.bar_chart_rounded,
-                              color: AppColors.primary,
-                            ),
-                            title: const Text('Report 통계'),
-                            subtitle: const Text('월별 집계 + 카테고리 TOP N'),
-                            trailing: const Icon(Icons.chevron_right),
-                            onTap: () async {
-                              await PlanGuard.requireReport(
-                                context,
-                                onAllowed: () async {
-                                  await Navigator.of(context).push(
-                                    MaterialPageRoute(
-                                      builder:
-                                          (_) => const ReportStatisticsScreen(),
-                                    ),
-                                  );
-                                },
-                              );
-                            },
-                          ),
-                          const Divider(height: 1),
-                          ListTile(
-                            leading: Icon(
-                              Icons.file_download_outlined,
-                              color: AppColors.primary,
-                            ),
-                            title: const Text('CSV 보고서 다운로드'),
-                            subtitle: const Text('월/기간 기준 CSV 내보내기'),
-                            trailing: const Icon(Icons.chevron_right),
-                            onTap: () async {
-                              await PlanGuard.requireReport(
-                                context,
-                                onAllowed: () async {
-                                  await Navigator.of(context).push(
-                                    MaterialPageRoute(
-                                      builder:
-                                          (_) => const ReportCsvExportScreen(),
-                                    ),
-                                  );
-                                },
-                              );
-                            },
-                          ),
-                          const Divider(height: 1),
-                          ListTile(
-                            leading: Icon(
-                              Icons.picture_as_pdf_outlined,
-                              color: AppColors.primary,
-                            ),
-                            title: const Text('PDF 보고서 다운로드'),
-                            subtitle: const Text('월간 요약 PDF (최소 템플릿)'),
-                            trailing: const Icon(Icons.chevron_right),
-                            onTap: () async {
-                              await PlanGuard.requireReport(
-                                context,
-                                onAllowed: () async {
-                                  await Navigator.of(context).push(
-                                    MaterialPageRoute(
-                                      builder:
-                                          (_) => const ReportPdfExportScreen(),
-                                    ),
-                                  );
-                                },
-                              );
-                            },
-                          ),
-                        ],
-                      ),
                     ),
                     const SizedBox(height: 12),
                     AnimatedBuilder(

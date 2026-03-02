@@ -172,9 +172,10 @@ class _ReportPdfExportScreenState extends State<ReportPdfExportScreen> {
         _lastCategoryCount = result.categoryTopCount;
       });
       _showSnackBar('PDF 생성 완료');
-    } catch (e) {
+    } catch (e, st) {
+      debugPrint('ReportPdfExportScreen._generatePdf failed: $e\n$st');
       if (!mounted) return;
-      _showSnackBar('PDF 생성 실패: ${e.runtimeType}');
+      _showSnackBar('PDF 생성 실패: $e');
     } finally {
       if (mounted) {
         setState(() {

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:expense_diary/screen/home_screen.dart';
 import 'package:expense_diary/screen/category_screen.dart';
 import 'package:expense_diary/screen/config_screen.dart';
+import 'package:expense_diary/screen/statistics_tab_screen.dart';
 import 'package:easy_localization/easy_localization.dart';
 
 class RootScreen extends StatefulWidget {
@@ -19,6 +20,7 @@ class _RootScreenState extends State<RootScreen> {
     HomeScreen(),
     CalendarScreen(),
     CategoryScreen(),
+    StatisticsTabScreen(),
     ConfigScreen(),
   ];
 
@@ -58,6 +60,11 @@ class _RootScreenState extends State<RootScreen> {
           icon: const Icon(Icons.topic_outlined),
           selectedIcon: const Icon(Icons.topic),
           label: 'tab.category'.tr(),
+        ),
+        NavigationDestination(
+          icon: const Icon(Icons.bar_chart_outlined),
+          selectedIcon: const Icon(Icons.bar_chart),
+          label: 'tab.stats'.tr(),
         ),
         NavigationDestination(
           icon: const Icon(Icons.tune_outlined),

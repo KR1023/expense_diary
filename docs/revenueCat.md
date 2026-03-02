@@ -8,6 +8,10 @@
 - Google Play Console / Apple App Store Connect에서 필요한 설정
 - 테스트/검증/운영 시 추가로 해야 할 것
 
+관련 문서:
+- `docs/how_to_test.md` (구독 테스트 절차)
+- `docs/play_store_seller.md` (Play 판매자 프로필 / Base plan / 실제 Play 테스트 준비)
+
 ## 1. 현재 프로젝트의 RevenueCat 연동 구조 (코드 기준)
 
 이 프로젝트는 RevenueCat을 다음 구조로 사용합니다.
@@ -126,6 +130,101 @@ RevenueCat 최신 UI에서는 `Entitlements`, `Products`, `Offerings`가 좌측 
 중요:
 - `Identifier`는 나중에 Play Console / App Store Connect의 상품 ID와 동일해야 합니다.
 - 이미 스토어에서 만든 상품이 있다면 그 ID를 그대로 사용하세요.
+
+### 2-4-1. RevenueCat `Play Store > New Product` 화면 입력 방법 (현재 UI 기준)
+
+RevenueCat UI에서 `ExpenseDiary (Play Store) > + New`를 눌렀을 때 보이는 입력 필드는,
+Google Play Console에 이미 만들어 둔 `구독 상품 ID(Subscription ID)`와 `Base plan ID`를 그대로 넣는 구조입니다.
+
+가장 쉬운 방법(권장):
+- 가능하면 `Import Products`를 먼저 사용하세요.
+- RevenueCat가 Play Console 상품/베이스플랜을 자동으로 가져오므로 수동 입력 실수를 줄일 수 있습니다.
+
+수동 입력 시 필드 의미:
+- `Display name`
+  - RevenueCat 대시보드에서 보이는 관리용 이름입니다.
+  - 예시: `cloud_monthly`, `report_monthly` 또는 `Cloud Monthly`, `Report Monthly`
+- `Product type`
+  - 구독이면 `Subscription` 선택
+- `Subscription`
+  - **Google Play Console의 구독 상품 ID(Subscription ID)와 정확히 동일**해야 합니다.
+  - 예시: `cloud_monthly` / `report_monthly`
+  - 주의: `Cloud` 같은 표시용 이름이 아니라 **ID 값**을 넣어야 합니다.
+- `Base plan ID`
+  - **Google Play Console의 Base plan ID와 정확히 동일**해야 합니다.
+  - 예시: `monthly`, `p1m` (프로젝트에서 실제로 만든 값 사용)
+  - 비어 있다면 Play Console에서 해당 구독의 Base plan을 먼저 만들어야 합니다.
+- `Backwards compatible`
+  - 일반적으로 기본값(체크 유지)로 시작해도 됩니다.
+  - 특수한 마이그레이션 정책이 없다면 기본 설정으로 두고 테스트 후 조정합니다.
+- `RevenueCat product identifier`
+  - 자동 생성값을 보통 그대로 사용하면 됩니다. (관리용)
+
+예시 (Cloud 월간):
+- `Display name`: `cloud_monthly`
+- `Product type`: `Subscription`
+- `Subscription`: `cloud_monthly`
+- `Base plan ID`: `monthly` (또는 Play Console에서 만든 실제 값)
+
+예시 (Report 월간):
+- `Display name`: `report_monthly`
+- `Product type`: `Subscription`
+- `Subscription`: `report_monthly`
+- `Base plan ID`: `monthly` (또는 Play Console에서 만든 실제 값)
+
+중요:
+- RevenueCat의 Play Store Product 입력값은 **Play Console의 ID 값과 1글자라도 다르면 안 됩니다**.
+- 대소문자/언더스코어(`_`)까지 동일해야 합니다.
+- 먼저 Play Console에서 구독 + Base plan을 만든 뒤 RevenueCat에 `Import`하는 순서를 가장 권장합니다.
+
+### 2-4-2. RevenueCat `App Store > New Product` 화면 입력 방법 (현재 UI 기준)
+
+RevenueCat UI에서 `ExpenseDiary (App Store) > + New`를 눌렀을 때 보이는 입력 필드는,
+Apple App Store Connect에 이미 만들어 둔 구독 상품 정보를 기준으로 맞춰야 합니다.
+
+가장 쉬운 방법(권장):
+- 가능하면 `Import Products`를 먼저 사용하세요.
+- RevenueCat가 App Store Connect 상품을 자동으로 가져오므로 수동 입력 실수를 줄일 수 있습니다.
+
+Play Store와 다른 점(중요):
+- Apple은 Google Play의 `Base plan ID` 개념이 없습니다.
+- 대신 보통 `Subscription Group` + 각 구독 상품(Product ID, 기간) 조합으로 관리합니다.
+
+수동 입력 시 필드 의미(필드명은 UI 버전에 따라 약간 다를 수 있음):
+- `Display name`
+  - RevenueCat 대시보드에서 보이는 관리용 이름입니다.
+  - 예시: `cloud_monthly`, `report_monthly` 또는 `Cloud Monthly`
+- `Product type`
+  - 구독이면 `Subscription` 선택
+- `Product ID` / `Subscription` / `Identifier` (UI 버전별 이름 차이)
+  - **App Store Connect의 Product ID와 정확히 동일**해야 합니다.
+  - 예시: `cloud_monthly` / `report_monthly`
+  - 주의: `Cloud` 같은 표시용 이름이 아니라 **Product ID 값**을 넣어야 합니다.
+- `Duration` / `Subscription duration` (표시되는 경우)
+  - App Store Connect에서 만든 구독 기간과 동일하게 선택
+  - 예시: `Monthly`
+- `Subscription group` (표시되는 경우)
+  - App Store Connect에서 해당 구독이 속한 그룹과 동일하게 맞춤
+  - 예시: `ExpenseDiary Premium` (운영에서 정한 그룹명)
+- `RevenueCat product identifier`
+  - 자동 생성값을 보통 그대로 사용하면 됩니다. (관리용)
+
+예시 (Cloud 월간):
+- `Display name`: `cloud_monthly`
+- `Product type`: `Subscription`
+- `Product ID`(또는 동등 필드): `cloud_monthly`
+- `Duration`: `Monthly` (필드가 보이는 UI인 경우)
+
+예시 (Report 월간):
+- `Display name`: `report_monthly`
+- `Product type`: `Subscription`
+- `Product ID`(또는 동등 필드): `report_monthly`
+- `Duration`: `Monthly` (필드가 보이는 UI인 경우)
+
+중요:
+- RevenueCat의 App Store Product 입력값은 **App Store Connect Product ID와 1글자라도 다르면 안 됩니다**.
+- 대소문자/언더스코어(`_`)까지 동일해야 합니다.
+- 먼저 App Store Connect에서 Auto-Renewable Subscription 상품을 만든 뒤 RevenueCat에 `Import`하는 순서를 가장 권장합니다.
 
 ## 2-5. Entitlement에 Product 연결
 

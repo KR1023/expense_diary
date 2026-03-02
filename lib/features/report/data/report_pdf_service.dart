@@ -50,7 +50,8 @@ class ReportPdfService {
           ..where(_db.expenses.expenseDate.isBetweenValues(start, endExclusive))
           ..orderBy([OrderingTerm.asc(_db.expenses.expenseDate)]);
     final txRows = await txQuery.get();
-    final pdfTheme = await _buildPdfTheme();
+    final pdfThemeContext = await _buildPdfThemeContext();
+    final supportsUnicode = pdfThemeContext.supportsUnicode;
 
     final pdf = pw.Document(
       title: 'Expense Monthly Report',
@@ -60,11 +61,11 @@ class ReportPdfService {
 
     pdf.addPage(
       pw.MultiPage(
-        pageTheme: const pw.PageTheme(
-          margin: pw.EdgeInsets.all(24),
+        pageTheme: pw.PageTheme(
+          margin: const pw.EdgeInsets.all(24),
           pageFormat: PdfPageFormat.a4,
+          theme: pdfThemeContext.theme,
         ),
-        theme: pdfTheme,
         footer:
             (context) => pw.Align(
               alignment: pw.Alignment.centerRight,
@@ -91,12 +92,10 @@ class ReportPdfService {
                 style: const pw.TextStyle(fontSize: 10),
               ),
               pw.SizedBox(height: 8),
-              pw.Table.fromTextArray(
+              pw.TableHelper.fromTextArray(
                 headers: const ['Metric', 'Value'],
                 data: [
                   ['Total Expense', monthlyExpense.toString()],
-                  ['Total Income', '0'],
-                  ['Net', (0 - monthlyExpense).toString()],
                   ['Transactions', txRows.length.toString()],
                 ],
               ),
@@ -109,7 +108,7 @@ class ReportPdfService {
                 ),
               ),
               pw.SizedBox(height: 6),
-              pw.Table.fromTextArray(
+              pw.TableHelper.fromTextArray(
                 headers: const ['Rank', 'Category', 'Amount'],
                 data: topCategories
                     .asMap()
@@ -121,6 +120,7 @@ class ReportPdfService {
                           entry.value.category.isEmpty
                               ? 'Unclassified'
                               : entry.value.category,
+                          allowUnicode: supportsUnicode,
                         ),
                         entry.value.total.toString(),
                       ],
@@ -136,7 +136,7 @@ class ReportPdfService {
                 ),
               ),
               pw.SizedBox(height: 6),
-              pw.Table.fromTextArray(
+              pw.TableHelper.fromTextArray(
                 headers: const ['Date', 'Name', 'Category', 'Amount', 'Memo'],
                 cellStyle: const pw.TextStyle(fontSize: 9),
                 headerStyle: pw.TextStyle(
@@ -149,10 +149,19 @@ class ReportPdfService {
                       final category = row.readTableOrNull(_db.category);
                       return [
                         _dateOnly(expense.expenseDate),
-                        _safeText(expense.expenseName),
-                        _safeText(category?.categoryName ?? ''),
+                        _safeText(
+                          expense.expenseName,
+                          allowUnicode: supportsUnicode,
+                        ),
+                        _safeText(
+                          category?.categoryName ?? '',
+                          allowUnicode: supportsUnicode,
+                        ),
                         expense.expense.toString(),
-                        _safeText(expense.expenseDetail ?? ''),
+                        _safeText(
+                          expense.expenseDetail ?? '',
+                          allowUnicode: supportsUnicode,
+                        ),
                       ];
                     })
                     .toList(growable: false),
@@ -189,30 +198,48 @@ class ReportPdfService {
     return '$y-$m-$d';
   }
 
-  String _safeText(String value) {
+  String _safeText(String value, {required bool allowUnicode}) {
     // Minimal template: avoid layout breaks from line breaks and tabs.
-    return value
+    final normalized = value
         .replaceAll('\n', ' ')
         .replaceAll('\r', ' ')
         .replaceAll('\t', ' ');
+    if (allowUnicode) return normalized;
+
+    final buffer = StringBuffer();
+    for (final rune in normalized.runes) {
+      if (rune >= 0x20 && rune <= 0x7E) {
+        buffer.writeCharCode(rune);
+      } else {
+        buffer.write('?');
+      }
+    }
+    return buffer.toString();
   }
 
-  Future<pw.ThemeData> _buildPdfTheme() async {
+  Future<_PdfThemeContext> _buildPdfThemeContext() async {
     final font = await _loadKoreanCapableFont();
     if (font == null) {
-      return pw.ThemeData.base();
+      return _PdfThemeContext(
+        theme: pw.ThemeData.base(),
+        supportsUnicode: false,
+      );
     }
 
-    return pw.ThemeData.withFont(
-      base: font,
-      bold: font,
-      italic: font,
-      boldItalic: font,
+    return _PdfThemeContext(
+      theme: pw.ThemeData.withFont(
+        base: font,
+        bold: font,
+        italic: font,
+        boldItalic: font,
+      ),
+      supportsUnicode: true,
     );
   }
 
   Future<pw.Font?> _loadKoreanCapableFont() async {
     final assetCandidates = [
+      'assets/fonts/NanumGothic-Regular.ttf',
       'asset/fonts/NotoSansKR-Regular.ttf',
       'assets/fonts/NotoSansKR-Regular.ttf',
     ];
@@ -248,4 +275,11 @@ class ReportPdfService {
     );
     return null;
   }
+}
+
+class _PdfThemeContext {
+  const _PdfThemeContext({required this.theme, required this.supportsUnicode});
+
+  final pw.ThemeData theme;
+  final bool supportsUnicode;
 }

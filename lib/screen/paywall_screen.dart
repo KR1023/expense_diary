@@ -4,10 +4,12 @@ import 'package:expense_diary/const/app_colors.dart';
 import 'package:expense_diary/core/subscription/plan_type.dart';
 import 'package:expense_diary/core/subscription/revenuecat_provider.dart';
 import 'package:expense_diary/core/subscription/subscription_service.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get_it/get_it.dart';
 import 'package:purchases_flutter/purchases_flutter.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class PaywallScreen extends StatefulWidget {
   const PaywallScreen({super.key});
@@ -126,6 +128,65 @@ class _PaywallScreenState extends State<PaywallScreen> {
         });
       }
     }
+  }
+
+  Future<void> _openSubscriptionManagement() async {
+    if (!_isLoggedIn) {
+      _showSnackBar('구독 관리를 위해 먼저 로그인하세요.');
+      return;
+    }
+
+    Uri? uri;
+    try {
+      final customerInfo = await Purchases.getCustomerInfo();
+      final managementUrl = customerInfo.managementURL?.trim();
+      if (managementUrl != null && managementUrl.isNotEmpty) {
+        uri = Uri.tryParse(managementUrl);
+      }
+    } catch (_) {
+      // Fall back to a platform store URL below.
+    }
+
+    uri ??= _subscriptionManagementUri();
+    if (uri == null) {
+      _showSnackBar('이 플랫폼에서는 구독 관리 화면을 바로 열 수 없습니다.');
+      return;
+    }
+
+    final canOpen = await canLaunchUrl(uri);
+    if (!canOpen) {
+      if (!mounted) return;
+      _showSnackBar(_subscriptionManagementUnavailableMessage());
+      return;
+    }
+
+    final opened = await launchUrl(uri, mode: LaunchMode.externalApplication);
+    if (!opened && mounted) {
+      _showSnackBar(_subscriptionManagementUnavailableMessage());
+    }
+  }
+
+  Uri? _subscriptionManagementUri() {
+    if (kIsWeb) return null;
+
+    return switch (defaultTargetPlatform) {
+      TargetPlatform.android => Uri.parse(
+        'https://play.google.com/store/account/subscriptions',
+      ),
+      TargetPlatform.iOS => Uri.parse(
+        'https://apps.apple.com/account/subscriptions',
+      ),
+      _ => null,
+    };
+  }
+
+  String _subscriptionManagementUnavailableMessage() {
+    if (_subscription.currentPlan == PlanType.free) {
+      return '현재 활성 구독이 없거나 스토어 관리 URL을 확인할 수 없습니다.';
+    }
+
+    return '현재 환경(예: RevenueCat Test Store)에서는 스토어 구독 관리 화면을 열 수 없습니다. '
+        '실제 Play/App Store 테스트를 사용하거나 RevenueCat 대시보드에서 테스트 고객 상태를 변경하세요.';
   }
 
   String _messageForPurchasesError(PurchasesErrorCode code) {
@@ -247,6 +308,22 @@ class _PaywallScreenState extends State<PaywallScreen> {
                                   )
                                   : const Icon(Icons.chevron_right),
                           onTap: _restoring || _purchasing ? null : _restore,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      Card(
+                        margin: EdgeInsets.zero,
+                        child: ListTile(
+                          leading: const Icon(Icons.manage_accounts_outlined),
+                          title: const Text('구독 해지 / 관리'),
+                          subtitle: const Text(
+                            '스토어 구독 관리 화면을 엽니다. 해지는 스토어에서 진행됩니다.',
+                          ),
+                          trailing: const Icon(Icons.open_in_new_rounded),
+                          onTap:
+                              _restoring || _purchasing
+                                  ? null
+                                  : _openSubscriptionManagement,
                         ),
                       ),
                       if (!_subscription.isRevenueCatEnabled)

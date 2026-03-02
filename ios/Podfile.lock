@@ -1419,7 +1419,15 @@ PODS:
     - Flutter
     - FlutterMacOS
   - PromisesObjC (2.4.0)
+  - purchases_flutter (9.12.2):
+    - Flutter
+    - PurchasesHybridCommon (= 17.41.0)
+  - PurchasesHybridCommon (17.41.0):
+    - RevenueCat (= 5.59.2)
   - RecaptchaInterop (101.0.0)
+  - RevenueCat (5.59.2)
+  - share_plus (0.0.1):
+    - Flutter
   - shared_preferences_foundation (0.0.1):
     - Flutter
     - FlutterMacOS
@@ -1445,6 +1453,8 @@ PODS:
     - sqlite3/math
     - sqlite3/perf-threadsafe
     - sqlite3/rtree
+  - url_launcher_ios (0.0.1):
+    - Flutter
   - webview_flutter_wkwebview (0.0.1):
     - Flutter
     - FlutterMacOS
@@ -1459,8 +1469,11 @@ DEPENDENCIES:
   - google_mobile_ads (from `.symlinks/plugins/google_mobile_ads/ios`)
   - google_sign_in_ios (from `.symlinks/plugins/google_sign_in_ios/darwin`)
   - path_provider_foundation (from `.symlinks/plugins/path_provider_foundation/darwin`)
+  - purchases_flutter (from `.symlinks/plugins/purchases_flutter/ios`)
+  - share_plus (from `.symlinks/plugins/share_plus/ios`)
   - shared_preferences_foundation (from `.symlinks/plugins/shared_preferences_foundation/darwin`)
   - sqlite3_flutter_libs (from `.symlinks/plugins/sqlite3_flutter_libs/darwin`)
+  - url_launcher_ios (from `.symlinks/plugins/url_launcher_ios/ios`)
   - webview_flutter_wkwebview (from `.symlinks/plugins/webview_flutter_wkwebview/darwin`)
 
 SPEC REPOS:
@@ -1490,7 +1503,9 @@ SPEC REPOS:
     - leveldb-library
     - nanopb
     - PromisesObjC
+    - PurchasesHybridCommon
     - RecaptchaInterop
+    - RevenueCat
     - sqlite3
 
 EXTERNAL SOURCES:
@@ -1512,10 +1527,16 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/google_sign_in_ios/darwin"
   path_provider_foundation:
     :path: ".symlinks/plugins/path_provider_foundation/darwin"
+  purchases_flutter:
+    :path: ".symlinks/plugins/purchases_flutter/ios"
+  share_plus:
+    :path: ".symlinks/plugins/share_plus/ios"
   shared_preferences_foundation:
     :path: ".symlinks/plugins/shared_preferences_foundation/darwin"
   sqlite3_flutter_libs:
     :path: ".symlinks/plugins/sqlite3_flutter_libs/darwin"
+  url_launcher_ios:
+    :path: ".symlinks/plugins/url_launcher_ios/ios"
   webview_flutter_wkwebview:
     :path: ".symlinks/plugins/webview_flutter_wkwebview/darwin"
 
@@ -1554,10 +1575,15 @@ SPEC CHECKSUMS:
   nanopb: fad817b59e0457d11a5dfbde799381cd727c1275
   path_provider_foundation: 2b6b4c569c0fb62ec74538f866245ac84301af46
   PromisesObjC: f5707f49cb48b9636751c5b2e7d227e43fba9f47
+  purchases_flutter: 635cf9f7cae99a3a37ba6de8ae6d4c1bb06742db
+  PurchasesHybridCommon: 0fc10b0328a4dca5c607f845130e59f7427f4b69
   RecaptchaInterop: 11e0b637842dfb48308d242afc3f448062325aba
+  RevenueCat: f352b3661288080bd8bf30bbb96e331940e73c88
+  share_plus: 8b6f8b3447e494cca5317c8c3073de39b3600d1f
   shared_preferences_foundation: fcdcbc04712aee1108ac7fda236f363274528f78
   sqlite3: 3c950dc86011117c307eb0b28c4a7bb449dce9f1
   sqlite3_flutter_libs: e702a3214d49107c89b40bd2777c14057531d149
+  url_launcher_ios: 5334b05cef931de560670eeae103fd3e431ac3fe
   webview_flutter_wkwebview: a4af96a051138e28e29f60101d094683b9f82188
 
 PODFILE CHECKSUM: 53a6aebc29ccee84c41f92f409fc20cd4ca011f1
