@@ -21,6 +21,7 @@ class ReportCsvService {
   Future<CsvExportResult> exportExpensesCsv({
     required DateTime startInclusive,
     required DateTime endExclusive,
+    required String languageCode,
     String? fileNamePrefix,
   }) async {
     final query =
@@ -39,17 +40,18 @@ class ReportCsvService {
           ..orderBy([OrderingTerm.asc(_db.expenses.expenseDate)]);
 
     final result = await query.get();
+    final labels = _CsvLabels.fromLanguageCode(languageCode);
 
     final csv = StringBuffer();
     csv.writeln(
       [
-        'id',
-        'expenseDate',
-        'expenseName',
-        'amount',
-        'categoryId',
-        'categoryName',
-        'expenseDetail',
+        labels.id,
+        labels.expenseDate,
+        labels.expenseName,
+        labels.amount,
+        labels.categoryId,
+        labels.categoryName,
+        labels.expenseDetail,
       ].join(','),
     );
 
@@ -90,5 +92,50 @@ class ReportCsvService {
   String _escapeCsv(String raw) {
     final escaped = raw.replaceAll('"', '""');
     return '"$escaped"';
+  }
+}
+
+class _CsvLabels {
+  const _CsvLabels({
+    required this.id,
+    required this.expenseDate,
+    required this.expenseName,
+    required this.amount,
+    required this.categoryId,
+    required this.categoryName,
+    required this.expenseDetail,
+  });
+
+  final String id;
+  final String expenseDate;
+  final String expenseName;
+  final String amount;
+  final String categoryId;
+  final String categoryName;
+  final String expenseDetail;
+
+  factory _CsvLabels.fromLanguageCode(String languageCode) {
+    final normalized = languageCode.toLowerCase();
+    if (normalized.startsWith('ko')) {
+      return const _CsvLabels(
+        id: '아이디',
+        expenseDate: '지출일',
+        expenseName: '지출명',
+        amount: '금액',
+        categoryId: '분류ID',
+        categoryName: '분류명',
+        expenseDetail: '메모',
+      );
+    }
+
+    return const _CsvLabels(
+      id: 'id',
+      expenseDate: 'expenseDate',
+      expenseName: 'expenseName',
+      amount: 'amount',
+      categoryId: 'categoryId',
+      categoryName: 'categoryName',
+      expenseDetail: 'expenseDetail',
+    );
   }
 }

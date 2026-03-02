@@ -248,13 +248,15 @@ class _ReportCsvExportScreenState extends State<ReportCsvExportScreen> {
 
     try {
       final (start, endExclusive) = _effectiveRange();
+      final languageCode = context.locale.languageCode;
       final result = await _csvService.exportExpensesCsv(
         startInclusive: start,
         endExclusive: endExclusive,
+        languageCode: languageCode,
         fileNamePrefix:
             _rangeType == _ExportRangeType.month
-                ? 'expense_report_month'
-                : 'expense_report_range',
+                ? _localizedPrefix(languageCode, monthly: true)
+                : _localizedPrefix(languageCode, monthly: false),
       );
 
       if (!mounted) return;
@@ -280,11 +282,22 @@ class _ReportCsvExportScreenState extends State<ReportCsvExportScreen> {
     if (file == null) return;
 
     try {
-      await Share.shareXFiles([XFile(file.path)], text: 'Expense report CSV');
+      final languageCode = context.locale.languageCode.toLowerCase();
+      final shareText =
+          languageCode.startsWith('ko') ? '지출 보고서 CSV' : 'Expense report CSV';
+      await Share.shareXFiles([XFile(file.path)], text: shareText);
     } catch (e) {
       if (!mounted) return;
       _showSnackBar('공유 실패: ${e.runtimeType}');
     }
+  }
+
+  String _localizedPrefix(String languageCode, {required bool monthly}) {
+    final normalized = languageCode.toLowerCase();
+    if (normalized.startsWith('ko')) {
+      return monthly ? '지출_보고서_월별' : '지출_보고서_기간';
+    }
+    return monthly ? 'expense_report_month' : 'expense_report_range';
   }
 
   void _showSnackBar(String message) {

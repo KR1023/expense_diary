@@ -7,6 +7,7 @@ import 'package:expense_diary/core/subscription/subscription_service.dart';
 import 'package:expense_diary/screen/report_csv_export_screen.dart';
 import 'package:expense_diary/screen/report_pdf_export_screen.dart';
 import 'package:expense_diary/screen/report_statistics_screen.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
 
@@ -23,7 +24,7 @@ class StatisticsTabScreen extends StatelessWidget {
           children: [
             Row(
               children: [
-                Text('통계', style: Theme.of(context).textTheme.titleLarge),
+                Text('tab.stats'.tr(), style: Theme.of(context).textTheme.titleLarge),
                 const Spacer(),
                 AnimatedBuilder(
                   animation: GetIt.I<SubscriptionService>(),
@@ -39,7 +40,9 @@ class StatisticsTabScreen extends StatelessWidget {
                         borderRadius: BorderRadius.circular(999),
                       ),
                       child: Text(
-                        '현재 플랜: ${_planLabel(plan)}',
+                        'report.menu.current_plan'.tr(
+                          namedArgs: {'plan': _planLabelKey(plan).tr()},
+                        ),
                         style: Theme.of(context).textTheme.bodySmall,
                       ),
                     );
@@ -49,7 +52,7 @@ class StatisticsTabScreen extends StatelessWidget {
             ),
             const SizedBox(height: 10),
             Text(
-              'Report 플랜에서 상세 통계와 CSV/PDF 보고서를 사용할 수 있습니다.',
+              'report.menu.subtitle'.tr(),
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
                 color: AppColors.mutedOf(context),
               ),
@@ -64,8 +67,8 @@ class StatisticsTabScreen extends StatelessWidget {
                       Icons.bar_chart_rounded,
                       color: AppColors.primary,
                     ),
-                    title: const Text('Report 통계'),
-                    subtitle: const Text('월별 집계 + 카테고리 TOP N'),
+                    title: Text('report.menu.item_stats_title'.tr()),
+                    subtitle: Text('report.menu.item_stats_subtitle'.tr()),
                     trailing: const Icon(Icons.chevron_right),
                     onTap: () async {
                       await PlanGuard.requireReport(
@@ -86,8 +89,8 @@ class StatisticsTabScreen extends StatelessWidget {
                       Icons.file_download_outlined,
                       color: AppColors.primary,
                     ),
-                    title: const Text('CSV 보고서 다운로드'),
-                    subtitle: const Text('월/기간 기준 CSV 내보내기'),
+                    title: Text('report.menu.item_csv_title'.tr()),
+                    subtitle: Text('report.menu.item_csv_subtitle'.tr()),
                     trailing: const Icon(Icons.chevron_right),
                     onTap: () async {
                       await PlanGuard.requireReport(
@@ -108,8 +111,8 @@ class StatisticsTabScreen extends StatelessWidget {
                       Icons.picture_as_pdf_outlined,
                       color: AppColors.primary,
                     ),
-                    title: const Text('PDF 보고서 다운로드'),
-                    subtitle: const Text('월간 요약 PDF (최소 템플릿)'),
+                    title: Text('report.menu.item_pdf_title'.tr()),
+                    subtitle: Text('report.menu.item_pdf_subtitle'.tr()),
                     trailing: const Icon(Icons.chevron_right),
                     onTap: () async {
                       await PlanGuard.requireReport(
@@ -135,11 +138,11 @@ class StatisticsTabScreen extends StatelessWidget {
     );
   }
 
-  String _planLabel(PlanType plan) {
+  String _planLabelKey(PlanType plan) {
     return switch (plan) {
-      PlanType.free => 'Free',
-      PlanType.cloud => 'Cloud',
-      PlanType.report => 'Report',
+      PlanType.free => 'report.menu.plan_free',
+      PlanType.cloud => 'report.menu.plan_cloud',
+      PlanType.report => 'report.menu.plan_report',
     };
   }
 }

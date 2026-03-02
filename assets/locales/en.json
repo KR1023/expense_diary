@@ -106,6 +106,32 @@
       "category": "Enter a category ID."
     }
   },
+  "report": {
+    "menu": {
+      "current_plan": "Current plan: {plan}",
+      "subtitle": "Detailed statistics and CSV/PDF reports are available on the Report plan.",
+      "item_stats_title": "Report Statistics",
+      "item_stats_subtitle": "Monthly summary + Top N categories",
+      "item_csv_title": "Download CSV Report",
+      "item_csv_subtitle": "Export CSV by month or custom range",
+      "item_pdf_title": "Download PDF Report",
+      "item_pdf_subtitle": "Monthly summary PDF (minimal template)",
+      "plan_free": "Free",
+      "plan_cloud": "Cloud",
+      "plan_report": "Report"
+    },
+    "stats": {
+      "title": "Report Statistics",
+      "subtitle": "Report plan only. Monthly statistics are calculated from local SQLite data.",
+      "monthly_summary": "{month} Monthly Summary",
+      "total_expense": "Total Expense",
+      "chart_title": "Category Expense Top {count} (Chart)",
+      "list_title": "Category Expense Top {count} (List)",
+      "empty_month": "No expense data for this month.",
+      "empty_category_list": "No category totals available.",
+      "share": "Share {pct}%"
+    }
+  },
   "auth": {
     "title": "Sign In",
     "subtitle": "Sign in with email to prepare cloud sync and backup.",

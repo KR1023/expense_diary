@@ -43,7 +43,7 @@ class _ReportStatisticsScreenState extends State<ReportStatisticsScreen> {
                 const SizedBox(width: 4),
                 Expanded(
                   child: Text(
-                    'Report 통계',
+                    'report.stats.title'.tr(),
                     style: Theme.of(context).textTheme.titleLarge,
                   ),
                 ),
@@ -52,7 +52,7 @@ class _ReportStatisticsScreenState extends State<ReportStatisticsScreen> {
             Padding(
               padding: const EdgeInsets.only(left: 12, bottom: 12),
               child: Text(
-                'Report 플랜 전용. SQLite 로컬 데이터를 기준으로 월간 통계를 계산합니다.',
+                'report.stats.subtitle'.tr(),
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                   color: AppColors.mutedOf(context),
                 ),
@@ -189,12 +189,14 @@ class _MonthlySummaryCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              '${DateFormat('yyyy.MM').format(month)} 월별 요약',
+              'report.stats.monthly_summary'.tr(
+                namedArgs: {'month': DateFormat('yyyy.MM').format(month)},
+              ),
               style: Theme.of(context).textTheme.titleMedium,
             ),
             const SizedBox(height: 10),
             _SummaryRow(
-              label: '총 지출',
+              label: 'report.stats.total_expense'.tr(),
               value: CurrencyUtils.formatAmount(expenseTotal, currencyCode),
             ),
           ],
@@ -238,7 +240,7 @@ class _CategoryTopChart extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (items.isEmpty) {
-      return _EmptyCard(message: '해당 월의 지출 데이터가 없습니다.');
+      return _EmptyCard(message: 'report.stats.empty_month'.tr());
     }
 
     final maxValue = items.map((e) => e.total).fold<int>(0, math.max);
@@ -250,7 +252,9 @@ class _CategoryTopChart extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              '카테고리별 지출 TOP ${items.length} (차트)',
+              'report.stats.chart_title'.tr(
+                namedArgs: {'count': '${items.length}'},
+              ),
               style: Theme.of(context).textTheme.titleMedium,
             ),
             const SizedBox(height: 12),
@@ -268,7 +272,9 @@ class _CategoryTopChart extends StatelessWidget {
                         children: [
                           Expanded(
                             child: Text(
-                              item.category.isEmpty ? '미분류' : item.category,
+                              item.category.isEmpty
+                                  ? 'common.unclassified'.tr()
+                                  : item.category,
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                             ),
@@ -313,7 +319,7 @@ class _CategoryTopList extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (items.isEmpty) {
-      return _EmptyCard(message: '카테고리 합계 목록이 없습니다.');
+      return _EmptyCard(message: 'report.stats.empty_category_list'.tr());
     }
 
     final total = items.fold<int>(0, (sum, item) => sum + item.total);
@@ -326,7 +332,9 @@ class _CategoryTopList extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              '카테고리별 지출 TOP ${items.length} (리스트)',
+              'report.stats.list_title'.tr(
+                namedArgs: {'count': '${items.length}'},
+              ),
               style: Theme.of(context).textTheme.titleMedium,
             ),
             const SizedBox(height: 10),
@@ -345,8 +353,14 @@ class _CategoryTopList extends StatelessWidget {
                       radius: 14,
                       child: Text('${index + 1}'),
                     ),
-                    title: Text(item.category.isEmpty ? '미분류' : item.category),
-                    subtitle: Text('비중 $pct%'),
+                    title: Text(
+                      item.category.isEmpty
+                          ? 'common.unclassified'.tr()
+                          : item.category,
+                    ),
+                    subtitle: Text(
+                      'report.stats.share'.tr(namedArgs: {'pct': '$pct'}),
+                    ),
                     trailing: Text(
                       CurrencyUtils.formatAmount(item.total, currencyCode),
                     ),
