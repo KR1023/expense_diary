@@ -47,6 +47,15 @@
 		<true/>
 		<key>NSLocalNetworkUsageDescription</key>
 		<string>앱이 로컬 네트워크를 통해 디버깅 데이터를 전송하기 위해 필요합니다.</string>
+		<key>CFBundleURLTypes</key>
+		<array>
+			<dict>
+				<key>CFBundleURLSchemes</key>
+				<array>
+					<string>com.googleusercontent.apps.703096841584-u56b1ikdpgm9qqdovh67v7apgp1g8paj</string>
+				</array>
+			</dict>
+		</array>
 		<key>GADApplicationIdentifier</key>
 		<string>ca-app-pub-5444803558030319~2260257202</string>
 		<key>UIStatusBarHidden</key>

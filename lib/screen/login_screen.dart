@@ -117,9 +117,26 @@ class _LoginScreenState extends State<LoginScreen> {
                     mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        'auth.title'.tr(),
-                        style: Theme.of(context).textTheme.titleLarge,
+                      Row(
+                        children: [
+                          IconButton(
+                            onPressed:
+                                _isLoading || !Navigator.of(context).canPop()
+                                    ? null
+                                    : () => Navigator.of(context).pop(),
+                            icon: const Icon(Icons.arrow_back_ios_new_rounded),
+                            tooltip: MaterialLocalizations.of(
+                              context,
+                            ).backButtonTooltip,
+                          ),
+                          const SizedBox(width: 4),
+                          Expanded(
+                            child: Text(
+                              'auth.title'.tr(),
+                              style: Theme.of(context).textTheme.titleLarge,
+                            ),
+                          ),
+                        ],
                       ),
                       const SizedBox(height: 4),
                       Text(

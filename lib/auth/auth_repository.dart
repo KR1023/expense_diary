@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:expense_diary/const/firebase_auth_config.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:expense_diary/core/subscription/subscription_service.dart';
 import 'package:flutter/foundation.dart';
@@ -59,6 +60,7 @@ class AuthRepository {
   Future<UserCredential> signInWithGoogle() async {
     if (!_googleInitialized) {
       await GoogleSignIn.instance.initialize(
+        clientId: _googleClientIdForCurrentPlatform(),
         serverClientId: _googleServerClientId,
       );
       _googleInitialized = true;
@@ -131,5 +133,13 @@ class AuthRepository {
       debugPrint('AuthRepository RevenueCat sync failed: $e');
       // RevenueCat sync failures must not break auth flows.
     }
+  }
+
+  String? _googleClientIdForCurrentPlatform() {
+    if (kIsWeb) return null;
+    return switch (defaultTargetPlatform) {
+      TargetPlatform.iOS => FirebaseAuthConfig.googleIosClientId,
+      _ => null,
+    };
   }
 }
