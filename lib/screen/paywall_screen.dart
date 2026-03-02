@@ -4,6 +4,7 @@ import 'package:expense_diary/const/app_colors.dart';
 import 'package:expense_diary/core/subscription/plan_type.dart';
 import 'package:expense_diary/core/subscription/revenuecat_provider.dart';
 import 'package:expense_diary/core/subscription/subscription_service.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -51,7 +52,7 @@ class _PaywallScreenState extends State<PaywallScreen> {
     } catch (e) {
       if (!mounted) return;
       setState(() {
-        _errorText = '오퍼링을 불러오지 못했습니다.';
+        _errorText = 'paywall.msg.offering_load_failed'.tr();
       });
     } finally {
       if (mounted) {
@@ -65,7 +66,7 @@ class _PaywallScreenState extends State<PaywallScreen> {
   Future<void> _purchasePackage(Package package) async {
     if (_purchasing) return;
     if (!_isLoggedIn) {
-      _showSnackBar('구독 구매를 위해 먼저 로그인하세요.');
+      _showSnackBar('paywall.msg.login_required_for_purchase'.tr());
       return;
     }
 
@@ -77,7 +78,7 @@ class _PaywallScreenState extends State<PaywallScreen> {
       await _subscription.purchasePackage(package);
       await _subscription.refreshPlan();
       if (!mounted) return;
-      _showSnackBar('구매가 완료되었습니다.');
+      _showSnackBar('paywall.msg.purchase_completed'.tr());
       Navigator.of(context).pop(true);
     } on PlatformException catch (e) {
       if (!mounted) return;
@@ -88,7 +89,7 @@ class _PaywallScreenState extends State<PaywallScreen> {
       _showSnackBar(_messageForPurchasesError(code));
     } catch (_) {
       if (!mounted) return;
-      _showSnackBar('구매 중 오류가 발생했습니다. 잠시 후 다시 시도하세요.');
+      _showSnackBar('paywall.msg.purchase_failed_retry'.tr());
     } finally {
       if (mounted) {
         setState(() {
@@ -101,7 +102,7 @@ class _PaywallScreenState extends State<PaywallScreen> {
   Future<void> _restore() async {
     if (_restoring) return;
     if (!_isLoggedIn) {
-      _showSnackBar('복원을 위해 먼저 로그인하세요.');
+      _showSnackBar('paywall.msg.login_required_for_restore'.tr());
       return;
     }
 
@@ -112,7 +113,7 @@ class _PaywallScreenState extends State<PaywallScreen> {
     try {
       await _subscription.restoreAndRefreshPlan();
       if (!mounted) return;
-      _showSnackBar('복원 요청이 완료되었습니다.');
+      _showSnackBar('paywall.msg.restore_completed'.tr());
       Navigator.of(context).pop(true);
     } on PlatformException catch (e) {
       if (!mounted) return;
@@ -120,7 +121,7 @@ class _PaywallScreenState extends State<PaywallScreen> {
       _showSnackBar(_messageForPurchasesError(code));
     } catch (_) {
       if (!mounted) return;
-      _showSnackBar('복원 중 오류가 발생했습니다. 잠시 후 다시 시도하세요.');
+      _showSnackBar('paywall.msg.restore_failed_retry'.tr());
     } finally {
       if (mounted) {
         setState(() {
@@ -132,7 +133,7 @@ class _PaywallScreenState extends State<PaywallScreen> {
 
   Future<void> _openSubscriptionManagement() async {
     if (!_isLoggedIn) {
-      _showSnackBar('구독 관리를 위해 먼저 로그인하세요.');
+      _showSnackBar('paywall.msg.login_required_for_management'.tr());
       return;
     }
 
@@ -149,7 +150,7 @@ class _PaywallScreenState extends State<PaywallScreen> {
 
     uri ??= _subscriptionManagementUri();
     if (uri == null) {
-      _showSnackBar('이 플랫폼에서는 구독 관리 화면을 바로 열 수 없습니다.');
+      _showSnackBar('paywall.msg.management_url_unavailable_platform'.tr());
       return;
     }
 
@@ -182,15 +183,16 @@ class _PaywallScreenState extends State<PaywallScreen> {
 
   String _subscriptionManagementUnavailableMessage() {
     if (_subscription.currentPlan == PlanType.free) {
-      return '현재 활성 구독이 없거나 스토어 관리 URL을 확인할 수 없습니다.';
+      return 'paywall.msg.management_url_unavailable_free'.tr();
     }
 
-    return '현재 환경(예: RevenueCat Test Store)에서는 스토어 구독 관리 화면을 열 수 없습니다. '
-        '실제 Play/App Store 테스트를 사용하거나 RevenueCat 대시보드에서 테스트 고객 상태를 변경하세요.';
+    return 'paywall.msg.management_url_unavailable_env'.tr();
   }
 
   String _messageForPurchasesError(PurchasesErrorCode code) {
-    return '결제 처리 중 오류가 발생했습니다. (${code.name})';
+    return 'paywall.msg.purchase_error_with_code'.tr(
+      namedArgs: {'code': code.name},
+    );
   }
 
   void _showSnackBar(String message) {
@@ -217,7 +219,7 @@ class _PaywallScreenState extends State<PaywallScreen> {
                 const SizedBox(width: 4),
                 Expanded(
                   child: Text(
-                    '업그레이드',
+                    'paywall.title'.tr(),
                     style: Theme.of(context).textTheme.titleLarge,
                   ),
                 ),
@@ -227,8 +229,8 @@ class _PaywallScreenState extends State<PaywallScreen> {
               padding: const EdgeInsets.only(left: 12, bottom: 8),
               child: Text(
                 _isLoggedIn
-                    ? '결제는 스토어 계정으로 진행되며, 혜택은 현재 로그인한 계정에 적용됩니다.'
-                    : '구독 구매/복원을 위해 먼저 로그인하세요. (혜택은 로그인 계정 기준)',
+                    ? 'paywall.subtitle_logged_in'.tr()
+                    : 'paywall.subtitle_logged_out'.tr(),
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                   color: AppColors.mutedOf(context),
                 ),
@@ -243,7 +245,13 @@ class _PaywallScreenState extends State<PaywallScreen> {
                       children: [
                         const Icon(Icons.workspace_premium_outlined, size: 18),
                         const SizedBox(width: 6),
-                        Text('현재 플랜: ${_planLabel(_subscription.currentPlan)}'),
+                        Text(
+                          'paywall.current_plan'.tr(
+                            namedArgs: {
+                              'plan': _planLabel(_subscription.currentPlan),
+                            },
+                          ),
+                        ),
                       ],
                     ),
                   ),
@@ -258,9 +266,9 @@ class _PaywallScreenState extends State<PaywallScreen> {
                       _InfoCard(
                         icon: Icons.error_outline,
                         color: AppColors.danger,
-                        title: '오퍼링 로드 실패',
+                        title: 'paywall.info.offering_load_failed_title'.tr(),
                         body: _errorText!,
-                        actionLabel: '다시 시도',
+                        actionLabel: 'paywall.retry'.tr(),
                         onTap: _loadingOfferings ? null : _loadOfferings,
                       ),
                     if (_loadingOfferings)
@@ -271,20 +279,15 @@ class _PaywallScreenState extends State<PaywallScreen> {
                     else ...[
                       _buildPlanCard(
                         plan: PlanType.cloud,
-                        headline: 'Cloud',
-                        benefits: const ['무제한 백업/복원', '광고 제거'],
+                        headline: 'paywall.plan.cloud'.tr(),
+                        benefits: _cloudBenefits(),
                         package: _resolvePackageForPlan(PlanType.cloud),
                       ),
                       const SizedBox(height: 12),
                       _buildPlanCard(
                         plan: PlanType.report,
-                        headline: 'Report',
-                        benefits: const [
-                          'Cloud 혜택 포함',
-                          '통계 기능',
-                          '보고서 다운로드',
-                          '광고 제거',
-                        ],
+                        headline: 'paywall.plan.report'.tr(),
+                        benefits: _reportBenefits(),
                         package: _resolvePackageForPlan(PlanType.report),
                         highlight: true,
                       ),
@@ -293,9 +296,9 @@ class _PaywallScreenState extends State<PaywallScreen> {
                         margin: EdgeInsets.zero,
                         child: ListTile(
                           leading: const Icon(Icons.restore_rounded),
-                          title: const Text('구독 구매 복원'),
-                          subtitle: const Text(
-                            '결제 권한(구독 상태)만 복원합니다. 데이터(스냅샷)는 복원되지 않습니다.',
+                          title: Text('paywall.restore.title'.tr()),
+                          subtitle: Text(
+                            'paywall.restore.subtitle'.tr(),
                           ),
                           trailing:
                               _restoring
@@ -315,9 +318,9 @@ class _PaywallScreenState extends State<PaywallScreen> {
                         margin: EdgeInsets.zero,
                         child: ListTile(
                           leading: const Icon(Icons.manage_accounts_outlined),
-                          title: const Text('구독 해지 / 관리'),
-                          subtitle: const Text(
-                            '스토어 구독 관리 화면을 엽니다. 해지는 스토어에서 진행됩니다.',
+                          title: Text('paywall.manage.title'.tr()),
+                          subtitle: Text(
+                            'paywall.manage.subtitle'.tr(),
                           ),
                           trailing: const Icon(Icons.open_in_new_rounded),
                           onTap:
@@ -332,11 +335,8 @@ class _PaywallScreenState extends State<PaywallScreen> {
                           child: _InfoCard(
                             icon: Icons.info_outline,
                             color: AppColors.primary,
-                            title: 'RevenueCat 비활성',
-                            body:
-                                'SDK 키가 설정되지 않아 현재 Free 모드로 동작 중입니다. '
-                                '`--dart-define=RC_ANDROID_PUBLIC_SDK_KEY=...` 또는 '
-                                '`RC_IOS_PUBLIC_SDK_KEY`를 설정하세요.',
+                            title: 'paywall.info.revenuecat_disabled_title'.tr(),
+                            body: 'paywall.info.revenuecat_disabled_body'.tr(),
                           ),
                         ),
                     ],
@@ -358,7 +358,7 @@ class _PaywallScreenState extends State<PaywallScreen> {
     bool highlight = false,
   }) {
     final product = package?.storeProduct;
-    final priceText = product == null ? '상품 미연결' : product.priceString;
+    final priceText = product == null ? 'paywall.price_unlinked'.tr() : product.priceString;
     final currentPlan = _subscription.currentPlan;
     final alreadyIncluded =
         currentPlan == PlanType.report ||
@@ -395,7 +395,7 @@ class _PaywallScreenState extends State<PaywallScreen> {
                       color: AppColors.primary.withValues(alpha: 0.12),
                       borderRadius: BorderRadius.circular(999),
                     ),
-                    child: const Text('추천'),
+                    child: Text('paywall.badge.recommended'.tr()),
                   ),
                 const Spacer(),
                 if (alreadyIncluded)
@@ -408,7 +408,7 @@ class _PaywallScreenState extends State<PaywallScreen> {
                       color: Colors.green.withValues(alpha: 0.12),
                       borderRadius: BorderRadius.circular(999),
                     ),
-                    child: const Text('사용 중'),
+                    child: Text('paywall.badge.in_use'.tr()),
                   ),
               ],
             ),
@@ -460,14 +460,18 @@ class _PaywallScreenState extends State<PaywallScreen> {
                           height: 18,
                           child: CircularProgressIndicator(strokeWidth: 2),
                         )
-                        : Text('$headline 구매'),
+                        : Text(
+                          'paywall.buy_button'.tr(
+                            namedArgs: {'plan': headline},
+                          ),
+                        ),
               ),
             ),
             if (package == null)
               Padding(
                 padding: const EdgeInsets.only(top: 8),
                 child: Text(
-                  'RevenueCat Offering/Package 연결 후 표시됩니다.',
+                  'paywall.unlinked_hint'.tr(),
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
                     color: AppColors.mutedOf(context),
                   ),
@@ -530,11 +534,28 @@ class _PaywallScreenState extends State<PaywallScreen> {
   }
 
   String _planLabel(PlanType plan) {
-    return switch (plan) {
-      PlanType.free => 'Free',
-      PlanType.cloud => 'Cloud',
-      PlanType.report => 'Report',
+    final key = switch (plan) {
+      PlanType.free => 'paywall.plan.free',
+      PlanType.cloud => 'paywall.plan.cloud',
+      PlanType.report => 'paywall.plan.report',
     };
+    return key.tr();
+  }
+
+  List<String> _cloudBenefits() {
+    return [
+      'paywall.benefit.cloud.unlimited_backup_restore'.tr(),
+      'paywall.benefit.common.remove_ads'.tr(),
+    ];
+  }
+
+  List<String> _reportBenefits() {
+    return [
+      'paywall.benefit.report.include_cloud'.tr(),
+      'paywall.benefit.report.statistics'.tr(),
+      'paywall.benefit.report.download_reports'.tr(),
+      'paywall.benefit.common.remove_ads'.tr(),
+    ];
   }
 }
 

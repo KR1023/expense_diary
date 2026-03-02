@@ -78,6 +78,50 @@
       "title": "Cloud Transactions (Firebase)",
       "subtitle": "Test Firestore transaction CRUD for the signed-in user.",
       "login_required": "Sign in to use this feature."
+    },
+    "plan": {
+      "free": "Free",
+      "cloud": "Cloud",
+      "report": "Report"
+    },
+    "subscription": {
+      "upgrade_title": "Upgrade Subscription",
+      "manage_title": "Manage Subscription",
+      "upgrade_subtitle": "Remove backup limits and ads with Cloud/Report plan",
+      "current_plan": "Current plan: {plan}"
+    },
+    "backup": {
+      "title": "Cloud Backup",
+      "subtitle_login_required": "Sign in to save snapshot backups to Firebase.",
+      "subtitle": "Back up local DB (expenses/categories) and settings as a snapshot (JSON).",
+      "last_backup_none": "Last backup: none",
+      "last_backup_at": "Last backup: {date}",
+      "quota_unlimited": "This week backups: unlimited",
+      "quota_remaining": "This week remaining backups: {remaining}/1",
+      "week_key": "Reference week (KST): {weekKey}",
+      "refresh": "Refresh status",
+      "in_progress": "Backing up...",
+      "backup_now": "Back up now",
+      "restore_button": "Snapshot list / Restore data",
+      "restore_hint": "Restore only applies snapshots from the currently signed-in account to local data. Subscription entitlement restore should be handled in the upgrade screen.",
+      "free_limit_note": "Free plan allows only one backup per KST week. Cloud/Report plans are unlimited.",
+      "msg": {
+        "login_required": "Sign in first to use cloud backup.",
+        "free_limit_reached": "Free plan allows one backup per account each week. Upgrade to Cloud.",
+        "success": "Backup completed ({bytes} bytes, {id})",
+        "serialize_failed": "Failed to serialize backup data.",
+        "failed_retry": "Backup failed. Check network status and try again.",
+        "restore_login_required": "Sign in first to use restore.",
+        "restore_done": "Restore completed: screen data has been refreshed.",
+        "firebase": {
+          "permission_denied": "Permission denied. Check login state and security rules.",
+          "unauthenticated": "Authentication expired. Sign in again and retry.",
+          "unavailable": "Backup failed due to network connectivity.",
+          "resource_exhausted": "Backup failed because storage quota was exceeded.",
+          "invalid_argument": "Backup failed due to invalid data size or format.",
+          "unknown": "Backup failed ({code})"
+        }
+      }
     }
   },
   "cloud_tx": {
@@ -130,6 +174,65 @@
       "empty_month": "No expense data for this month.",
       "empty_category_list": "No category totals available.",
       "share": "Share {pct}%"
+    }
+  },
+  "paywall": {
+    "title": "Upgrade",
+    "subtitle_logged_in": "Payments are processed with the store account, and entitlements are applied to the currently signed-in app account.",
+    "subtitle_logged_out": "Sign in first to purchase/restore subscriptions. (Entitlements are bound to the signed-in app account)",
+    "current_plan": "Current plan: {plan}",
+    "retry": "Retry",
+    "price_unlinked": "Product unlinked",
+    "buy_button": "Buy {plan}",
+    "unlinked_hint": "Shown after connecting RevenueCat Offering/Package.",
+    "plan": {
+      "free": "Free",
+      "cloud": "Cloud",
+      "report": "Report"
+    },
+    "badge": {
+      "recommended": "Recommended",
+      "in_use": "In Use"
+    },
+    "benefit": {
+      "common": {
+        "remove_ads": "Remove ads"
+      },
+      "cloud": {
+        "unlimited_backup_restore": "Unlimited backup/restore"
+      },
+      "report": {
+        "include_cloud": "Includes Cloud benefits",
+        "statistics": "Statistics features",
+        "download_reports": "Download reports"
+      }
+    },
+    "restore": {
+      "title": "Restore Purchases",
+      "subtitle": "Restores purchase entitlements (subscription state) only. Data snapshots are not restored."
+    },
+    "manage": {
+      "title": "Cancel / Manage Subscription",
+      "subtitle": "Opens the store subscription management screen. Cancellation is handled in the store."
+    },
+    "info": {
+      "offering_load_failed_title": "Failed to load offerings",
+      "revenuecat_disabled_title": "RevenueCat disabled",
+      "revenuecat_disabled_body": "SDK keys are not configured, so the app is running in Free mode. Set `--dart-define=RC_ANDROID_PUBLIC_SDK_KEY=...` or `RC_IOS_PUBLIC_SDK_KEY`."
+    },
+    "msg": {
+      "offering_load_failed": "Failed to load offerings.",
+      "login_required_for_purchase": "Sign in first to purchase a subscription.",
+      "purchase_completed": "Purchase completed.",
+      "purchase_failed_retry": "An error occurred during purchase. Please try again shortly.",
+      "login_required_for_restore": "Sign in first to restore purchases.",
+      "restore_completed": "Restore request completed.",
+      "restore_failed_retry": "An error occurred during restore. Please try again shortly.",
+      "login_required_for_management": "Sign in first to manage subscriptions.",
+      "management_url_unavailable_platform": "Subscription management cannot be opened directly on this platform.",
+      "management_url_unavailable_free": "No active subscription was found or the store management URL is unavailable.",
+      "management_url_unavailable_env": "The store subscription management screen cannot be opened in this environment (for example, RevenueCat Test Store). Use real Play/App Store testing or update test customer state in the RevenueCat dashboard.",
+      "purchase_error_with_code": "An error occurred while processing payment. ({code})"
     }
   },
   "auth": {

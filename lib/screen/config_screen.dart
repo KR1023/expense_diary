@@ -6,12 +6,10 @@ import 'package:expense_diary/core/subscription/plan_policy.dart';
 import 'package:expense_diary/database/drift_database.dart';
 import 'package:expense_diary/core/subscription/subscription_service.dart';
 import 'package:expense_diary/core/subscription/plan_type.dart';
-import 'package:expense_diary/core/subscription/plan_guard.dart';
 import 'package:expense_diary/core/time/week_key.dart';
 import 'package:expense_diary/features/backup/data/snapshot_service.dart';
 import 'package:expense_diary/screen/paywall_screen.dart';
 import 'package:expense_diary/screen/snapshot_restore_screen.dart';
-import 'package:expense_diary/screen/cloud_transaction_screen.dart';
 import 'package:expense_diary/screen/login_screen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -224,7 +222,7 @@ class _ConfigScreenState extends State<ConfigScreen> {
     if (_isBackingUp) return;
 
     if (user == null) {
-      _showSnackBar('클라우드 백업을 사용하려면 먼저 로그인하세요.');
+      _showSnackBar('settings.backup.msg.login_required'.tr());
       return;
     }
 
@@ -240,7 +238,7 @@ class _ConfigScreenState extends State<ConfigScreen> {
       if (!policy.canBackupUnlimited) {
         final accountQuota = await _refreshAccountBackupQuotaState(user.uid);
         if (!policy.canBackupThisWeek(accountQuota.lastBackupWeekKey)) {
-          _showSnackBar('Free 플랜은 계정당 주 1회 백업만 가능합니다. Cloud로 업그레이드하세요.');
+          _showSnackBar('settings.backup.msg.free_limit_reached'.tr());
           return;
         }
       }
@@ -266,7 +264,12 @@ class _ConfigScreenState extends State<ConfigScreen> {
       });
 
       _showSnackBar(
-        '백업 완료 (${snapshot.meta.sizeBytes} bytes, ${snapshot.meta.snapshotId.substring(0, 8)})',
+        'settings.backup.msg.success'.tr(
+          namedArgs: {
+            'bytes': '${snapshot.meta.sizeBytes}',
+            'id': snapshot.meta.snapshotId.substring(0, 8),
+          },
+        ),
       );
     } on BackupQuotaExceededException {
       try {
@@ -275,17 +278,17 @@ class _ConfigScreenState extends State<ConfigScreen> {
         debugPrint('Failed to refresh backup quota after quota exceeded: $e');
       }
       if (!mounted) return;
-      _showSnackBar('Free 플랜은 계정당 주 1회 백업만 가능합니다. Cloud로 업그레이드하세요.');
+      _showSnackBar('settings.backup.msg.free_limit_reached'.tr());
     } on FirebaseException catch (e) {
       if (!mounted) return;
       _showSnackBar(_backupMessageForFirebaseError(e));
     } on FormatException catch (_) {
       if (!mounted) return;
-      _showSnackBar('백업 데이터 직렬화 중 오류가 발생했습니다.');
+      _showSnackBar('settings.backup.msg.serialize_failed'.tr());
     } catch (e) {
       if (!mounted) return;
       debugPrint('Backup failed: $e');
-      _showSnackBar('백업에 실패했습니다. 네트워크 상태를 확인 후 다시 시도하세요.');
+      _showSnackBar('settings.backup.msg.failed_retry'.tr());
     } finally {
       if (mounted) {
         setState(() {
@@ -297,7 +300,7 @@ class _ConfigScreenState extends State<ConfigScreen> {
 
   Future<void> _openSnapshotRestore(User? user) async {
     if (user == null) {
-      _showSnackBar('복원을 사용하려면 먼저 로그인하세요.');
+      _showSnackBar('settings.backup.msg.restore_login_required'.tr());
       return;
     }
 
@@ -306,19 +309,22 @@ class _ConfigScreenState extends State<ConfigScreen> {
     );
 
     if (restored == true && mounted) {
-      _showSnackBar('복원 완료: 화면 데이터가 갱신되었습니다.');
+      _showSnackBar('settings.backup.msg.restore_done'.tr());
       await _loadLocaleSettings();
     }
   }
 
   String _backupMessageForFirebaseError(FirebaseException e) {
     return switch (e.code) {
-      'permission-denied' => '권한 오류로 백업할 수 없습니다. 로그인 상태/규칙을 확인하세요.',
-      'unauthenticated' => '인증이 만료되었습니다. 다시 로그인 후 시도하세요.',
-      'unavailable' => '네트워크 연결 문제로 백업하지 못했습니다.',
-      'resource-exhausted' => '저장 한도에 도달해 백업하지 못했습니다.',
-      'invalid-argument' => '백업 데이터 크기 또는 형식 오류로 저장하지 못했습니다.',
-      _ => '백업 실패 (${e.code})',
+      'permission-denied' => 'settings.backup.msg.firebase.permission_denied'.tr(),
+      'unauthenticated' => 'settings.backup.msg.firebase.unauthenticated'.tr(),
+      'unavailable' => 'settings.backup.msg.firebase.unavailable'.tr(),
+      'resource-exhausted' =>
+        'settings.backup.msg.firebase.resource_exhausted'.tr(),
+      'invalid-argument' => 'settings.backup.msg.firebase.invalid_argument'.tr(),
+      _ => 'settings.backup.msg.firebase.unknown'.tr(
+        namedArgs: {'code': e.code},
+      ),
     };
   }
 
@@ -521,13 +527,22 @@ class _ConfigScreenState extends State<ConfigScreen> {
 
                             final quotaText =
                                 policy.canBackupUnlimited
-                                    ? '이번 주 백업: 무제한'
-                                    : '이번 주 남은 백업 $freeRemaining/1';
+                                    ? 'settings.backup.quota_unlimited'.tr()
+                                    : 'settings.backup.quota_remaining'.tr(
+                                      namedArgs: {
+                                        'remaining': '$freeRemaining',
+                                      },
+                                    );
                             final lastBackupText =
                                 _lastBackupAt == null
-                                    ? '마지막 백업: 없음'
-                                    : '마지막 백업: '
-                                        '${DateFormat('yyyy.MM.dd HH:mm').format(_lastBackupAt!.toLocal())}';
+                                    ? 'settings.backup.last_backup_none'.tr()
+                                    : 'settings.backup.last_backup_at'.tr(
+                                      namedArgs: {
+                                        'date': DateFormat(
+                                          'yyyy.MM.dd HH:mm',
+                                        ).format(_lastBackupAt!.toLocal()),
+                                      },
+                                    );
 
                             return Card(
                               margin: EdgeInsets.zero,
@@ -545,7 +560,7 @@ class _ConfigScreenState extends State<ConfigScreen> {
                                         const SizedBox(width: 8),
                                         Expanded(
                                           child: Text(
-                                            '클라우드 백업',
+                                            'settings.backup.title'.tr(),
                                             style:
                                                 Theme.of(
                                                   context,
@@ -572,8 +587,9 @@ class _ConfigScreenState extends State<ConfigScreen> {
                                     const SizedBox(height: 8),
                                     Text(
                                       user == null
-                                          ? '로그인 후 Firebase에 스냅샷 백업을 저장할 수 있습니다.'
-                                          : '로컬 DB(지출/카테고리)와 설정을 스냅샷(JSON)으로 백업합니다.',
+                                          ? 'settings.backup.subtitle_login_required'
+                                              .tr()
+                                          : 'settings.backup.subtitle'.tr(),
                                       style: Theme.of(
                                         context,
                                       ).textTheme.bodyMedium?.copyWith(
@@ -606,7 +622,11 @@ class _ConfigScreenState extends State<ConfigScreen> {
                                         _lastBackupWeekKey != null) ...[
                                       const SizedBox(height: 4),
                                       Text(
-                                        '기준 주차(KST): $_lastBackupWeekKey',
+                                        'settings.backup.week_key'.tr(
+                                          namedArgs: {
+                                            'weekKey': _lastBackupWeekKey!,
+                                          },
+                                        ),
                                         style: Theme.of(
                                           context,
                                         ).textTheme.bodySmall?.copyWith(
@@ -629,7 +649,9 @@ class _ConfigScreenState extends State<ConfigScreen> {
                                             icon: const Icon(
                                               Icons.refresh_rounded,
                                             ),
-                                            label: const Text('상태 새로고침'),
+                                            label: Text(
+                                              'settings.backup.refresh'.tr(),
+                                            ),
                                           ),
                                         ),
                                         const SizedBox(width: 10),
@@ -655,8 +677,10 @@ class _ConfigScreenState extends State<ConfigScreen> {
                                                     ),
                                             label: Text(
                                               _isBackingUp
-                                                  ? '백업 중...'
-                                                  : '지금 백업',
+                                                  ? 'settings.backup.in_progress'
+                                                      .tr()
+                                                  : 'settings.backup.backup_now'
+                                                      .tr(),
                                             ),
                                           ),
                                         ),
@@ -674,12 +698,14 @@ class _ConfigScreenState extends State<ConfigScreen> {
                                                     user,
                                                   ),
                                           icon: const Icon(Icons.restore_page),
-                                          label: const Text('스냅샷 목록 / 데이터 복원'),
+                                          label: Text(
+                                            'settings.backup.restore_button'.tr(),
+                                          ),
                                         ),
                                       ),
                                       const SizedBox(height: 6),
                                       Text(
-                                        '데이터 복원은 현재 로그인한 계정의 스냅샷만 로컬에 복원합니다. 구독 복원(결제 권한)은 업그레이드 화면에서 진행하세요.',
+                                        'settings.backup.restore_hint'.tr(),
                                         style: Theme.of(
                                           context,
                                         ).textTheme.bodySmall?.copyWith(
@@ -691,7 +717,7 @@ class _ConfigScreenState extends State<ConfigScreen> {
                                         !freeCanBackup) ...[
                                       const SizedBox(height: 8),
                                       Text(
-                                        'Free 플랜은 같은 KST 주차에 1회만 백업할 수 있습니다. Cloud/Report는 무제한입니다.',
+                                        'settings.backup.free_limit_note'.tr(),
                                         style: Theme.of(
                                           context,
                                         ).textTheme.bodySmall?.copyWith(
@@ -704,47 +730,6 @@ class _ConfigScreenState extends State<ConfigScreen> {
                               ),
                             );
                           },
-                        );
-                      },
-                    ),
-                    const SizedBox(height: 12),
-                    StreamBuilder<User?>(
-                      stream: GetIt.I<AuthRepository>().authStateChanges,
-                      builder: (context, snapshot) {
-                        final user = snapshot.data;
-                        return Card(
-                          margin: EdgeInsets.zero,
-                          child: ListTile(
-                            enabled: user != null,
-                            leading: Icon(
-                              Icons.cloud_sync_outlined,
-                              color: AppColors.primary,
-                            ),
-                            title: Text('settings.cloud_tx.title'.tr()),
-                            subtitle: Text(
-                              user == null
-                                  ? 'settings.cloud_tx.login_required'.tr()
-                                  : 'settings.cloud_tx.subtitle'.tr(),
-                            ),
-                            trailing: const Icon(Icons.chevron_right),
-                            onTap:
-                                user == null
-                                    ? null
-                                    : () async {
-                                      await PlanGuard.requireCloud(
-                                        context,
-                                        onAllowed: () async {
-                                          await Navigator.of(context).push(
-                                            MaterialPageRoute(
-                                              builder:
-                                                  (_) =>
-                                                      const CloudTransactionScreen(),
-                                            ),
-                                          );
-                                        },
-                                      );
-                                    },
-                          ),
                         );
                       },
                     ),
@@ -763,11 +748,17 @@ class _ConfigScreenState extends State<ConfigScreen> {
                               Icons.workspace_premium_outlined,
                               color: AppColors.primary,
                             ),
-                            title: Text(isFree ? '구독 업그레이드' : '구독 관리'),
+                            title: Text(
+                              isFree
+                                  ? 'settings.subscription.upgrade_title'.tr()
+                                  : 'settings.subscription.manage_title'.tr(),
+                            ),
                             subtitle: Text(
                               isFree
-                                  ? 'Cloud/Report 플랜으로 백업 한도 해제 및 광고 제거'
-                                  : '현재 플랜: ${_planLabel(plan)}',
+                                  ? 'settings.subscription.upgrade_subtitle'.tr()
+                                  : 'settings.subscription.current_plan'.tr(
+                                    namedArgs: {'plan': _planLabel(plan)},
+                                  ),
                             ),
                             trailing: const Icon(Icons.chevron_right),
                             onTap: () async {
@@ -833,10 +824,11 @@ class _ConfigScreenState extends State<ConfigScreen> {
   }
 
   String _planLabel(PlanType plan) {
-    return switch (plan) {
-      PlanType.free => 'Free',
-      PlanType.cloud => 'Cloud',
-      PlanType.report => 'Report',
+    final key = switch (plan) {
+      PlanType.free => 'settings.plan.free',
+      PlanType.cloud => 'settings.plan.cloud',
+      PlanType.report => 'settings.plan.report',
     };
+    return key.tr();
   }
 }
