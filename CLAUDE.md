@@ -38,7 +38,7 @@ dart run flutter_native_splash:create
 
 **GetIt에 등록된 싱글톤:**
 - `LocalDatabase` — Drift ORM
-- `AuthRepository` — Firebase 이메일 + Google 로그인
+- `AuthRepository` — Firebase 이메일 + Google 로그인 (google_sign_in v7: `GoogleSignIn.instance.authenticate()`)
 - `FirestoreTransactionRepository` — Firestore 클라우드 동기화
 - `AppSettings` — 통화, 언어 설정(ChangeNotifier)
 - `SnapshotService` — 클라우드 백업/복원
@@ -60,6 +60,7 @@ Drift 데이터베이스 클래스 또는 테이블 정의 수정 후 `build_run
 - `lib/auth/` — Firebase/Google 인증 (`AuthRepository`)
 - `lib/core/time/` — KST 주차 키 헬퍼(백업 메타데이터용)
 - `lib/features/backup/` — 스냅샷 도메인 모델, 서비스, Firebase 저장소
+  - `data/backup_metadata_keys.dart` — SharedPreferences/Firestore 백업 메타데이터 키 상수 (`BackupMetadataKeys`)
 - `lib/features/report/` — CSV 및 PDF 내보내기 서비스
 - `lib/service/` — `AppSettings`(통화, 언어, ChangeNotifier)
 - `lib/const/` — 색상, 테마(`AppTheme`), 통화 유틸, Firebase 설정
@@ -70,16 +71,18 @@ Drift 데이터베이스 클래스 또는 테이블 정의 수정 후 `build_run
 1. 지출 (홈) — 오늘의 지출 목록
 2. 지출 내역 (캘린더) — 일별 합계를 포함한 달력 뷰
 3. 분류 (카테고리) — 카테고리 CRUD
-4. 통계 (통계) — 통계/CSV/PDF
+4. 통계 (`StatisticsTabScreen`) — 통계/CSV/PDF 서브화면으로 이동하는 메뉴 화면 (`ReportStatisticsScreen`, `ReportCsvExportScreen`, `ReportPdfExportScreen` 진입점)
 5. 설정 (설정) — 언어, 통화, 백업, 계정
 
 ## 구독 시스템 제거 상태
 
-RevenueCat, Paywall, StoreKit 로컬 구성, 요금제 제한, `purchases_flutter` 의존성은 활성 코드에서 제거됨. 백업/복원 및 통계/CSV/PDF 기능은 구독 확인 없이 사용할 수 있음.
+RevenueCat, Paywall, StoreKit 로컬 구성, 요금제 제한, `purchases_flutter` 의존성은 활성 코드에서 제거됨. `lib/core/subscription/`, `lib/screen/paywall_screen.dart`, `test/core/subscription/` 등 관련 파일 전체 삭제. 백업/복원 및 통계/CSV/PDF 기능은 구독 확인 없이 사용할 수 있음.
 
 ## 광고
 
 `lib/component/banner_ad_widget.dart`의 `BannerAdWidget`에서 직접 배너를 로드. iOS는 프로덕션 AdUnit ID, Android는 현재 테스트 ID 사용. 광고 생명 주기를 신중하게 처리. 위젯이 내부적으로 로드/해제를 관리.
+
+배너 광고 표시 위치: 홈 화면 상단, 카테고리 화면 하단, 설정 화면 하단, 통계 탭 화면 하단(`StatisticsTabScreen`).
 
 ## 다국어 지원
 
@@ -93,6 +96,10 @@ RevenueCat, Paywall, StoreKit 로컬 구성, 요금제 제한, `purchases_flutte
 ## 클라우드 백업
 
 스냅샷 기반: `SnapshotService`가 모든 Drift 데이터 + SharedPreferences를 읽고, 정규 JSON(SplayTreeMap을 통한 키 정렬)으로 직렬화한 후, SHA-256 해시를 생성하고 Firestore에 업로드. 복원은 로컬 데이터를 Drift 트랜잭션으로 초기화한 후 재삽입.
+
+백업 메타데이터 키(`lastBackupAt`, `lastBackupWeekKey`)는 `BackupMetadataKeys` 상수 클래스(`lib/features/backup/data/backup_metadata_keys.dart`)로 중앙 관리. SharedPreferences 저장 키와 Firestore 필드명이 분리되어 있음.
+
+`ConfigScreen`은 인증 상태 변경 시(`authStateChanges`) 클라우드 백업 메타데이터를 자동으로 다시 로드.
 
 `cloud_transaction_screen.dart`는 코드베이스에 존재하지만 UI에서 더 이상 접근 불가능 (커밋 `f00d536`에서 진입점 제거).
 

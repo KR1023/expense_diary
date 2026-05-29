@@ -177,6 +177,17 @@ class Snapshot {
     );
   }
 
+  factory Snapshot.fromSeparateJson(
+    Map<String, dynamic> metaJson,
+    Map<String, dynamic> payloadJson,
+  ) {
+    return Snapshot(
+      meta: SnapshotMeta.fromJson(metaJson),
+      payload: SnapshotPayload.fromJson(payloadJson),
+      payloadStoragePath: metaJson['payloadStoragePath'] as String?,
+    );
+  }
+
   static Snapshot create({
     required String snapshotId,
     required DateTime createdAt,

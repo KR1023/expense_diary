@@ -1,13 +1,21 @@
+import 'dart:convert';
+import 'dart:typed_data';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:expense_diary/core/time/week_key.dart';
 import 'package:expense_diary/features/backup/data/backup_metadata_keys.dart';
 import 'package:expense_diary/features/backup/domain/snapshot.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 
 class FirebaseSnapshotRepository {
-  FirebaseSnapshotRepository({FirebaseFirestore? firestore})
-    : _firestore = firestore ?? FirebaseFirestore.instance;
+  FirebaseSnapshotRepository({
+    FirebaseFirestore? firestore,
+    FirebaseStorage? storage,
+  }) : _firestore = firestore ?? FirebaseFirestore.instance,
+       _storage = storage ?? FirebaseStorage.instance;
 
   final FirebaseFirestore _firestore;
+  final FirebaseStorage _storage;
 
   CollectionReference<Map<String, dynamic>> _snapshotsRef(String uid) {
     return _firestore.collection('users').doc(uid).collection('snapshots');
@@ -21,14 +29,30 @@ class FirebaseSnapshotRepository {
         .doc('backupQuota');
   }
 
+  Reference _storageRef(String uid, String snapshotId) {
+    return _storage.ref('users/$uid/snapshots/$snapshotId.json');
+  }
+
   Future<void> uploadSnapshot(String uid, Snapshot snapshot) async {
     final snapshotCreatedAt = snapshot.meta.createdAt.toUtc();
     final weekKey = KstWeekKey.fromDateTime(snapshotCreatedAt);
+    final storagePath = 'users/$uid/snapshots/${snapshot.snapshotId}.json';
 
+    // payload를 Storage에 업로드
+    final payloadBytes = Uint8List.fromList(snapshot.payload.utf8Bytes());
+    await _storageRef(uid, snapshot.snapshotId).putData(
+      payloadBytes,
+      SettableMetadata(contentType: 'application/json; charset=utf-8'),
+    );
+
+    // Firestore에는 메타데이터만 저장 (payload 제외)
     await _firestore.runTransaction<void>((tx) async {
       final snapshotRef = _snapshotsRef(uid).doc(snapshot.snapshotId);
       final metadataRef = _backupMetadataRef(uid);
-      tx.set(snapshotRef, snapshot.toFirestoreJson());
+      tx.set(snapshotRef, {
+        ...snapshot.meta.toJson(),
+        'payloadStoragePath': storagePath,
+      });
       tx.set(metadataRef, {
         BackupMetadataKeys.cloudLastBackupAt: Timestamp.fromDate(
           snapshotCreatedAt,
@@ -77,6 +101,19 @@ class FirebaseSnapshotRepository {
     }
 
     final normalized = _normalizeFirestoreJson(doc.data()!, snapshotId: doc.id);
+    final storagePath = normalized['payloadStoragePath'] as String?;
+
+    // 신규 형식: payload를 Storage에서 읽음
+    if (storagePath != null && storagePath.isNotEmpty) {
+      final data = await _storage.ref(storagePath).getData();
+      if (data == null) {
+        throw StateError('Payload not found in Storage: $storagePath');
+      }
+      final payloadJson = jsonDecode(utf8.decode(data)) as Map<String, dynamic>;
+      return Snapshot.fromSeparateJson(normalized, payloadJson);
+    }
+
+    // 구형식: payload가 Firestore 도큐먼트에 내장된 경우
     return Snapshot.fromJson(normalized);
   }
 
