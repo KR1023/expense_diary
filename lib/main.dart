@@ -1,4 +1,5 @@
 import 'package:expense_diary/auth/auth_repository.dart';
+import 'package:expense_diary/core/subscription/subscription_service.dart';
 import 'package:expense_diary/data/firestore/firestore_transaction_repository.dart';
 import 'package:expense_diary/features/backup/data/snapshot_service.dart';
 import 'package:expense_diary/features/report/data/report_csv_service.dart';
@@ -26,6 +27,8 @@ void main() async {
 
   await initializeDateFormatting();
 
+  final subscriptionService = await SubscriptionService.init();
+
   final prefs = await SharedPreferences.getInstance();
   final followSystemLocale = prefs.getBool('follow_system_locale') ?? true;
   final userLocale = prefs.getString('user_locale') ?? 'en';
@@ -44,6 +47,7 @@ void main() async {
   );
   final appSettings = AppSettings(currencyCode: userCurrency);
   GetIt.I.registerSingleton<AppSettings>(appSettings);
+  GetIt.I.registerSingleton<SubscriptionService>(subscriptionService);
   GetIt.I.registerSingleton<SnapshotService>(
     SnapshotService(
       localDatabase: database,

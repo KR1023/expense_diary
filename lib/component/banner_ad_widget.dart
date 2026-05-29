@@ -1,5 +1,7 @@
 import 'dart:io';
+import 'package:expense_diary/core/subscription/subscription_service.dart';
 import 'package:flutter/material.dart';
+import 'package:get_it/get_it.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 
 class BannerAdWidget extends StatelessWidget {
@@ -7,7 +9,15 @@ class BannerAdWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const _BannerAdContent();
+    return AnimatedBuilder(
+      animation: GetIt.I<SubscriptionService>(),
+      builder: (context, _) {
+        if (GetIt.I<SubscriptionService>().isAdsRemoved) {
+          return const SizedBox.shrink();
+        }
+        return const _BannerAdContent();
+      },
+    );
   }
 }
 

@@ -15,6 +15,23 @@ class KstWeekKey {
 
   static String now({DateTime? now}) => fromDateTime(now ?? DateTime.now());
 
+  /// Returns KST date key in `YYYY-MM-DD` format.
+  static String kstDayKey(DateTime dateTime) {
+    final kst = toKst(dateTime);
+    return '${kst.year}-${kst.month.toString().padLeft(2, '0')}-${kst.day.toString().padLeft(2, '0')}';
+  }
+
+  /// Returns the start of next ISO week (next Monday 00:00 KST) as a KST DateTime.
+  static DateTime startOfNextWeekKst(DateTime dateTime) {
+    return startOfWeekKst(dateTime).add(const Duration(days: 7));
+  }
+
+  /// Returns tomorrow's date in KST as a DateTime.
+  static DateTime tomorrowKst(DateTime dateTime) {
+    final kst = toKst(dateTime);
+    return DateTime(kst.year, kst.month, kst.day + 1);
+  }
+
   /// Converts an instant to KST wall time.
   ///
   /// If [dateTime] is local-time based, it is first converted to UTC, then shifted to KST.

@@ -90,6 +90,8 @@
       "backup_now": "Back up now",
       "restore_button": "Snapshot list / Restore data",
       "restore_hint": "Restore only applies snapshots from the currently signed-in account to local data.",
+      "next_backup_available": "Next backup available: {date}",
+      "next_restore_available": "Next restore available: {date}",
       "msg": {
         "login_required": "Sign in first to use cloud backup.",
         "success": "Backup completed ({bytes} bytes, {id})",
@@ -97,6 +99,8 @@
         "failed_retry": "Backup failed. Check network status and try again.",
         "restore_login_required": "Sign in first to use restore.",
         "restore_done": "Restore completed: screen data has been refreshed.",
+        "weekly_limit": "You've already used your free backup this week. Subscribe for unlimited backups.",
+        "daily_restore_limit": "You've already restored today. The limit resets at midnight KST.",
         "firebase": {
           "permission_denied": "Permission denied. Check login state and security rules.",
           "unauthenticated": "Authentication expired. Sign in again and retry.",
@@ -229,6 +233,47 @@
     "delete": "Delete",
     "currency_suffix": " KRW",
     "unclassified": "Uncategorized"
+  },
+  "subscription": {
+    "title": "Subscription Plan",
+    "settings_nav": "Subscription Plan",
+    "settings_nav_subtitle": "View and manage your current subscription.",
+    "current_plan_section": "Current Plan",
+    "upgrade_section": "Upgrade Plan",
+    "manage_section": "Manage Subscription",
+    "plan_free": "Free",
+    "plan_cloud": "Cloud Plan",
+    "plan_report": "Report Plan",
+    "free_desc": "Free tier · Limited features",
+    "per_month": "/ mo",
+    "next_renewal": "Next renewal: {date}",
+    "subscribe": "Subscribe",
+    "upgrade": "Upgrade to Report Plan",
+    "restore": "Restore Purchases",
+    "cancel": "Cancel Subscription",
+    "cancel_dialog_title": "Cancel Subscription",
+    "cancel_dialog_desc": "Subscription cancellation is managed through Google Play. Go to the Play Store?",
+    "go_to_store": "Go to Store",
+    "feature_ads": "Ad-free experience",
+    "feature_backup": "Unlimited backup & restore",
+    "feature_backup_free": "1 backup/week · 1 restore/day",
+    "feature_stats": "Monthly statistics",
+    "feature_export": "CSV / PDF export",
+    "feature_cloud_all": "All Cloud Plan features",
+    "ios_free_desc": "All features are currently free on iOS.",
+    "loading_error": "Failed to load plan information."
+  },
+  "paywall": {
+    "subscribe": "Subscribe",
+    "restore": "Restore Purchases",
+    "cloud": {
+      "title": "Cloud Backup",
+      "description": "Back up and restore your data to the cloud. Keep your data safe even when switching devices."
+    },
+    "report": {
+      "title": "Statistics & Reports",
+      "description": "Access monthly statistics and CSV/PDF export features."
+    }
   },
   "error": {
     "unsupported_locale": "This language is not supported.",

@@ -2,7 +2,9 @@ import 'dart:async';
 
 import 'package:expense_diary/auth/auth_repository.dart';
 import 'package:expense_diary/component/banner_ad_widget.dart';
+import 'package:expense_diary/core/subscription/subscription_service.dart';
 import 'package:expense_diary/database/drift_database.dart';
+import 'package:expense_diary/screen/subscription_screen.dart';
 import 'package:expense_diary/core/time/week_key.dart';
 import 'package:expense_diary/features/backup/data/backup_metadata_keys.dart';
 import 'package:expense_diary/features/backup/data/snapshot_service.dart';
@@ -30,6 +32,8 @@ class _ConfigScreenState extends State<ConfigScreen> {
   String _selectedCurrency = AppSettings.defaultCurrency;
   bool _isBackingUp = false;
   DateTime? _lastBackupAt;
+  String? _lastBackupWeekKey;
+  String? _lastRestoreDayKey;
   StreamSubscription<User?>? _authStateSubscription;
 
   @override
@@ -37,6 +41,7 @@ class _ConfigScreenState extends State<ConfigScreen> {
     super.initState();
     _selectedCurrency = GetIt.I<AppSettings>().currencyCode;
     _loadLocaleSettings();
+    _loadRestoreMetadata();
     final authRepository = GetIt.I<AuthRepository>();
     _authStateSubscription = authRepository.authStateChanges.listen((user) {
       _loadBackupMetadata(user: user);
@@ -59,6 +64,15 @@ class _ConfigScreenState extends State<ConfigScreen> {
     setState(() {
       _followSystemLocale = follow;
       _selectedLanguage = userLocale;
+    });
+  }
+
+  Future<void> _loadRestoreMetadata() async {
+    final prefs = await SharedPreferences.getInstance();
+    final dayKey = prefs.getString(BackupMetadataKeys.lastRestoreDayKey);
+    if (!mounted) return;
+    setState(() {
+      _lastRestoreDayKey = dayKey;
     });
   }
 
@@ -89,6 +103,7 @@ class _ConfigScreenState extends State<ConfigScreen> {
     if (!mounted) return;
     setState(() {
       _lastBackupAt = nextLastBackupAt;
+      _lastBackupWeekKey = nextLastBackupWeekKey;
     });
   }
 
@@ -200,6 +215,15 @@ class _ConfigScreenState extends State<ConfigScreen> {
       return;
     }
 
+    final isSubscribed = GetIt.I<SubscriptionService>().isCloudEntitled;
+    if (!isSubscribed) {
+      final currentWeekKey = KstWeekKey.fromDateTime(DateTime.now().toUtc());
+      if (_lastBackupWeekKey == currentWeekKey) {
+        _showSnackBar('settings.backup.msg.weekly_limit'.tr());
+        return;
+      }
+    }
+
     setState(() {
       _isBackingUp = true;
     });
@@ -219,6 +243,7 @@ class _ConfigScreenState extends State<ConfigScreen> {
       if (!mounted) return;
       setState(() {
         _lastBackupAt = savedAt;
+        _lastBackupWeekKey = savedWeekKey;
       });
 
       _showSnackBar(
@@ -254,11 +279,26 @@ class _ConfigScreenState extends State<ConfigScreen> {
       return;
     }
 
+    final isSubscribed = GetIt.I<SubscriptionService>().isCloudEntitled;
+    if (!isSubscribed) {
+      final todayKey = KstWeekKey.kstDayKey(DateTime.now());
+      if (_lastRestoreDayKey == todayKey) {
+        _showSnackBar('settings.backup.msg.daily_restore_limit'.tr());
+        return;
+      }
+    }
+
     final restored = await Navigator.of(context).push<bool>(
       MaterialPageRoute(builder: (_) => SnapshotRestoreScreen(user: user)),
     );
 
     if (restored == true && mounted) {
+      final todayKey = KstWeekKey.kstDayKey(DateTime.now());
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString(BackupMetadataKeys.lastRestoreDayKey, todayKey);
+      setState(() {
+        _lastRestoreDayKey = todayKey;
+      });
       _showSnackBar('settings.backup.msg.restore_done'.tr());
       await _loadLocaleSettings();
     }
@@ -461,6 +501,39 @@ class _ConfigScreenState extends State<ConfigScreen> {
                       },
                     ),
                     const SizedBox(height: 12),
+                    AnimatedBuilder(
+                      animation: GetIt.I<SubscriptionService>(),
+                      builder: (context, _) {
+                        final plan =
+                            GetIt.I<SubscriptionService>().currentPlan;
+                        final planLabel = switch (plan) {
+                          SubscriptionPlan.free =>
+                            'subscription.plan_free'.tr(),
+                          SubscriptionPlan.cloud =>
+                            'subscription.plan_cloud'.tr(),
+                          SubscriptionPlan.report =>
+                            'subscription.plan_report'.tr(),
+                        };
+                        return Card(
+                          margin: EdgeInsets.zero,
+                          child: ListTile(
+                            leading: Icon(
+                              Icons.workspace_premium_outlined,
+                              color: AppColors.primary,
+                            ),
+                            title: Text('subscription.settings_nav'.tr()),
+                            subtitle: Text(planLabel),
+                            trailing: const Icon(Icons.chevron_right),
+                            onTap: () => Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (_) => const SubscriptionScreen(),
+                              ),
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                    const SizedBox(height: 12),
                     StreamBuilder<User?>(
                       stream: GetIt.I<AuthRepository>().authStateChanges,
                       builder: (context, authSnapshot) {
@@ -475,6 +548,17 @@ class _ConfigScreenState extends State<ConfigScreen> {
                                     ).format(_lastBackupAt!.toLocal()),
                                   },
                                 );
+
+                        final isSubscribed =
+                            GetIt.I<SubscriptionService>().isCloudEntitled;
+                        final now = DateTime.now();
+                        final currentWeekKey =
+                            KstWeekKey.fromDateTime(now.toUtc());
+                        final showBackupLimitHint = !isSubscribed &&
+                            _lastBackupWeekKey == currentWeekKey;
+                        final todayKey = KstWeekKey.kstDayKey(now);
+                        final showRestoreLimitHint =
+                            !isSubscribed && _lastRestoreDayKey == todayKey;
 
                         return Card(
                           margin: EdgeInsets.zero,
@@ -572,6 +656,38 @@ class _ConfigScreenState extends State<ConfigScreen> {
                                     ),
                                   ],
                                 ),
+                                if (showBackupLimitHint) ...[
+                                  const SizedBox(height: 6),
+                                  Row(
+                                    children: [
+                                      Icon(
+                                        Icons.info_outline,
+                                        size: 14,
+                                        color: AppColors.mutedOf(context),
+                                      ),
+                                      const SizedBox(width: 4),
+                                      Text(
+                                        'settings.backup.next_backup_available'
+                                            .tr(
+                                          namedArgs: {
+                                            'date': DateFormat(
+                                              'yyyy.MM.dd HH:mm',
+                                            ).format(
+                                              KstWeekKey.startOfNextWeekKst(
+                                                now,
+                                              ),
+                                            ),
+                                          },
+                                        ),
+                                        style: Theme.of(
+                                          context,
+                                        ).textTheme.bodySmall?.copyWith(
+                                          color: AppColors.mutedOf(context),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ],
                                 if (user != null) ...[
                                   const SizedBox(height: 10),
                                   SizedBox(
@@ -597,6 +713,36 @@ class _ConfigScreenState extends State<ConfigScreen> {
                                       color: AppColors.mutedOf(context),
                                     ),
                                   ),
+                                  if (showRestoreLimitHint) ...[
+                                    const SizedBox(height: 4),
+                                    Row(
+                                      children: [
+                                        Icon(
+                                          Icons.info_outline,
+                                          size: 14,
+                                          color: AppColors.mutedOf(context),
+                                        ),
+                                        const SizedBox(width: 4),
+                                        Text(
+                                          'settings.backup.next_restore_available'
+                                              .tr(
+                                            namedArgs: {
+                                              'date': DateFormat(
+                                                'yyyy.MM.dd HH:mm',
+                                              ).format(
+                                                KstWeekKey.tomorrowKst(now),
+                                              ),
+                                            },
+                                          ),
+                                          style: Theme.of(
+                                            context,
+                                          ).textTheme.bodySmall?.copyWith(
+                                            color: AppColors.mutedOf(context),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ],
                                 ],
                               ],
                             ),

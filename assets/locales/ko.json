@@ -90,6 +90,8 @@
       "backup_now": "지금 백업",
       "restore_button": "스냅샷 목록 / 데이터 복원",
       "restore_hint": "데이터 복원은 현재 로그인한 계정의 스냅샷만 로컬에 복원합니다.",
+      "next_backup_available": "다음 백업 가능일: {date}",
+      "next_restore_available": "다음 복원 가능일: {date}",
       "msg": {
         "login_required": "클라우드 백업을 사용하려면 먼저 로그인하세요.",
         "success": "백업 완료 ({bytes} bytes, {id})",
@@ -97,6 +99,8 @@
         "failed_retry": "백업에 실패했습니다. 네트워크 상태를 확인 후 다시 시도하세요.",
         "restore_login_required": "복원을 사용하려면 먼저 로그인하세요.",
         "restore_done": "복원 완료: 화면 데이터가 갱신되었습니다.",
+        "weekly_limit": "이번 주 무료 백업을 이미 사용했습니다. 구독 시 무제한으로 백업할 수 있습니다.",
+        "daily_restore_limit": "오늘 이미 복원을 사용했습니다. KST 자정에 초기화됩니다.",
         "firebase": {
           "permission_denied": "권한 오류로 백업할 수 없습니다. 로그인 상태/규칙을 확인하세요.",
           "unauthenticated": "인증이 만료되었습니다. 다시 로그인 후 시도하세요.",
@@ -229,6 +233,47 @@
     "delete": "삭제",
     "currency_suffix": "원",
     "unclassified": "미분류"
+  },
+  "subscription": {
+    "title": "구독 플랜",
+    "settings_nav": "구독 플랜",
+    "settings_nav_subtitle": "현재 구독 중인 플랜을 확인하고 관리합니다.",
+    "current_plan_section": "현재 플랜",
+    "upgrade_section": "플랜 업그레이드",
+    "manage_section": "구독 관리",
+    "plan_free": "Free",
+    "plan_cloud": "Cloud 플랜",
+    "plan_report": "Report 플랜",
+    "free_desc": "무료 사용 중 · 기능 제한",
+    "per_month": "/ 월",
+    "next_renewal": "다음 갱신: {date}",
+    "subscribe": "구독하기",
+    "upgrade": "Report 플랜으로 업그레이드",
+    "restore": "구매 복원",
+    "cancel": "구독 해지",
+    "cancel_dialog_title": "구독 해지",
+    "cancel_dialog_desc": "구독 해지는 Google Play에서 직접 관리합니다. Play 스토어로 이동하시겠습니까?",
+    "go_to_store": "스토어로 이동",
+    "feature_ads": "광고 제거",
+    "feature_backup": "무제한 백업 및 복원",
+    "feature_backup_free": "주 1회 백업 · 일 1회 복원",
+    "feature_stats": "월간 통계",
+    "feature_export": "CSV / PDF 내보내기",
+    "feature_cloud_all": "Cloud 플랜 모든 기능 포함",
+    "ios_free_desc": "iOS에서는 현재 모든 기능을 무료로 제공합니다.",
+    "loading_error": "플랜 정보를 불러오지 못했습니다."
+  },
+  "paywall": {
+    "subscribe": "구독하기",
+    "restore": "구매 복원",
+    "cloud": {
+      "title": "클라우드 백업",
+      "description": "데이터를 클라우드에 백업하고 복원할 수 있습니다. 기기를 바꿔도 데이터를 안전하게 유지하세요."
+    },
+    "report": {
+      "title": "통계 및 리포트",
+      "description": "월간 통계, CSV/PDF 내보내기 기능을 사용할 수 있습니다."
+    }
   },
   "error": {
     "unsupported_locale": "지원하지 않는 언어입니다.",
