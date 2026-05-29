@@ -2,13 +2,10 @@ import 'dart:async';
 
 import 'package:expense_diary/auth/auth_repository.dart';
 import 'package:expense_diary/component/banner_ad_widget.dart';
-import 'package:expense_diary/core/subscription/plan_policy.dart';
 import 'package:expense_diary/database/drift_database.dart';
-import 'package:expense_diary/core/subscription/subscription_service.dart';
-import 'package:expense_diary/core/subscription/plan_type.dart';
 import 'package:expense_diary/core/time/week_key.dart';
+import 'package:expense_diary/features/backup/data/backup_metadata_keys.dart';
 import 'package:expense_diary/features/backup/data/snapshot_service.dart';
-import 'package:expense_diary/screen/paywall_screen.dart';
 import 'package:expense_diary/screen/snapshot_restore_screen.dart';
 import 'package:expense_diary/screen/login_screen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -33,7 +30,6 @@ class _ConfigScreenState extends State<ConfigScreen> {
   String _selectedCurrency = AppSettings.defaultCurrency;
   bool _isBackingUp = false;
   DateTime? _lastBackupAt;
-  String? _lastBackupWeekKey;
   StreamSubscription<User?>? _authStateSubscription;
 
   @override
@@ -43,9 +39,9 @@ class _ConfigScreenState extends State<ConfigScreen> {
     _loadLocaleSettings();
     final authRepository = GetIt.I<AuthRepository>();
     _authStateSubscription = authRepository.authStateChanges.listen((user) {
-      _loadBackupQuotaState(user: user);
+      _loadBackupMetadata(user: user);
     });
-    _loadBackupQuotaState(user: authRepository.currentUser);
+    _loadBackupMetadata(user: authRepository.currentUser);
   }
 
   @override
@@ -66,10 +62,10 @@ class _ConfigScreenState extends State<ConfigScreen> {
     });
   }
 
-  Future<void> _loadBackupQuotaState({User? user}) async {
-    final localQuota = await _readLocalBackupQuotaState();
-    var nextLastBackupAt = localQuota.lastBackupAt;
-    var nextLastBackupWeekKey = localQuota.lastBackupWeekKey;
+  Future<void> _loadBackupMetadata({User? user}) async {
+    final localMetadata = await _readLocalBackupMetadata();
+    var nextLastBackupAt = localMetadata.lastBackupAt;
+    var nextLastBackupWeekKey = localMetadata.lastBackupWeekKey;
 
     final targetUser = user ?? GetIt.I<AuthRepository>().currentUser;
     if (targetUser == null) {
@@ -77,64 +73,60 @@ class _ConfigScreenState extends State<ConfigScreen> {
       nextLastBackupWeekKey = null;
     } else {
       try {
-        final cloudQuota = await GetIt.I<SnapshotService>().getBackupQuota(
-          targetUser.uid,
-        );
-        nextLastBackupAt = cloudQuota.lastBackupAt;
-        nextLastBackupWeekKey = cloudQuota.lastBackupWeekKey;
-        await _writeLocalBackupQuotaState(
+        final cloudMetadata = await GetIt.I<SnapshotService>()
+            .getBackupMetadata(targetUser.uid);
+        nextLastBackupAt = cloudMetadata.lastBackupAt;
+        nextLastBackupWeekKey = cloudMetadata.lastBackupWeekKey;
+        await _writeLocalBackupMetadata(
           lastBackupAt: nextLastBackupAt,
           lastBackupWeekKey: nextLastBackupWeekKey,
         );
       } catch (e) {
-        debugPrint('Failed to load cloud backup quota: $e');
+        debugPrint('Failed to load cloud backup metadata: $e');
       }
     }
 
     if (!mounted) return;
     setState(() {
       _lastBackupAt = nextLastBackupAt;
-      _lastBackupWeekKey = nextLastBackupWeekKey;
     });
   }
 
   Future<({DateTime? lastBackupAt, String? lastBackupWeekKey})>
-  _readLocalBackupQuotaState() async {
+  _readLocalBackupMetadata() async {
     final prefs = await SharedPreferences.getInstance();
-    final lastBackupAtRaw = prefs.getString(
-      BackupLimitStorageKeys.lastBackupAt,
-    );
+    final lastBackupAtRaw = prefs.getString(BackupMetadataKeys.lastBackupAt);
     final lastBackupWeekKey = prefs.getString(
-      BackupLimitStorageKeys.lastBackupWeekKey,
+      BackupMetadataKeys.lastBackupWeekKey,
     );
 
     final lastBackupAt = _parseDateTime(lastBackupAtRaw);
     return (lastBackupAt: lastBackupAt, lastBackupWeekKey: lastBackupWeekKey);
   }
 
-  Future<void> _writeLocalBackupQuotaState({
+  Future<void> _writeLocalBackupMetadata({
     required DateTime? lastBackupAt,
     required String? lastBackupWeekKey,
   }) async {
     final prefs = await SharedPreferences.getInstance();
 
     if (lastBackupAt == null) {
-      await prefs.remove(BackupLimitStorageKeys.lastBackupAt);
+      await prefs.remove(BackupMetadataKeys.lastBackupAt);
     } else {
       await prefs.setString(
-        BackupLimitStorageKeys.lastBackupAt,
+        BackupMetadataKeys.lastBackupAt,
         lastBackupAt.toUtc().toIso8601String(),
       );
     }
 
     final normalizedWeekKey = lastBackupWeekKey?.trim();
     if (normalizedWeekKey == null || normalizedWeekKey.isEmpty) {
-      await prefs.remove(BackupLimitStorageKeys.lastBackupWeekKey);
+      await prefs.remove(BackupMetadataKeys.lastBackupWeekKey);
       return;
     }
 
     await prefs.setString(
-      BackupLimitStorageKeys.lastBackupWeekKey,
+      BackupMetadataKeys.lastBackupWeekKey,
       normalizedWeekKey,
     );
   }
@@ -142,24 +134,6 @@ class _ConfigScreenState extends State<ConfigScreen> {
   DateTime? _parseDateTime(String? raw) {
     if (raw == null || raw.isEmpty) return null;
     return DateTime.tryParse(raw);
-  }
-
-  Future<({DateTime? lastBackupAt, String? lastBackupWeekKey})>
-  _refreshAccountBackupQuotaState(String uid) async {
-    final quota = await GetIt.I<SnapshotService>().getBackupQuota(uid);
-    await _writeLocalBackupQuotaState(
-      lastBackupAt: quota.lastBackupAt,
-      lastBackupWeekKey: quota.lastBackupWeekKey,
-    );
-
-    if (mounted) {
-      setState(() {
-        _lastBackupAt = quota.lastBackupAt;
-        _lastBackupWeekKey = quota.lastBackupWeekKey;
-      });
-    }
-
-    return quota;
   }
 
   Locale _resolveSystemLocale() {
@@ -226,33 +200,18 @@ class _ConfigScreenState extends State<ConfigScreen> {
       return;
     }
 
-    final subscription = GetIt.I<SubscriptionService>();
-    final policy = subscription.currentPolicy;
-
     setState(() {
       _isBackingUp = true;
     });
 
     try {
       final snapshotService = GetIt.I<SnapshotService>();
-      if (!policy.canBackupUnlimited) {
-        final accountQuota = await _refreshAccountBackupQuotaState(user.uid);
-        if (!policy.canBackupThisWeek(accountQuota.lastBackupWeekKey)) {
-          _showSnackBar('settings.backup.msg.free_limit_reached'.tr());
-          return;
-        }
-      }
-
       final snapshot = await snapshotService.buildLocalSnapshot();
-      if (policy.canBackupUnlimited) {
-        await snapshotService.uploadSnapshot(user.uid, snapshot);
-      } else {
-        await snapshotService.uploadSnapshotForFreePlan(user.uid, snapshot);
-      }
+      await snapshotService.uploadSnapshot(user.uid, snapshot);
 
       final savedAt = snapshot.meta.createdAt.toUtc();
       final savedWeekKey = KstWeekKey.fromDateTime(savedAt);
-      await _writeLocalBackupQuotaState(
+      await _writeLocalBackupMetadata(
         lastBackupAt: savedAt,
         lastBackupWeekKey: savedWeekKey,
       );
@@ -260,7 +219,6 @@ class _ConfigScreenState extends State<ConfigScreen> {
       if (!mounted) return;
       setState(() {
         _lastBackupAt = savedAt;
-        _lastBackupWeekKey = savedWeekKey;
       });
 
       _showSnackBar(
@@ -271,14 +229,6 @@ class _ConfigScreenState extends State<ConfigScreen> {
           },
         ),
       );
-    } on BackupQuotaExceededException {
-      try {
-        await _refreshAccountBackupQuotaState(user.uid);
-      } catch (e) {
-        debugPrint('Failed to refresh backup quota after quota exceeded: $e');
-      }
-      if (!mounted) return;
-      _showSnackBar('settings.backup.msg.free_limit_reached'.tr());
     } on FirebaseException catch (e) {
       if (!mounted) return;
       _showSnackBar(_backupMessageForFirebaseError(e));
@@ -316,12 +266,14 @@ class _ConfigScreenState extends State<ConfigScreen> {
 
   String _backupMessageForFirebaseError(FirebaseException e) {
     return switch (e.code) {
-      'permission-denied' => 'settings.backup.msg.firebase.permission_denied'.tr(),
+      'permission-denied' =>
+        'settings.backup.msg.firebase.permission_denied'.tr(),
       'unauthenticated' => 'settings.backup.msg.firebase.unauthenticated'.tr(),
       'unavailable' => 'settings.backup.msg.firebase.unavailable'.tr(),
       'resource-exhausted' =>
         'settings.backup.msg.firebase.resource_exhausted'.tr(),
-      'invalid-argument' => 'settings.backup.msg.firebase.invalid_argument'.tr(),
+      'invalid-argument' =>
+        'settings.backup.msg.firebase.invalid_argument'.tr(),
       _ => 'settings.backup.msg.firebase.unknown'.tr(
         namedArgs: {'code': e.code},
       ),
@@ -513,261 +465,141 @@ class _ConfigScreenState extends State<ConfigScreen> {
                       stream: GetIt.I<AuthRepository>().authStateChanges,
                       builder: (context, authSnapshot) {
                         final user = authSnapshot.data;
-
-                        return AnimatedBuilder(
-                          animation: GetIt.I<SubscriptionService>(),
-                          builder: (context, _) {
-                            final subscription = GetIt.I<SubscriptionService>();
-                            final policy = subscription.currentPolicy;
-                            final plan = subscription.currentPlan;
-                            final freeCanBackup = policy.canBackupThisWeek(
-                              _lastBackupWeekKey,
-                            );
-                            final freeRemaining = freeCanBackup ? 1 : 0;
-
-                            final quotaText =
-                                policy.canBackupUnlimited
-                                    ? 'settings.backup.quota_unlimited'.tr()
-                                    : 'settings.backup.quota_remaining'.tr(
-                                      namedArgs: {
-                                        'remaining': '$freeRemaining',
-                                      },
-                                    );
-                            final lastBackupText =
-                                _lastBackupAt == null
-                                    ? 'settings.backup.last_backup_none'.tr()
-                                    : 'settings.backup.last_backup_at'.tr(
-                                      namedArgs: {
-                                        'date': DateFormat(
-                                          'yyyy.MM.dd HH:mm',
-                                        ).format(_lastBackupAt!.toLocal()),
-                                      },
-                                    );
-
-                            return Card(
-                              margin: EdgeInsets.zero,
-                              child: Padding(
-                                padding: const EdgeInsets.all(12),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Row(
-                                      children: [
-                                        Icon(
-                                          Icons.backup_outlined,
-                                          color: AppColors.primary,
-                                        ),
-                                        const SizedBox(width: 8),
-                                        Expanded(
-                                          child: Text(
-                                            'settings.backup.title'.tr(),
-                                            style:
-                                                Theme.of(
-                                                  context,
-                                                ).textTheme.titleMedium,
-                                          ),
-                                        ),
-                                        Container(
-                                          padding: const EdgeInsets.symmetric(
-                                            horizontal: 8,
-                                            vertical: 4,
-                                          ),
-                                          decoration: BoxDecoration(
-                                            color: AppColors.primary.withValues(
-                                              alpha: 0.10,
-                                            ),
-                                            borderRadius: BorderRadius.circular(
-                                              999,
-                                            ),
-                                          ),
-                                          child: Text(_planLabel(plan)),
-                                        ),
-                                      ],
-                                    ),
-                                    const SizedBox(height: 8),
-                                    Text(
-                                      user == null
-                                          ? 'settings.backup.subtitle_login_required'
-                                              .tr()
-                                          : 'settings.backup.subtitle'.tr(),
-                                      style: Theme.of(
-                                        context,
-                                      ).textTheme.bodyMedium?.copyWith(
-                                        color: AppColors.mutedOf(context),
-                                      ),
-                                    ),
-                                    const SizedBox(height: 10),
-                                    Row(
-                                      children: [
-                                        const Icon(
-                                          Icons.history_toggle_off_rounded,
-                                          size: 16,
-                                        ),
-                                        const SizedBox(width: 6),
-                                        Expanded(child: Text(lastBackupText)),
-                                      ],
-                                    ),
-                                    const SizedBox(height: 6),
-                                    Row(
-                                      children: [
-                                        const Icon(
-                                          Icons.calendar_view_week_outlined,
-                                          size: 16,
-                                        ),
-                                        const SizedBox(width: 6),
-                                        Expanded(child: Text(quotaText)),
-                                      ],
-                                    ),
-                                    if (!policy.canBackupUnlimited &&
-                                        _lastBackupWeekKey != null) ...[
-                                      const SizedBox(height: 4),
-                                      Text(
-                                        'settings.backup.week_key'.tr(
-                                          namedArgs: {
-                                            'weekKey': _lastBackupWeekKey!,
-                                          },
-                                        ),
-                                        style: Theme.of(
-                                          context,
-                                        ).textTheme.bodySmall?.copyWith(
-                                          color: AppColors.mutedOf(context),
-                                        ),
-                                      ),
-                                    ],
-                                    const SizedBox(height: 12),
-                                    Row(
-                                      children: [
-                                        Expanded(
-                                          child: OutlinedButton.icon(
-                                            onPressed:
-                                                _isBackingUp
-                                                    ? null
-                                                    : () =>
-                                                        _loadBackupQuotaState(
-                                                          user: user,
-                                                        ),
-                                            icon: const Icon(
-                                              Icons.refresh_rounded,
-                                            ),
-                                            label: Text(
-                                              'settings.backup.refresh'.tr(),
-                                            ),
-                                          ),
-                                        ),
-                                        const SizedBox(width: 10),
-                                        Expanded(
-                                          child: FilledButton.icon(
-                                            onPressed:
-                                                _isBackingUp
-                                                    ? null
-                                                    : () => _runBackup(user),
-                                            icon:
-                                                _isBackingUp
-                                                    ? const SizedBox(
-                                                      width: 16,
-                                                      height: 16,
-                                                      child:
-                                                          CircularProgressIndicator(
-                                                            strokeWidth: 2,
-                                                          ),
-                                                    )
-                                                    : const Icon(
-                                                      Icons
-                                                          .cloud_upload_outlined,
-                                                    ),
-                                            label: Text(
-                                              _isBackingUp
-                                                  ? 'settings.backup.in_progress'
-                                                      .tr()
-                                                  : 'settings.backup.backup_now'
-                                                      .tr(),
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                    if (user != null) ...[
-                                      const SizedBox(height: 10),
-                                      SizedBox(
-                                        width: double.infinity,
-                                        child: OutlinedButton.icon(
-                                          onPressed:
-                                              _isBackingUp
-                                                  ? null
-                                                  : () => _openSnapshotRestore(
-                                                    user,
-                                                  ),
-                                          icon: const Icon(Icons.restore_page),
-                                          label: Text(
-                                            'settings.backup.restore_button'.tr(),
-                                          ),
-                                        ),
-                                      ),
-                                      const SizedBox(height: 6),
-                                      Text(
-                                        'settings.backup.restore_hint'.tr(),
-                                        style: Theme.of(
-                                          context,
-                                        ).textTheme.bodySmall?.copyWith(
-                                          color: AppColors.mutedOf(context),
-                                        ),
-                                      ),
-                                    ],
-                                    if (!policy.canBackupUnlimited &&
-                                        !freeCanBackup) ...[
-                                      const SizedBox(height: 8),
-                                      Text(
-                                        'settings.backup.free_limit_note'.tr(),
-                                        style: Theme.of(
-                                          context,
-                                        ).textTheme.bodySmall?.copyWith(
-                                          color: AppColors.mutedOf(context),
-                                        ),
-                                      ),
-                                    ],
-                                  ],
-                                ),
-                              ),
-                            );
-                          },
-                        );
-                      },
-                    ),
-                    const SizedBox(height: 12),
-                    AnimatedBuilder(
-                      animation: GetIt.I<SubscriptionService>(),
-                      builder: (context, _) {
-                        final subscription = GetIt.I<SubscriptionService>();
-                        final plan = subscription.currentPlan;
-                        final isFree = plan == PlanType.free;
+                        final lastBackupText =
+                            _lastBackupAt == null
+                                ? 'settings.backup.last_backup_none'.tr()
+                                : 'settings.backup.last_backup_at'.tr(
+                                  namedArgs: {
+                                    'date': DateFormat(
+                                      'yyyy.MM.dd HH:mm',
+                                    ).format(_lastBackupAt!.toLocal()),
+                                  },
+                                );
 
                         return Card(
                           margin: EdgeInsets.zero,
-                          child: ListTile(
-                            leading: Icon(
-                              Icons.workspace_premium_outlined,
-                              color: AppColors.primary,
-                            ),
-                            title: Text(
-                              isFree
-                                  ? 'settings.subscription.upgrade_title'.tr()
-                                  : 'settings.subscription.manage_title'.tr(),
-                            ),
-                            subtitle: Text(
-                              isFree
-                                  ? 'settings.subscription.upgrade_subtitle'.tr()
-                                  : 'settings.subscription.current_plan'.tr(
-                                    namedArgs: {'plan': _planLabel(plan)},
-                                  ),
-                            ),
-                            trailing: const Icon(Icons.chevron_right),
-                            onTap: () async {
-                              await Navigator.of(context).push(
-                                MaterialPageRoute(
-                                  builder: (_) => const PaywallScreen(),
+                          child: Padding(
+                            padding: const EdgeInsets.all(12),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  children: [
+                                    Icon(
+                                      Icons.backup_outlined,
+                                      color: AppColors.primary,
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Expanded(
+                                      child: Text(
+                                        'settings.backup.title'.tr(),
+                                        style:
+                                            Theme.of(
+                                              context,
+                                            ).textTheme.titleMedium,
+                                      ),
+                                    ),
+                                  ],
                                 ),
-                              );
-                            },
+                                const SizedBox(height: 8),
+                                Text(
+                                  user == null
+                                      ? 'settings.backup.subtitle_login_required'
+                                          .tr()
+                                      : 'settings.backup.subtitle'.tr(),
+                                  style: Theme.of(
+                                    context,
+                                  ).textTheme.bodyMedium?.copyWith(
+                                    color: AppColors.mutedOf(context),
+                                  ),
+                                ),
+                                const SizedBox(height: 10),
+                                Row(
+                                  children: [
+                                    const Icon(
+                                      Icons.history_toggle_off_rounded,
+                                      size: 16,
+                                    ),
+                                    const SizedBox(width: 6),
+                                    Expanded(child: Text(lastBackupText)),
+                                  ],
+                                ),
+                                const SizedBox(height: 12),
+                                Row(
+                                  children: [
+                                    Expanded(
+                                      child: OutlinedButton.icon(
+                                        onPressed:
+                                            _isBackingUp
+                                                ? null
+                                                : () => _loadBackupMetadata(
+                                                  user: user,
+                                                ),
+                                        icon: const Icon(Icons.refresh_rounded),
+                                        label: Text(
+                                          'settings.backup.refresh'.tr(),
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 10),
+                                    Expanded(
+                                      child: FilledButton.icon(
+                                        onPressed:
+                                            _isBackingUp
+                                                ? null
+                                                : () => _runBackup(user),
+                                        icon:
+                                            _isBackingUp
+                                                ? const SizedBox(
+                                                  width: 16,
+                                                  height: 16,
+                                                  child:
+                                                      CircularProgressIndicator(
+                                                        strokeWidth: 2,
+                                                      ),
+                                                )
+                                                : const Icon(
+                                                  Icons.cloud_upload_outlined,
+                                                ),
+                                        label: Text(
+                                          _isBackingUp
+                                              ? 'settings.backup.in_progress'
+                                                  .tr()
+                                              : 'settings.backup.backup_now'
+                                                  .tr(),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                if (user != null) ...[
+                                  const SizedBox(height: 10),
+                                  SizedBox(
+                                    width: double.infinity,
+                                    child: OutlinedButton.icon(
+                                      onPressed:
+                                          _isBackingUp
+                                              ? null
+                                              : () =>
+                                                  _openSnapshotRestore(user),
+                                      icon: const Icon(Icons.restore_page),
+                                      label: Text(
+                                        'settings.backup.restore_button'.tr(),
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(height: 6),
+                                  Text(
+                                    'settings.backup.restore_hint'.tr(),
+                                    style: Theme.of(
+                                      context,
+                                    ).textTheme.bodySmall?.copyWith(
+                                      color: AppColors.mutedOf(context),
+                                    ),
+                                  ),
+                                ],
+                              ],
+                            ),
                           ),
                         );
                       },
@@ -821,14 +653,5 @@ class _ConfigScreenState extends State<ConfigScreen> {
         );
       },
     );
-  }
-
-  String _planLabel(PlanType plan) {
-    final key = switch (plan) {
-      PlanType.free => 'settings.plan.free',
-      PlanType.cloud => 'settings.plan.cloud',
-      PlanType.report => 'settings.plan.report',
-    };
-    return key.tr();
   }
 }

@@ -1,8 +1,5 @@
-import 'dart:async';
-
 import 'package:expense_diary/const/firebase_auth_config.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:expense_diary/core/subscription/subscription_service.dart';
 import 'package:flutter/foundation.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
@@ -11,21 +8,13 @@ class AuthCancelledException implements Exception {
 }
 
 class AuthRepository {
-  AuthRepository({
-    FirebaseAuth? firebaseAuth,
-    String? googleServerClientId,
-    SubscriptionService? subscriptionService,
-  }) : _firebaseAuth = firebaseAuth ?? FirebaseAuth.instance,
-       _googleServerClientId = googleServerClientId,
-       _subscriptionService = subscriptionService {
-    _bindSubscriptionSync();
-  }
+  AuthRepository({FirebaseAuth? firebaseAuth, String? googleServerClientId})
+    : _firebaseAuth = firebaseAuth ?? FirebaseAuth.instance,
+      _googleServerClientId = googleServerClientId;
 
   final FirebaseAuth _firebaseAuth;
   final String? _googleServerClientId;
-  final SubscriptionService? _subscriptionService;
   bool _googleInitialized = false;
-  String? _lastSyncedUid;
 
   Stream<User?> get authStateChanges => _firebaseAuth.authStateChanges();
 
@@ -36,7 +25,6 @@ class AuthRepository {
       email: email,
       password: password,
     );
-    await _syncRevenueCatOnSignIn(credential.user);
     return credential;
   }
 
@@ -45,7 +33,6 @@ class AuthRepository {
       email: email,
       password: password,
     );
-    await _syncRevenueCatOnSignIn(credential.user);
     return credential;
   }
 
@@ -54,7 +41,6 @@ class AuthRepository {
       _firebaseAuth.signOut(),
       GoogleSignIn.instance.signOut(),
     ]);
-    await _syncRevenueCatOnSignOut();
   }
 
   Future<UserCredential> signInWithGoogle() async {
@@ -86,53 +72,7 @@ class AuthRepository {
 
     final credential = GoogleAuthProvider.credential(idToken: idToken);
     final result = await _firebaseAuth.signInWithCredential(credential);
-    await _syncRevenueCatOnSignIn(result.user);
     return result;
-  }
-
-  Future<void> _syncRevenueCatOnSignIn(User? user) async {
-    await _syncRevenueCatForUser(user, force: true);
-  }
-
-  Future<void> _syncRevenueCatOnSignOut() async {
-    await _syncRevenueCatForUser(null, force: true);
-  }
-
-  void _bindSubscriptionSync() {
-    if (_subscriptionService == null) return;
-
-    _firebaseAuth.authStateChanges().listen((user) {
-      unawaited(_syncRevenueCatForUser(user));
-    });
-
-    unawaited(_syncRevenueCatForUser(_firebaseAuth.currentUser));
-  }
-
-  Future<void> _syncRevenueCatForUser(User? user, {bool force = false}) async {
-    final subscription = _subscriptionService;
-    if (subscription == null) return;
-
-    final uid = user?.uid;
-    final normalizedUid =
-        uid != null && uid.isNotEmpty
-            ? uid
-            : null;
-
-    if (!force && normalizedUid == _lastSyncedUid) {
-      return;
-    }
-
-    try {
-      if (normalizedUid == null) {
-        await subscription.onUserSignedOut();
-      } else {
-        await subscription.onUserSignedIn(normalizedUid);
-      }
-      _lastSyncedUid = normalizedUid;
-    } catch (e) {
-      debugPrint('AuthRepository RevenueCat sync failed: $e');
-      // RevenueCat sync failures must not break auth flows.
-    }
   }
 
   String? _googleClientIdForCurrentPlatform() {

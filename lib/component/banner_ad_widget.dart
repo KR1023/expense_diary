@@ -1,5 +1,4 @@
 import 'dart:io';
-import 'package:expense_diary/core/subscription/ad_gate.dart';
 import 'package:flutter/material.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 
@@ -8,7 +7,7 @@ class BannerAdWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const AdGate(child: _BannerAdContent());
+    return const _BannerAdContent();
   }
 }
 
@@ -44,11 +43,11 @@ class _BannerAdWidgetState extends State<_BannerAdContent> {
       // 광고의 생명 주기가 변경될 때마다 실행할 함수들을 설정
       listener: BannerAdListener(
         onAdLoaded: (ad) {
-          print("banner loaded.");
-          print(ad);
+          debugPrint('banner loaded.');
+          debugPrint('$ad');
         },
         onAdFailedToLoad: (ad, error) {
-          print(error);
+          debugPrint('$error');
           ad.dispose();
         },
       ),

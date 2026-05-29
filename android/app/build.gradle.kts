@@ -39,7 +39,6 @@ android {
         applicationId = "com.ysh.expense_diary"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
-        // RevenueCat purchases_ui_flutter requires minSdk 24+ (if used)
         minSdk = 24
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode

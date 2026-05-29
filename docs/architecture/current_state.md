@@ -272,67 +272,13 @@ lib/
 - 카테고리 화면 하단: `lib/screen/category_screen.dart:127`
 - 설정 화면 하단: `lib/screen/config_screen.dart:312`
 
-### 광고 로드/표시/숨김 제어 구조 평가
+### 광고 로드/표시 구조 평가
 
 - 현재 구조는 각 화면이 `BannerAdWidget()`를 직접 배치하는 방식입니다.
-- 전역 광고 on/off 또는 구독 상태 기반 숨김 제어 레이어는 아직 없습니다.
-- 적용 난이도는 낮음:
-  - `BannerAdWidget` 자체에서 조건부 렌더링 추가 또는
-  - `AdGate`/`SubscriptionAwareBanner` 래퍼 도입으로 일괄 제어 가능
+- 구독 기반 광고 숨김 레이어는 제거되었습니다.
+- 전역 광고 on/off가 필요하면 `BannerAdWidget` 자체에서 조건부 렌더링을 추가하는 방식이 가장 단순합니다.
 
-## 7) 구독 플랜 적용 포인트 후보 (백업/통계/리포트/광고)
+## 7) 후속 티켓을 위한 구조적 메모
 
-아래는 "이후 티켓에서 여기 수정" 기준의 우선 후보입니다.
-
-### A. 백업/동기화(Cloud Backup)
-
-- 진입 제어 UI: `lib/screen/config_screen.dart`
-  - 현재 로그인 상태 기반으로만 `CloudTransactionScreen` 활성화됨
-  - 구독 상태 조건 추가 후보: `ConfigScreen`의 Cloud Transaction 타일(`StreamBuilder<User?>`)
-- 원격 저장소: `lib/data/firestore/firestore_transaction_repository.dart`
-  - 구독 등급별 제한(월간 동기화 범위, 수동 백업 횟수 등) 적용 후보
-- 주의점(현재 구조):
-  - Firestore 거래(`TransactionDto`)와 로컬 Drift `Expenses`가 자동 동기화되어 있지 않음
-  - 현재 `CloudTransactionScreen`은 "별도 클라우드 거래 CRUD 화면" 성격
-  - 실제 백업 기능으로 확장 시 매핑 레이어(Drift <-> Firestore DTO) 추가 필요
-
-### B. 통계(고급 통계/인사이트)
-
-- 데이터 공급 쿼리: `lib/database/drift_database.dart`
-  - `watchMonthlyCategoryExpense`, `watchDailyExpenseTotals`, `selectWeekExpense`, `selectMonthExpense`
-- 통계 UI 컴포넌트 후보:
-  - `lib/component/expense_by_week.dart`
-  - `lib/component/expense_by_month.dart`
-  - `lib/component/expense_by_category.dart`
-  - `lib/component/expense_by_date.dart`
-- 구독 적용 방식 후보:
-  - 무료/유료 통계 범위 분리 (예: 최근 1개월 vs 전체 기간)
-  - 특정 차트 컴포넌트 렌더링 게이팅
-
-### C. 리포트(내보내기/월간 리포트)
-
-- 데이터 소스 후보: `lib/database/drift_database.dart` 집계 메서드들
-- UI 진입점 후보: `lib/screen/config_screen.dart` (설정 메뉴에 리포트 메뉴 추가 용이)
-- 표시 기반 화면 후보: `lib/screen/calendar_screen.dart`, `lib/screen/home_screen.dart`
-- 현재 부재:
-  - 파일 내보내기(PDF/CSV) 서비스 레이어 없음
-  - 리포트 전용 repository/service 없음
-
-### D. 광고 제거(Ad-free)
-
-- 광고 삽입 지점(직접 수정 포인트)
-  - `lib/screen/home_screen.dart`
-  - `lib/screen/category_screen.dart`
-  - `lib/screen/config_screen.dart`
-- 광고 컴포넌트 공통 게이트 포인트
-  - `lib/component/banner_ad_widget.dart`
-- 추가 개선 후보
-  - `lib/main.dart`에서 구독 상태에 따라 `MobileAds.instance.initialize()` 조건부 실행
-  - `GetIt`에 `SubscriptionService` 등록 후 화면/광고 위젯 공통 참조
-
-## 8) 후속 티켓을 위한 구조적 메모
-
-- 인증 상태는 이미 `Stream<User?>`로 노출되어 있으므로, 구독 상태도 유사하게 `Stream`/`ValueListenable`로 붙이기 쉽습니다.
-- 로컬 DB 접근이 UI에 직접 퍼져 있으므로, 구독에 따른 데이터 제한 정책이 늘어나면 `Repository` 또는 `UseCase` 계층 도입 검토 가치가 큽니다.
-- Firestore는 현재 `users/{uid}/transactions` 단일 경로만 사용 중이므로, 구독/결제 메타데이터는 별도 경로(예: `users/{uid}/subscription`) 설계가 필요합니다.
-
+- 로컬 DB 접근이 UI에 직접 퍼져 있으므로, 데이터 정책이 늘어나면 `Repository` 또는 `UseCase` 계층 도입 검토 가치가 큽니다.
+- Firestore는 현재 `users/{uid}/transactions` 및 백업 스냅샷 경로를 사용합니다. 결제/구독 메타데이터 경로는 사용하지 않습니다.

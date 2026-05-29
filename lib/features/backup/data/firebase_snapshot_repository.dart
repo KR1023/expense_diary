@@ -1,10 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:expense_diary/core/subscription/plan_policy.dart';
+import 'package:expense_diary/core/time/week_key.dart';
+import 'package:expense_diary/features/backup/data/backup_metadata_keys.dart';
 import 'package:expense_diary/features/backup/domain/snapshot.dart';
-
-class WeeklyBackupQuotaExceededException implements Exception {
-  const WeeklyBackupQuotaExceededException();
-}
 
 class FirebaseSnapshotRepository {
   FirebaseSnapshotRepository({FirebaseFirestore? firestore})
@@ -16,7 +13,7 @@ class FirebaseSnapshotRepository {
     return _firestore.collection('users').doc(uid).collection('snapshots');
   }
 
-  DocumentReference<Map<String, dynamic>> _backupQuotaRef(String uid) {
+  DocumentReference<Map<String, dynamic>> _backupMetadataRef(String uid) {
     return _firestore
         .collection('users')
         .doc(uid)
@@ -25,60 +22,34 @@ class FirebaseSnapshotRepository {
   }
 
   Future<void> uploadSnapshot(String uid, Snapshot snapshot) async {
-    await _snapshotsRef(
-      uid,
-    ).doc(snapshot.snapshotId).set(snapshot.toFirestoreJson());
-  }
-
-  Future<void> uploadSnapshotWithWeeklyQuotaCheck(
-    String uid,
-    Snapshot snapshot, {
-    required String weekKey,
-  }) async {
-    final quotaRef = _backupQuotaRef(uid);
-    final snapshotRef = _snapshotsRef(uid).doc(snapshot.snapshotId);
     final snapshotCreatedAt = snapshot.meta.createdAt.toUtc();
+    final weekKey = KstWeekKey.fromDateTime(snapshotCreatedAt);
 
     await _firestore.runTransaction<void>((tx) async {
-      final quotaDoc = await tx.get(quotaRef);
-      final raw = quotaDoc.data();
-      final normalized =
-          raw == null
-              ? const <String, dynamic>{}
-              : _normalizeFirestoreJson(raw, snapshotId: quotaDoc.id);
-      final previousWeekKey =
-          (normalized[BackupLimitStorageKeys.cloudLastBackupWeekKey] as String?)
-              ?.trim();
-
-      if (previousWeekKey != null &&
-          previousWeekKey.isNotEmpty &&
-          previousWeekKey == weekKey) {
-        throw const WeeklyBackupQuotaExceededException();
-      }
-
+      final snapshotRef = _snapshotsRef(uid).doc(snapshot.snapshotId);
+      final metadataRef = _backupMetadataRef(uid);
       tx.set(snapshotRef, snapshot.toFirestoreJson());
-      tx.set(quotaRef, {
-        BackupLimitStorageKeys.cloudLastBackupAt: Timestamp.fromDate(
+      tx.set(metadataRef, {
+        BackupMetadataKeys.cloudLastBackupAt: Timestamp.fromDate(
           snapshotCreatedAt,
         ),
-        BackupLimitStorageKeys.cloudLastBackupWeekKey: weekKey,
+        BackupMetadataKeys.cloudLastBackupWeekKey: weekKey,
       }, SetOptions(merge: true));
     });
   }
 
-  Future<({DateTime? lastBackupAt, String? lastBackupWeekKey})> getBackupQuota(
-    String uid,
-  ) async {
-    final doc = await _backupQuotaRef(uid).get();
+  Future<({DateTime? lastBackupAt, String? lastBackupWeekKey})>
+  getBackupMetadata(String uid) async {
+    final doc = await _backupMetadataRef(uid).get();
     final raw = doc.data();
     if (raw == null) {
       return (lastBackupAt: null, lastBackupWeekKey: null);
     }
 
     final normalized = _normalizeFirestoreJson(raw, snapshotId: doc.id);
-    final lastBackupAt = normalized[BackupLimitStorageKeys.cloudLastBackupAt];
+    final lastBackupAt = normalized[BackupMetadataKeys.cloudLastBackupAt];
     final lastBackupWeekKey =
-        normalized[BackupLimitStorageKeys.cloudLastBackupWeekKey] as String?;
+        normalized[BackupMetadataKeys.cloudLastBackupWeekKey] as String?;
 
     return (
       lastBackupAt: lastBackupAt is DateTime ? lastBackupAt : null,

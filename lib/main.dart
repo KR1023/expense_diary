@@ -1,5 +1,4 @@
 import 'package:expense_diary/auth/auth_repository.dart';
-import 'package:expense_diary/core/subscription/subscription_service.dart';
 import 'package:expense_diary/data/firestore/firestore_transaction_repository.dart';
 import 'package:expense_diary/features/backup/data/snapshot_service.dart';
 import 'package:expense_diary/features/report/data/report_csv_service.dart';
@@ -36,11 +35,8 @@ void main() async {
 
   final database = LocalDatabase();
   GetIt.I.registerSingleton<LocalDatabase>(database);
-  final subscriptionService = SubscriptionService();
-  GetIt.I.registerSingleton<SubscriptionService>(subscriptionService);
   final authRepository = AuthRepository(
     googleServerClientId: FirebaseAuthConfig.googleServerClientId,
-    subscriptionService: subscriptionService,
   );
   GetIt.I.registerSingleton<AuthRepository>(authRepository);
   GetIt.I.registerSingleton<FirestoreTransactionRepository>(
@@ -60,10 +56,6 @@ void main() async {
   );
   GetIt.I.registerSingleton<ReportPdfService>(
     ReportPdfService(localDatabase: database),
-  );
-
-  await subscriptionService.init(
-    initialUserId: authRepository.currentUser?.uid,
   );
 
   runApp(

@@ -1,15 +1,10 @@
 import 'package:expense_diary/database/drift_database.dart';
-import 'package:expense_diary/core/time/week_key.dart';
 import 'package:expense_diary/features/backup/data/firebase_snapshot_repository.dart';
 import 'package:expense_diary/features/backup/domain/snapshot.dart';
 import 'package:expense_diary/service/app_settings.dart';
 import 'package:drift/drift.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
-
-class BackupQuotaExceededException implements Exception {
-  const BackupQuotaExceededException();
-}
 
 class SnapshotService {
   SnapshotService({
@@ -77,23 +72,9 @@ class SnapshotService {
     return _firebaseRepository.uploadSnapshot(uid, snapshot);
   }
 
-  Future<void> uploadSnapshotForFreePlan(String uid, Snapshot snapshot) async {
-    final weekKey = KstWeekKey.fromDateTime(snapshot.meta.createdAt.toUtc());
-    try {
-      await _firebaseRepository.uploadSnapshotWithWeeklyQuotaCheck(
-        uid,
-        snapshot,
-        weekKey: weekKey,
-      );
-    } on WeeklyBackupQuotaExceededException {
-      throw const BackupQuotaExceededException();
-    }
-  }
-
-  Future<({DateTime? lastBackupAt, String? lastBackupWeekKey})> getBackupQuota(
-    String uid,
-  ) {
-    return _firebaseRepository.getBackupQuota(uid);
+  Future<({DateTime? lastBackupAt, String? lastBackupWeekKey})>
+  getBackupMetadata(String uid) {
+    return _firebaseRepository.getBackupMetadata(uid);
   }
 
   Future<List<SnapshotMeta>> listSnapshots(String uid) {

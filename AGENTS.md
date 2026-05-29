@@ -19,6 +19,7 @@
 - `lib/component/`: Reusable widgets (e.g., ads, stats).
 - `third_party/`: Local `google_mobile_ads` dependency.
 - `asset/`: App images, splash, and icons.
+- `docs/`: Setup/troubleshooting notes.
 
 ## Data Model (Drift)
 - `Expense`: id, categoryId (nullable), expenseName, expense (int), expenseDate, expenseDetail (nullable)
@@ -50,6 +51,12 @@ dart run build_runner build --delete-conflicting-outputs
 dart run flutter_launcher_icons
 dart run flutter_native_splash:create
 ```
+
+## Subscription Removal Status
+- RevenueCat, StoreKit test configuration, Paywall, plan gating, and `purchases_flutter` have been removed from active code.
+- Backup and report/export features are now available without subscription checks.
+- Ads remain enabled through the local `google_mobile_ads` package; they are no longer hidden based on plan state.
+- App Store Connect / Play Console subscription products should be deactivated or removed from store listings outside this repository.
 
 ## App Flow
 - `RootScreen` manages 4 tabs (지출 / 지출 내역 / 분류 / 설정) using `IndexedStack`.

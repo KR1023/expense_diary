@@ -1,15 +1,11 @@
 import 'package:expense_diary/component/banner_ad_widget.dart';
 import 'package:expense_diary/component/common/app_background.dart';
 import 'package:expense_diary/const/app_colors.dart';
-import 'package:expense_diary/core/subscription/plan_guard.dart';
-import 'package:expense_diary/core/subscription/plan_type.dart';
-import 'package:expense_diary/core/subscription/subscription_service.dart';
 import 'package:expense_diary/screen/report_csv_export_screen.dart';
 import 'package:expense_diary/screen/report_pdf_export_screen.dart';
 import 'package:expense_diary/screen/report_statistics_screen.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:get_it/get_it.dart';
 
 class StatisticsTabScreen extends StatelessWidget {
   const StatisticsTabScreen({super.key});
@@ -24,29 +20,9 @@ class StatisticsTabScreen extends StatelessWidget {
           children: [
             Row(
               children: [
-                Text('tab.stats'.tr(), style: Theme.of(context).textTheme.titleLarge),
-                const Spacer(),
-                AnimatedBuilder(
-                  animation: GetIt.I<SubscriptionService>(),
-                  builder: (context, _) {
-                    final plan = GetIt.I<SubscriptionService>().currentPlan;
-                    return Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 10,
-                        vertical: 6,
-                      ),
-                      decoration: BoxDecoration(
-                        color: AppColors.primary.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(999),
-                      ),
-                      child: Text(
-                        'report.menu.current_plan'.tr(
-                          namedArgs: {'plan': _planLabelKey(plan).tr()},
-                        ),
-                        style: Theme.of(context).textTheme.bodySmall,
-                      ),
-                    );
-                  },
+                Text(
+                  'tab.stats'.tr(),
+                  style: Theme.of(context).textTheme.titleLarge,
                 ),
               ],
             ),
@@ -71,15 +47,10 @@ class StatisticsTabScreen extends StatelessWidget {
                     subtitle: Text('report.menu.item_stats_subtitle'.tr()),
                     trailing: const Icon(Icons.chevron_right),
                     onTap: () async {
-                      await PlanGuard.requireReport(
-                        context,
-                        onAllowed: () async {
-                          await Navigator.of(context).push(
-                            MaterialPageRoute(
-                              builder: (_) => const ReportStatisticsScreen(),
-                            ),
-                          );
-                        },
+                      await Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => const ReportStatisticsScreen(),
+                        ),
                       );
                     },
                   ),
@@ -93,15 +64,10 @@ class StatisticsTabScreen extends StatelessWidget {
                     subtitle: Text('report.menu.item_csv_subtitle'.tr()),
                     trailing: const Icon(Icons.chevron_right),
                     onTap: () async {
-                      await PlanGuard.requireReport(
-                        context,
-                        onAllowed: () async {
-                          await Navigator.of(context).push(
-                            MaterialPageRoute(
-                              builder: (_) => const ReportCsvExportScreen(),
-                            ),
-                          );
-                        },
+                      await Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => const ReportCsvExportScreen(),
+                        ),
                       );
                     },
                   ),
@@ -115,15 +81,10 @@ class StatisticsTabScreen extends StatelessWidget {
                     subtitle: Text('report.menu.item_pdf_subtitle'.tr()),
                     trailing: const Icon(Icons.chevron_right),
                     onTap: () async {
-                      await PlanGuard.requireReport(
-                        context,
-                        onAllowed: () async {
-                          await Navigator.of(context).push(
-                            MaterialPageRoute(
-                              builder: (_) => const ReportPdfExportScreen(),
-                            ),
-                          );
-                        },
+                      await Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => const ReportPdfExportScreen(),
+                        ),
                       );
                     },
                   ),
@@ -136,13 +97,5 @@ class StatisticsTabScreen extends StatelessWidget {
         ),
       ),
     );
-  }
-
-  String _planLabelKey(PlanType plan) {
-    return switch (plan) {
-      PlanType.free => 'report.menu.plan_free',
-      PlanType.cloud => 'report.menu.plan_cloud',
-      PlanType.report => 'report.menu.plan_report',
-    };
   }
 }
