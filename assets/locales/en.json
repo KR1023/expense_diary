@@ -72,7 +72,9 @@
       "login": "Sign in / Sign up",
       "login_subtitle": "Sign in to enable upcoming cloud sync and backup features.",
       "logout": "Sign out",
-      "subtitle": "Sign out of the currently logged-in account."
+      "subtitle": "Sign out of the currently logged-in account.",
+      "logout_confirm_title": "Sign Out",
+      "logout_confirm_content": "Are you sure you want to sign out?"
     },
     "cloud_tx": {
       "title": "Cloud Transactions (Firebase)",
@@ -248,6 +250,7 @@
     "per_month": "/ mo",
     "next_renewal": "Next renewal: {date}",
     "subscribe": "Subscribe",
+    "purchase_success": "Subscription activated successfully.",
     "upgrade": "Upgrade to Report Plan",
     "restore": "Restore Purchases",
     "cancel": "Cancel Subscription",

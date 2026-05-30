@@ -1,8 +1,10 @@
+import 'package:expense_diary/auth/auth_repository.dart';
 import 'package:expense_diary/component/banner_ad_widget.dart';
 import 'package:expense_diary/component/common/app_background.dart';
 import 'package:expense_diary/const/app_colors.dart';
 import 'package:expense_diary/const/revenuecat_config.dart';
 import 'package:expense_diary/core/subscription/subscription_service.dart';
+import 'package:expense_diary/screen/login_screen.dart';
 import 'package:expense_diary/screen/paywall_screen.dart';
 import 'package:expense_diary/screen/report_csv_export_screen.dart';
 import 'package:expense_diary/screen/report_pdf_export_screen.dart';
@@ -31,11 +33,31 @@ class StatisticsTabScreen extends StatelessWidget {
       return;
     }
 
-    await Navigator.of(context).push(
+    final user = GetIt.I<AuthRepository>().currentUser;
+    if (user == null) {
+      final loggedIn = await Navigator.of(context).push<bool>(
+        MaterialPageRoute(builder: (_) => const LoginScreen()),
+      );
+      if (!context.mounted) return;
+      if (GetIt.I<AuthRepository>().currentUser == null) return;
+      if (loggedIn == true) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('auth.success'.tr())),
+        );
+      }
+    }
+
+    if (!context.mounted) return;
+    final result = await Navigator.of(context).push<bool>(
       MaterialPageRoute(
         builder: (_) => PaywallScreen(entitlement: entitlement),
       ),
     );
+    if (context.mounted && result == true) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('subscription.purchase_success'.tr())),
+      );
+    }
   }
 
   @override

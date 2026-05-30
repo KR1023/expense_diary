@@ -487,14 +487,45 @@ class _ConfigScreenState extends State<ConfigScreen> {
                             trailing: const Icon(Icons.chevron_right),
                             onTap: () async {
                               if (user == null) {
-                                await Navigator.of(context).push(
+                                final loggedIn =
+                                    await Navigator.of(context).push<bool>(
                                   MaterialPageRoute(
                                     builder: (_) => const LoginScreen(),
                                   ),
                                 );
+                                if (loggedIn == true && mounted) {
+                                  _showSnackBar('auth.success'.tr());
+                                }
                                 return;
                               }
-                              await GetIt.I<AuthRepository>().signOut();
+                              final confirmed = await showDialog<bool>(
+                                context: context,
+                                builder: (ctx) => AlertDialog(
+                                  title: Text(
+                                    'settings.account.logout_confirm_title'
+                                        .tr(),
+                                  ),
+                                  content: Text(
+                                    'settings.account.logout_confirm_content'
+                                        .tr(),
+                                  ),
+                                  actions: [
+                                    OutlinedButton(
+                                      onPressed: () =>
+                                          Navigator.of(ctx).pop(false),
+                                      child: Text('common.cancel'.tr()),
+                                    ),
+                                    FilledButton(
+                                      onPressed: () =>
+                                          Navigator.of(ctx).pop(true),
+                                      child: Text('common.confirm'.tr()),
+                                    ),
+                                  ],
+                                ),
+                              );
+                              if (confirmed == true) {
+                                await GetIt.I<AuthRepository>().signOut();
+                              }
                             },
                           ),
                         );
