@@ -264,6 +264,8 @@
     "feature_export": "CSV / PDF export",
     "feature_cloud_all": "All Cloud Plan features",
     "ios_free_desc": "All features are currently free on iOS.",
+    "ios_coming_soon_title": "Coming Soon",
+    "ios_coming_soon_desc": "Subscription service for iOS is currently under preparation.\nIt will be available soon.",
     "loading_error": "Failed to load plan information."
   },
   "paywall": {

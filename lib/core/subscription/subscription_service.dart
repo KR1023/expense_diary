@@ -18,9 +18,8 @@ class SubscriptionService extends ChangeNotifier {
 
   // Report 플랜은 Cloud 플랜 기능을 포함한다.
   bool get isCloudEntitled =>
-      _forceEntitled || Platform.isIOS || _cloudEntitled || _reportEntitled;
-  bool get isReportEntitled =>
-      _forceEntitled || Platform.isIOS || _reportEntitled;
+      _forceEntitled || _cloudEntitled || _reportEntitled;
+  bool get isReportEntitled => _forceEntitled || _reportEntitled;
 
   bool get isAdsRemoved => isCloudEntitled;
 

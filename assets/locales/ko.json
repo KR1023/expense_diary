@@ -264,6 +264,8 @@
     "feature_export": "CSV / PDF 내보내기",
     "feature_cloud_all": "Cloud 플랜 모든 기능 포함",
     "ios_free_desc": "iOS에서는 현재 모든 기능을 무료로 제공합니다.",
+    "ios_coming_soon_title": "준비 중",
+    "ios_coming_soon_desc": "iOS 구독 서비스는 현재 준비 중입니다.\n곧 이용하실 수 있습니다.",
     "loading_error": "플랜 정보를 불러오지 못했습니다."
   },
   "paywall": {

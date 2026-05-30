@@ -88,17 +88,19 @@ class _SubscriptionScreenState extends State<SubscriptionScreen>
   }
 
   Future<void> _navigateToPaywall(String entitlement) async {
-    final user = GetIt.I<AuthRepository>().currentUser;
-    if (user == null) {
-      final loggedIn = await Navigator.of(context).push<bool>(
-        MaterialPageRoute(builder: (_) => const LoginScreen()),
-      );
-      if (!mounted) return;
-      if (GetIt.I<AuthRepository>().currentUser == null) return;
-      if (loggedIn == true) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('auth.success'.tr())),
+    if (!Platform.isIOS) {
+      final user = GetIt.I<AuthRepository>().currentUser;
+      if (user == null) {
+        final loggedIn = await Navigator.of(context).push<bool>(
+          MaterialPageRoute(builder: (_) => const LoginScreen()),
         );
+        if (!mounted) return;
+        if (GetIt.I<AuthRepository>().currentUser == null) return;
+        if (loggedIn == true) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('auth.success'.tr())),
+          );
+        }
       }
     }
 
@@ -193,10 +195,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen>
               Expanded(
                 child: AnimatedBuilder(
                   animation: GetIt.I<SubscriptionService>(),
-                  builder: (context, _) {
-                    if (Platform.isIOS) return _buildIosFreeContent();
-                    return _buildContent();
-                  },
+                  builder: (context, _) => _buildContent(),
                 ),
               ),
           ],

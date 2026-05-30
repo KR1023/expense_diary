@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:easy_localization/easy_localization.dart';
 import 'package:expense_diary/component/common/app_background.dart';
 import 'package:expense_diary/const/app_colors.dart';
@@ -29,6 +31,10 @@ class _PaywallScreenState extends State<PaywallScreen> {
   }
 
   Future<void> _loadOffering() async {
+    if (Platform.isIOS) {
+      if (mounted) setState(() => _isLoading = false);
+      return;
+    }
     try {
       final offerings = await Purchases.getOfferings();
       final offering = offerings.current;
@@ -96,6 +102,47 @@ class _PaywallScreenState extends State<PaywallScreen> {
   Widget build(BuildContext context) {
     final isCloud =
         widget.entitlement == RevenueCatConfig.entitlementCloud;
+
+    if (Platform.isIOS) {
+      return Scaffold(
+        backgroundColor: Colors.transparent,
+        body: AppBackground(
+          padding: const EdgeInsets.fromLTRB(20, 48, 20, 24),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              IconButton(
+                onPressed: () => Navigator.of(context).pop(false),
+                icon: const Icon(Icons.close),
+              ),
+              const Spacer(),
+              Center(
+                child: Column(
+                  children: [
+                    Icon(Icons.hourglass_top_rounded,
+                        size: 64, color: AppColors.mutedOf(context)),
+                    const SizedBox(height: 16),
+                    Text(
+                      'subscription.ios_coming_soon_title'.tr(),
+                      style: Theme.of(context).textTheme.titleLarge,
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'subscription.ios_coming_soon_desc'.tr(),
+                      textAlign: TextAlign.center,
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            color: AppColors.mutedOf(context),
+                          ),
+                    ),
+                  ],
+                ),
+              ),
+              const Spacer(),
+            ],
+          ),
+        ),
+      );
+    }
 
     return Scaffold(
       backgroundColor: Colors.transparent,

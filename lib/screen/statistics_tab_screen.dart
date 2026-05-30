@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:expense_diary/auth/auth_repository.dart';
 import 'package:expense_diary/component/banner_ad_widget.dart';
 import 'package:expense_diary/component/common/app_background.dart';
@@ -33,17 +35,19 @@ class StatisticsTabScreen extends StatelessWidget {
       return;
     }
 
-    final user = GetIt.I<AuthRepository>().currentUser;
-    if (user == null) {
-      final loggedIn = await Navigator.of(context).push<bool>(
-        MaterialPageRoute(builder: (_) => const LoginScreen()),
-      );
-      if (!context.mounted) return;
-      if (GetIt.I<AuthRepository>().currentUser == null) return;
-      if (loggedIn == true) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('auth.success'.tr())),
+    if (!Platform.isIOS) {
+      final user = GetIt.I<AuthRepository>().currentUser;
+      if (user == null) {
+        final loggedIn = await Navigator.of(context).push<bool>(
+          MaterialPageRoute(builder: (_) => const LoginScreen()),
         );
+        if (!context.mounted) return;
+        if (GetIt.I<AuthRepository>().currentUser == null) return;
+        if (loggedIn == true) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('auth.success'.tr())),
+          );
+        }
       }
     }
 
