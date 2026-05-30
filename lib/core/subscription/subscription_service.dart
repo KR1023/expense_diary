@@ -70,6 +70,28 @@ class SubscriptionService extends ChangeNotifier {
 
   Future<void> refresh() => _refresh();
 
+  /// Firebase 로그인 시 호출. RevenueCat 사용자를 Firebase UID로 식별한다.
+  Future<void> loginUser(String uid) async {
+    if (Platform.isIOS) return;
+    try {
+      await Purchases.logIn(uid);
+      await _refresh();
+    } catch (e) {
+      debugPrint('SubscriptionService.loginUser error: $e');
+    }
+  }
+
+  /// Firebase 로그아웃 시 호출. RevenueCat 사용자를 익명으로 초기화한다.
+  Future<void> logoutUser() async {
+    if (Platform.isIOS) return;
+    try {
+      await Purchases.logOut();
+      await _refresh();
+    } catch (e) {
+      debugPrint('SubscriptionService.logoutUser error: $e');
+    }
+  }
+
   Future<CustomerInfo?> purchase(Package package) async {
     try {
       final result = await Purchases.purchasePackage(package);

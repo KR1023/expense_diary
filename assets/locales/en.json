@@ -74,7 +74,7 @@
       "logout": "Sign out",
       "subtitle": "Sign out of the currently logged-in account.",
       "logout_confirm_title": "Sign Out",
-      "logout_confirm_content": "Are you sure you want to sign out?"
+      "logout_confirm_content": "Are you sure you want to sign out?\nIf you have an active subscription, features will be restricted until you sign in again."
     },
     "cloud_tx": {
       "title": "Cloud Transactions (Firebase)",

@@ -48,6 +48,19 @@ void main() async {
   final appSettings = AppSettings(currencyCode: userCurrency);
   GetIt.I.registerSingleton<AppSettings>(appSettings);
   GetIt.I.registerSingleton<SubscriptionService>(subscriptionService);
+
+  // Firebase UID와 RevenueCat appUserID 연동
+  final initialUser = authRepository.currentUser;
+  if (initialUser != null) {
+    await subscriptionService.loginUser(initialUser.uid);
+  }
+  authRepository.authStateChanges.listen((user) {
+    if (user != null) {
+      subscriptionService.loginUser(user.uid);
+    } else {
+      subscriptionService.logoutUser();
+    }
+  });
   GetIt.I.registerSingleton<SnapshotService>(
     SnapshotService(
       localDatabase: database,

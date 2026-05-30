@@ -74,7 +74,7 @@
       "logout": "로그아웃",
       "subtitle": "현재 로그인된 계정에서 로그아웃합니다.",
       "logout_confirm_title": "로그아웃",
-      "logout_confirm_content": "정말 로그아웃 하시겠습니까?"
+      "logout_confirm_content": "정말 로그아웃 하시겠습니까?\n구독 중인 경우 로그아웃 후 구독 기능이 제한됩니다."
     },
     "cloud_tx": {
       "title": "클라우드 거래(Firebase)",
