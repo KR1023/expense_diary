@@ -16,6 +16,7 @@
 - [ ] Xcode에 Apple ID 로그인 상태 확인
 - [ ] iOS Distribution 인증서 유효 확인
 - [ ] `RC_FORCE_ENTITLED` 빌드 인자에 포함되지 않았는지 확인
+- [ ] `ADMOB_IOS_BANNER_ID`가 실제 iOS 배너 광고 단위 ID인지 확인
 - [ ] App Store Connect에 앱 빌드 슬롯 준비
 
 ---
@@ -54,6 +55,7 @@ Xcode → Runner.xcworkspace 열기
 
 ```bash
 flutter build ipa \
+  --dart-define=ADMOB_IOS_BANNER_ID=ca-app-pub-5444803558030319/5504549409 \
   --dart-define=RC_IOS_PUBLIC_SDK_KEY=appl_nfQCULthfEqbagScUuIkVIQbneG \
   --dart-define=RC_ENTITLEMENT_CLOUD=cloud \
   --dart-define=RC_ENTITLEMENT_REPORT=report \

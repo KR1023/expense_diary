@@ -15,6 +15,7 @@
 - [ ] `pubspec.yaml` 버전 및 빌드번호 증가 (빌드번호는 이전보다 반드시 커야 함)
 - [ ] `RC_FORCE_ENTITLED` 빌드 인자에 포함되지 않았는지 확인
 - [ ] `RC_TEST_STORE_KEY` 빌드 인자에 포함되지 않았는지 확인
+- [ ] `ADMOB_ANDROID_BANNER_ID`가 실제 Android 배너 광고 단위 ID인지 확인
 - [ ] `/Users/ysh/upload-keystore.jks` 접근 가능한지 확인
 - [ ] RevenueCat 대시보드 — 프로덕션 오퍼링 상품 연결 상태 확인
 
@@ -37,6 +38,7 @@ version: 2.2.0+10   # 버전명+빌드번호
 
 ```bash
 flutter build appbundle \
+  --dart-define=ADMOB_ANDROID_BANNER_ID=ca-app-pub-5444803558030319/2084179141 \
   --dart-define=RC_ANDROID_PUBLIC_SDK_KEY=goog_BWfATQigKwKTGYMoNlyeAVwpJFB \
   --dart-define=RC_IOS_PUBLIC_SDK_KEY=appl_nfQCULthfEqbagScUuIkVIQbneG \
   --dart-define=RC_ENTITLEMENT_CLOUD=cloud \

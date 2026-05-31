@@ -1,4 +1,4 @@
-import 'dart:io';
+import 'package:expense_diary/const/admob_config.dart';
 import 'package:expense_diary/core/subscription/subscription_service.dart';
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
@@ -35,16 +35,11 @@ class _BannerAdWidgetState extends State<_BannerAdContent> {
   void initState() {
     super.initState();
 
-    // 사용할 테스트 광고 ID 설정
-    // final adUnitId = Platform.isIOS ?
-    //     'ca-app-pub-3940256099942544/2934735716'
-    //     : 'ca-app-pub-3940256099942544/6300978111';
-
-    // real ID
-    final adUnitId =
-        Platform.isIOS
-            ? 'ca-app-pub-5444803558030319/5504549409'
-            : 'ca-app-pub-3940256099942544/6300978111';
+    final adUnitId = AdMobConfig.bannerAdUnitId;
+    if (adUnitId == null) {
+      debugPrint('BannerAdWidget: AdMob banner ad unit ID is missing.');
+      return;
+    }
 
     // 광고 생성
     banner = BannerAd(
@@ -71,12 +66,14 @@ class _BannerAdWidgetState extends State<_BannerAdContent> {
 
   @override
   void dispose() {
-    banner.dispose();
+    if (AdMobConfig.bannerAdUnitId != null) banner.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    if (AdMobConfig.bannerAdUnitId == null) return const SizedBox.shrink();
+
     return SizedBox(
       height: 80,
       child: ClipRRect(
