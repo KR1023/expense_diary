@@ -332,6 +332,9 @@ class LocalDatabase extends _$LocalDatabase {
     );
   }
 
+  Future<void> deleteRecurringExpense(int id) =>
+      (delete(recurringExpenses)..where((t) => t.id.equals(id))).go();
+
   Future<bool> recurringExpenseOccurrenceExists(
     int recurringExpenseId,
     DateTime occurrenceDate,

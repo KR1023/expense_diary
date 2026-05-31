@@ -271,12 +271,27 @@ class _RecurringExpenseFormScreenState
                             ),
                           ),
                           const SizedBox(height: 24),
-                          SizedBox(
-                            width: double.infinity,
-                            child: FilledButton(
-                              onPressed: _save,
-                              child: Text('common.save'.tr()),
-                            ),
+                          Row(
+                            children: [
+                              if (widget.existing != null) ...[
+                                OutlinedButton(
+                                  style: OutlinedButton.styleFrom(
+                                    foregroundColor: AppColors.danger,
+                                    side: BorderSide(
+                                        color: AppColors.danger),
+                                  ),
+                                  onPressed: _delete,
+                                  child: Text('common.delete'.tr()),
+                                ),
+                                const SizedBox(width: 12),
+                              ],
+                              Expanded(
+                                child: FilledButton(
+                                  onPressed: _save,
+                                  child: Text('common.save'.tr()),
+                                ),
+                              ),
+                            ],
                           ),
                         ],
                       ),
@@ -386,6 +401,37 @@ class _RecurringExpenseFormScreenState
     }
 
     if (mounted) Navigator.of(context).pop();
+  }
+
+  Future<void> _delete() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(widget.existing!.name),
+        content: Text('recurring_expense.delete_confirm'.tr()),
+        actions: [
+          OutlinedButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: Text('common.cancel'.tr()),
+          ),
+          FilledButton(
+            style: FilledButton.styleFrom(
+              backgroundColor: AppColors.danger,
+            ),
+            onPressed: () => Navigator.of(ctx).pop(true),
+            child: Text('common.delete'.tr()),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true) return;
+    await GetIt.I<LocalDatabase>()
+        .deleteRecurringExpense(widget.existing!.id);
+    if (mounted) {
+      showToast(context, 'recurring_expense.toast_deleted'.tr(),
+          icon: Icons.delete_outline);
+      Navigator.of(context).pop();
+    }
   }
 }
 

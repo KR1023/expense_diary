@@ -197,6 +197,10 @@ class _RecurringExpenseTile extends StatelessWidget {
               ),
               onPressed: () => _toggleActive(context, item),
             ),
+            IconButton(
+              icon: Icon(Icons.delete_outline, color: AppColors.danger),
+              onPressed: () => _delete(context, item),
+            ),
           ],
         ),
       ),
@@ -244,6 +248,35 @@ class _RecurringExpenseTile extends StatelessWidget {
         showToast(context, 'recurring_expense.toast_activated'.tr(),
             icon: Icons.play_circle_outline);
       }
+    }
+  }
+
+  Future<void> _delete(BuildContext context, RecurringExpense item) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(item.name),
+        content: Text('recurring_expense.delete_confirm'.tr()),
+        actions: [
+          OutlinedButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: Text('common.cancel'.tr()),
+          ),
+          FilledButton(
+            style: FilledButton.styleFrom(
+              backgroundColor: AppColors.danger,
+            ),
+            onPressed: () => Navigator.of(ctx).pop(true),
+            child: Text('common.delete'.tr()),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true) return;
+    await GetIt.I<LocalDatabase>().deleteRecurringExpense(item.id);
+    if (context.mounted) {
+      showToast(context, 'recurring_expense.toast_deleted'.tr(),
+          icon: Icons.delete_outline);
     }
   }
 }

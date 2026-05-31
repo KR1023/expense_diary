@@ -276,6 +276,8 @@
     "deactivate": "Deactivate",
     "activate": "Activate",
     "deactivate_confirm": "Deactivate this fixed expense?\nAlready-generated expenses will be kept.",
+    "delete_confirm": "Delete this fixed expense?\nAlready-generated expenses will be kept.",
+    "toast_deleted": "Fixed expense deleted.",
     "name_label": "Name",
     "name_hint": "Enter expense name.",
     "name_required": "Please enter a name.",

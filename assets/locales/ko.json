@@ -276,6 +276,8 @@
     "deactivate": "비활성화",
     "activate": "활성화",
     "deactivate_confirm": "이 고정 지출을 비활성화하시겠습니까?\n이미 생성된 지출 내역은 유지됩니다.",
+    "delete_confirm": "이 고정 지출을 삭제하시겠습니까?\n이미 생성된 지출 내역은 유지됩니다.",
+    "toast_deleted": "고정 지출을 삭제했습니다.",
     "name_label": "이름",
     "name_hint": "고정 지출명을 입력하세요.",
     "name_required": "이름을 입력해 주세요.",
