@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:expense_diary/auth/auth_repository.dart';
 import 'package:expense_diary/component/banner_ad_widget.dart';
+import 'package:expense_diary/component/common/select_field.dart';
 import 'package:expense_diary/core/subscription/subscription_service.dart';
 import 'package:expense_diary/database/drift_database.dart';
 import 'package:expense_diary/screen/subscription_screen.dart';
@@ -372,23 +373,18 @@ class _ConfigScreenState extends State<ConfigScreen> {
                           if (!_followSystemLocale)
                             Padding(
                               padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
-                              child: DropdownButtonFormField<String>(
+                              child: SelectField<String>(
+                                label: 'settings.language.select'.tr(),
+                                icon: Icons.translate_rounded,
                                 value: _selectedLanguage,
-                                decoration: InputDecoration(
-                                  labelText: 'settings.language.select'.tr(),
-                                ),
-                                items: [
-                                  DropdownMenuItem(
+                                options: [
+                                  SelectOption(
                                     value: 'ko',
-                                    child: Text(
-                                      'settings.language.option_ko'.tr(),
-                                    ),
+                                    label: 'settings.language.option_ko'.tr(),
                                   ),
-                                  DropdownMenuItem(
+                                  SelectOption(
                                     value: 'en',
-                                    child: Text(
-                                      'settings.language.option_en'.tr(),
-                                    ),
+                                    label: 'settings.language.option_en'.tr(),
                                   ),
                                 ],
                                 onChanged: (value) {
@@ -415,21 +411,18 @@ class _ConfigScreenState extends State<ConfigScreen> {
                           ),
                           Padding(
                             padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
-                            child: DropdownButtonFormField<String>(
+                            child: SelectField<String>(
+                              label: 'settings.currency.select'.tr(),
+                              icon: Icons.payments_outlined,
                               value: _selectedCurrency,
-                              decoration: const InputDecoration(isDense: true),
-                              items: [
-                                DropdownMenuItem(
+                              options: [
+                                SelectOption(
                                   value: 'KRW',
-                                  child: Text(
-                                    'settings.currency.option_krw'.tr(),
-                                  ),
+                                  label: 'settings.currency.option_krw'.tr(),
                                 ),
-                                DropdownMenuItem(
+                                SelectOption(
                                   value: 'USD',
-                                  child: Text(
-                                    'settings.currency.option_usd'.tr(),
-                                  ),
+                                  label: 'settings.currency.option_usd'.tr(),
                                 ),
                               ],
                               onChanged: (value) {
@@ -487,8 +480,9 @@ class _ConfigScreenState extends State<ConfigScreen> {
                             trailing: const Icon(Icons.chevron_right),
                             onTap: () async {
                               if (user == null) {
-                                final loggedIn =
-                                    await Navigator.of(context).push<bool>(
+                                final loggedIn = await Navigator.of(
+                                  context,
+                                ).push<bool>(
                                   MaterialPageRoute(
                                     builder: (_) => const LoginScreen(),
                                   ),
@@ -500,28 +494,30 @@ class _ConfigScreenState extends State<ConfigScreen> {
                               }
                               final confirmed = await showDialog<bool>(
                                 context: context,
-                                builder: (ctx) => AlertDialog(
-                                  title: Text(
-                                    'settings.account.logout_confirm_title'
-                                        .tr(),
-                                  ),
-                                  content: Text(
-                                    'settings.account.logout_confirm_content'
-                                        .tr(),
-                                  ),
-                                  actions: [
-                                    OutlinedButton(
-                                      onPressed: () =>
-                                          Navigator.of(ctx).pop(false),
-                                      child: Text('common.cancel'.tr()),
+                                builder:
+                                    (ctx) => AlertDialog(
+                                      title: Text(
+                                        'settings.account.logout_confirm_title'
+                                            .tr(),
+                                      ),
+                                      content: Text(
+                                        'settings.account.logout_confirm_content'
+                                            .tr(),
+                                      ),
+                                      actions: [
+                                        OutlinedButton(
+                                          onPressed:
+                                              () =>
+                                                  Navigator.of(ctx).pop(false),
+                                          child: Text('common.cancel'.tr()),
+                                        ),
+                                        FilledButton(
+                                          onPressed:
+                                              () => Navigator.of(ctx).pop(true),
+                                          child: Text('common.confirm'.tr()),
+                                        ),
+                                      ],
                                     ),
-                                    FilledButton(
-                                      onPressed: () =>
-                                          Navigator.of(ctx).pop(true),
-                                      child: Text('common.confirm'.tr()),
-                                    ),
-                                  ],
-                                ),
                               );
                               if (confirmed == true) {
                                 await GetIt.I<AuthRepository>().signOut();
@@ -535,8 +531,7 @@ class _ConfigScreenState extends State<ConfigScreen> {
                     AnimatedBuilder(
                       animation: GetIt.I<SubscriptionService>(),
                       builder: (context, _) {
-                        final plan =
-                            GetIt.I<SubscriptionService>().currentPlan;
+                        final plan = GetIt.I<SubscriptionService>().currentPlan;
                         final planLabel = switch (plan) {
                           SubscriptionPlan.free =>
                             'subscription.plan_free'.tr(),
@@ -555,11 +550,12 @@ class _ConfigScreenState extends State<ConfigScreen> {
                             title: Text('subscription.settings_nav'.tr()),
                             subtitle: Text(planLabel),
                             trailing: const Icon(Icons.chevron_right),
-                            onTap: () => Navigator.of(context).push(
-                              MaterialPageRoute(
-                                builder: (_) => const SubscriptionScreen(),
-                              ),
-                            ),
+                            onTap:
+                                () => Navigator.of(context).push(
+                                  MaterialPageRoute(
+                                    builder: (_) => const SubscriptionScreen(),
+                                  ),
+                                ),
                           ),
                         );
                       },
@@ -583,9 +579,11 @@ class _ConfigScreenState extends State<ConfigScreen> {
                         final isSubscribed =
                             GetIt.I<SubscriptionService>().isCloudEntitled;
                         final now = DateTime.now();
-                        final currentWeekKey =
-                            KstWeekKey.fromDateTime(now.toUtc());
-                        final showBackupLimitHint = !isSubscribed &&
+                        final currentWeekKey = KstWeekKey.fromDateTime(
+                          now.toUtc(),
+                        );
+                        final showBackupLimitHint =
+                            !isSubscribed &&
                             _lastBackupWeekKey == currentWeekKey;
                         final todayKey = KstWeekKey.kstDayKey(now);
                         final showRestoreLimitHint =
@@ -700,16 +698,16 @@ class _ConfigScreenState extends State<ConfigScreen> {
                                       Text(
                                         'settings.backup.next_backup_available'
                                             .tr(
-                                          namedArgs: {
-                                            'date': DateFormat(
-                                              'yyyy.MM.dd HH:mm',
-                                            ).format(
-                                              KstWeekKey.startOfNextWeekKst(
-                                                now,
-                                              ),
+                                              namedArgs: {
+                                                'date': DateFormat(
+                                                  'yyyy.MM.dd HH:mm',
+                                                ).format(
+                                                  KstWeekKey.startOfNextWeekKst(
+                                                    now,
+                                                  ),
+                                                ),
+                                              },
                                             ),
-                                          },
-                                        ),
                                         style: Theme.of(
                                           context,
                                         ).textTheme.bodySmall?.copyWith(
@@ -757,14 +755,14 @@ class _ConfigScreenState extends State<ConfigScreen> {
                                         Text(
                                           'settings.backup.next_restore_available'
                                               .tr(
-                                            namedArgs: {
-                                              'date': DateFormat(
-                                                'yyyy.MM.dd HH:mm',
-                                              ).format(
-                                                KstWeekKey.tomorrowKst(now),
+                                                namedArgs: {
+                                                  'date': DateFormat(
+                                                    'yyyy.MM.dd HH:mm',
+                                                  ).format(
+                                                    KstWeekKey.tomorrowKst(now),
+                                                  ),
+                                                },
                                               ),
-                                            },
-                                          ),
                                           style: Theme.of(
                                             context,
                                           ).textTheme.bodySmall?.copyWith(

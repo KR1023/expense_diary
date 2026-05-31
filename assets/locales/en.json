@@ -40,7 +40,8 @@
     "edit_title": "Edit Category",
     "edit_hint": "Enter a new category name.",
     "duplicate_error": "This category name already exists!",
-    "select_label": "Category"
+    "select_label": "Category",
+    "select_hint": "Select category"
   },
   "category_expense": {
     "title": "Expenses by Category",
@@ -51,6 +52,7 @@
     "currency": {
       "title": "Currency",
       "subtitle": "Set the currency used for expense amounts.",
+      "select": "Currency",
       "option_krw": "KRW (Won)",
       "option_usd": "USD ($)"
     },

@@ -1,16 +1,16 @@
+import 'package:expense_diary/component/common/select_field.dart';
+import 'package:expense_diary/const/app_colors.dart';
 import 'package:expense_diary/database/drift_database.dart';
-import 'package:expense_diary/model/category.dart';
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
 import 'package:easy_localization/easy_localization.dart';
 
 class CategorySelect extends StatefulWidget {
-  String? categoryName;
-  CategoryData? selectedValue;
+  final CategoryData? selectedValue;
   final FormFieldSetter<CategoryData> onSavedCategory;
 
-  CategorySelect({
-    this.categoryName,
+  const CategorySelect({
+    super.key,
     this.selectedValue,
     required this.onSavedCategory,
   });
@@ -20,12 +20,12 @@ class CategorySelect extends StatefulWidget {
 }
 
 class _CategorySelectState extends State<CategorySelect> {
+  CategoryData? _selectedValue;
+
   @override
   void initState() {
     super.initState();
-    if (widget.selectedValue != null) {
-      widget.selectedValue = widget.selectedValue;
-    }
+    _selectedValue = widget.selectedValue;
   }
 
   @override
@@ -34,61 +34,60 @@ class _CategorySelectState extends State<CategorySelect> {
       stream: GetIt.I<LocalDatabase>().watchCategory(null),
       builder: (context, snapshot) {
         if (!snapshot.hasData) {
-          return Container(
-            width: MediaQuery.of(context).size.width,
-            child: DropdownButtonFormField<String>(
-              items:
-                  [].map((value) {
-                    return DropdownMenuItem<String>(
-                      value: value,
-                      child: Text(value),
-                    );
-                  }).toList(),
-              decoration: InputDecoration(
-                labelText: 'category.select_label'.tr(),
-              ),
-              onChanged: (String? value) {},
-            ),
+          return SelectField<String>(
+            label: 'category.select_label'.tr(),
+            hint: 'category.select_hint'.tr(),
+            icon: Icons.category_outlined,
+            options: const [],
+            enabled: false,
+            onChanged: (_) {},
           );
         }
 
         final categories = snapshot.data!;
 
         return Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          crossAxisAlignment: CrossAxisAlignment.end,
           children: [
-            Flexible(
-              flex: 7,
-              child: Container(
-                width: MediaQuery.of(context).size.width,
-                child: DropdownButtonFormField<CategoryData>(
-                  decoration: InputDecoration(
-                    labelText: 'category.select_label'.tr(),
-                  ),
-                  value: widget.selectedValue,
-                  items:
-                      categories.map((category) {
-                        return DropdownMenuItem<CategoryData>(
-                          value: category,
-                          child: Container(child: Text(category.categoryName)),
-                        );
-                      }).toList(),
-                  onChanged: (newCategory) {
-                    setState(() {
-                      widget.selectedValue = newCategory;
-                    });
-                  },
-                  onSaved: widget.onSavedCategory,
-                ),
+            Expanded(
+              child: SelectField<CategoryData>(
+                label: 'category.select_label'.tr(),
+                hint: 'category.select_hint'.tr(),
+                icon: Icons.category_outlined,
+                value: _selectedValue,
+                options:
+                    categories.map((category) {
+                      return SelectOption<CategoryData>(
+                        value: category,
+                        label: category.categoryName,
+                        icon: Icons.sell_outlined,
+                      );
+                    }).toList(),
+                onChanged: (newCategory) {
+                  setState(() {
+                    _selectedValue = newCategory;
+                  });
+                },
+                onSaved: widget.onSavedCategory,
               ),
             ),
-            Flexible(
-              flex: 1,
-              child: IconButton(
-                icon: Icon(Icons.cancel),
+            const SizedBox(width: 8),
+            Padding(
+              padding: const EdgeInsets.only(bottom: 1),
+              child: IconButton.filledTonal(
+                tooltip: 'common.cancel'.tr(),
+                style: IconButton.styleFrom(
+                  backgroundColor: AppColors.surfaceAltOf(context),
+                  foregroundColor: AppColors.mutedOf(context),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14),
+                    side: BorderSide(color: AppColors.outlineOf(context)),
+                  ),
+                ),
+                icon: const Icon(Icons.close_rounded),
                 onPressed: () {
                   setState(() {
-                    widget.selectedValue = null;
+                    _selectedValue = null;
                   });
                 },
               ),

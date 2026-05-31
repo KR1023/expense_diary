@@ -40,7 +40,8 @@
     "edit_title": "분류명 수정",
     "edit_hint": "수정할 이름을 입력하세요.",
     "duplicate_error": "이미 존재하는 분류명입니다!",
-    "select_label": "분류"
+    "select_label": "분류",
+    "select_hint": "분류 선택"
   },
   "category_expense": {
     "title": "분류별 지출",
@@ -51,6 +52,7 @@
     "currency": {
       "title": "통화",
       "subtitle": "지출 금액에 사용할 통화를 설정합니다.",
+      "select": "통화 선택",
       "option_krw": "KRW (원)",
       "option_usd": "USD ($)"
     },

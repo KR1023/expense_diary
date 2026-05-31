@@ -126,6 +126,72 @@ iOS는 사업자 등록 전으로 App Store 구독 불가. 구독 관련 기능 
 
 ---
 
+### 6. 구독 SDK/결제 UX 정리 (`ce13bc9`)
+
+**배경**
+Android 실행 시 RevenueCat Test Store 응답의 `store: "test_store"`를 기존 SDK가 파싱하지 못해 `E/[Purchases] ... Store does not contain element with name 'test_store'` 오류가 반복됨.
+
+**변경 내용**
+- `purchases_flutter`를 `9.12.2`로 고정
+- iOS는 계속 RevenueCat 초기화 제외 (`Platform.isIOS` early return)
+- Android RevenueCat API 키가 비어 있으면 SDK 호출 없이 Free 상태로 동작
+- `purchasePackage` deprecated API 대신 `Purchases.purchase(PurchaseParams.package(...))` 사용
+- 결제 취소 시 RevenueCat/API 원문 대신 사용자 문구 표시
+  - `결제가 취소되었습니다.`
+  - `결제를 완료하지 못했습니다. 잠시 후 다시 시도해 주세요.`
+  - `구매 복원에 실패했습니다. 잠시 후 다시 시도해 주세요.`
+- 설정 > 구독 플랜 화면에서 iOS는 플랜/복원/업그레이드 대신 "준비 중" 안내만 표시
+
+**관련 파일**
+- `pubspec.yaml`
+- `pubspec.lock`
+- `ios/Podfile.lock`
+- `lib/core/subscription/subscription_service.dart`
+- `lib/screen/paywall_screen.dart`
+- `lib/screen/subscription_screen.dart`
+- `assets/locales/ko.json`
+- `assets/locales/en.json`
+
+---
+
+### 7. AdMob 광고 단위 ID 플랫폼별 설정 (`76a791e`)
+
+**배경**
+Android 실기기에서 테스트 광고가 표시됨. 원인은 Android 배너 광고 단위 ID가 Google 공식 테스트 ID(`ca-app-pub-3940256099942544/6300978111`)로 하드코딩되어 있었기 때문.
+
+**변경 내용**
+- `AdMobConfig` 추가
+- Android/iOS 배너 광고 단위 ID를 `--dart-define`으로 주입 가능하게 변경
+- 환경변수를 지정하지 않으면 플랫폼별 기본 광고 단위 ID 사용
+
+**현재 기본값**
+
+| 플랫폼 | 기본 배너 광고 단위 ID |
+|---|---|
+| Android | `ca-app-pub-5444803558030319/2084179141` |
+| iOS | `ca-app-pub-5444803558030319/5504549409` |
+
+**빌드 인자**
+
+```bash
+--dart-define=ADMOB_ANDROID_BANNER_ID=ca-app-pub-5444803558030319/2084179141
+--dart-define=ADMOB_IOS_BANNER_ID=ca-app-pub-5444803558030319/5504549409
+```
+
+**광고 제거 동작**
+- `SubscriptionService.isAdsRemoved => isCloudEntitled`
+- Cloud 플랜 또는 Report 플랜 entitlement가 active이면 `BannerAdWidget`이 광고를 렌더링하지 않음
+- 사용자가 구독을 취소해도 결제 기간 만료일까지 RevenueCat entitlement가 active이면 광고 제거 유지
+- 만료 후 entitlement가 inactive가 되면 Free 플랜으로 전환되고 광고 표시
+
+**관련 파일**
+- `lib/const/admob_config.dart`
+- `lib/component/banner_ad_widget.dart`
+- `docs/deployment/android.md`
+- `docs/deployment/ios.md`
+
+---
+
 ## 문서
 
 | 파일 | 내용 |
