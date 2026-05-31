@@ -54,9 +54,10 @@ class _PaywallScreenState extends State<PaywallScreen> {
 
   Package? get _targetPackage {
     if (_offering == null) return null;
-    final packageId = widget.entitlement == RevenueCatConfig.entitlementCloud
-        ? RevenueCatConfig.offeringCloud
-        : RevenueCatConfig.offeringReport;
+    final packageId =
+        widget.entitlement == RevenueCatConfig.entitlementCloud
+            ? RevenueCatConfig.offeringCloud
+            : RevenueCatConfig.offeringReport;
     return _offering!.availablePackages
         .where((p) => p.identifier == packageId)
         .firstOrNull;
@@ -68,15 +69,20 @@ class _PaywallScreenState extends State<PaywallScreen> {
 
     setState(() => _isPurchasing = true);
     try {
-      final result =
-          await GetIt.I<SubscriptionService>().purchase(package);
+      final result = await GetIt.I<SubscriptionService>().purchase(package);
       if (!mounted) return;
-      if (result != null) Navigator.of(context).pop(true);
+      if (result != null) {
+        Navigator.of(context).pop(true);
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('paywall.purchase_cancelled'.tr())),
+        );
+      }
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(e.toString())),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('paywall.purchase_failed'.tr())));
     } finally {
       if (mounted) setState(() => _isPurchasing = false);
     }
@@ -90,9 +96,9 @@ class _PaywallScreenState extends State<PaywallScreen> {
       Navigator.of(context).pop(true);
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(e.toString())),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('paywall.restore_failed'.tr())));
     } finally {
       if (mounted) setState(() => _isPurchasing = false);
     }
@@ -100,8 +106,7 @@ class _PaywallScreenState extends State<PaywallScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final isCloud =
-        widget.entitlement == RevenueCatConfig.entitlementCloud;
+    final isCloud = widget.entitlement == RevenueCatConfig.entitlementCloud;
 
     if (Platform.isIOS) {
       return Scaffold(
@@ -119,8 +124,11 @@ class _PaywallScreenState extends State<PaywallScreen> {
               Center(
                 child: Column(
                   children: [
-                    Icon(Icons.hourglass_top_rounded,
-                        size: 64, color: AppColors.mutedOf(context)),
+                    Icon(
+                      Icons.hourglass_top_rounded,
+                      size: 64,
+                      color: AppColors.mutedOf(context),
+                    ),
                     const SizedBox(height: 16),
                     Text(
                       'subscription.ios_coming_soon_title'.tr(),
@@ -131,8 +139,8 @@ class _PaywallScreenState extends State<PaywallScreen> {
                       'subscription.ios_coming_soon_desc'.tr(),
                       textAlign: TextAlign.center,
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            color: AppColors.mutedOf(context),
-                          ),
+                        color: AppColors.mutedOf(context),
+                      ),
                     ),
                   ],
                 ),
@@ -160,9 +168,9 @@ class _PaywallScreenState extends State<PaywallScreen> {
               isCloud
                   ? 'paywall.cloud.title'.tr()
                   : 'paywall.report.title'.tr(),
-              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
+              style: Theme.of(
+                context,
+              ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
             Text(
@@ -170,8 +178,8 @@ class _PaywallScreenState extends State<PaywallScreen> {
                   ? 'paywall.cloud.description'.tr()
                   : 'paywall.report.description'.tr(),
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: AppColors.mutedOf(context),
-                  ),
+                color: AppColors.mutedOf(context),
+              ),
             ),
             const SizedBox(height: 32),
             if (_isLoading)
@@ -183,20 +191,17 @@ class _PaywallScreenState extends State<PaywallScreen> {
                 margin: EdgeInsets.zero,
                 child: ListTile(
                   leading: Icon(
-                    isCloud
-                        ? Icons.backup_outlined
-                        : Icons.bar_chart_rounded,
+                    isCloud ? Icons.backup_outlined : Icons.bar_chart_rounded,
                     color: AppColors.primary,
                   ),
                   title: Text(_targetPackage!.storeProduct.title),
-                  subtitle:
-                      Text(_targetPackage!.storeProduct.description),
+                  subtitle: Text(_targetPackage!.storeProduct.description),
                   trailing: Text(
                     _targetPackage!.storeProduct.priceString,
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          color: AppColors.primary,
-                          fontWeight: FontWeight.bold,
-                        ),
+                      color: AppColors.primary,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
               ),
@@ -205,13 +210,14 @@ class _PaywallScreenState extends State<PaywallScreen> {
                 width: double.infinity,
                 child: FilledButton(
                   onPressed: _isPurchasing ? null : _purchase,
-                  child: _isPurchasing
-                      ? const SizedBox(
-                          width: 18,
-                          height: 18,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        )
-                      : Text('paywall.subscribe'.tr()),
+                  child:
+                      _isPurchasing
+                          ? const SizedBox(
+                            width: 18,
+                            height: 18,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                          : Text('paywall.subscribe'.tr()),
                 ),
               ),
             ],
@@ -222,8 +228,8 @@ class _PaywallScreenState extends State<PaywallScreen> {
                 child: Text(
                   'paywall.restore'.tr(),
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: AppColors.mutedOf(context),
-                      ),
+                    color: AppColors.mutedOf(context),
+                  ),
                 ),
               ),
             ),

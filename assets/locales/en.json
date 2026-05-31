@@ -271,6 +271,9 @@
   "paywall": {
     "subscribe": "Subscribe",
     "restore": "Restore Purchases",
+    "purchase_cancelled": "Payment was cancelled.",
+    "purchase_failed": "Could not complete the payment. Please try again later.",
+    "restore_failed": "Could not restore purchases. Please try again later.",
     "cloud": {
       "title": "Cloud Backup",
       "description": "Back up and restore your data to the cloud. Keep your data safe even when switching devices."

@@ -69,18 +69,20 @@ class _SubscriptionScreenState extends State<SubscriptionScreen>
   }
 
   String? _priceFor(String packageId) {
-    final pkg = _offerings?.current?.availablePackages
-        .where((p) => p.identifier == packageId)
-        .firstOrNull;
+    final pkg =
+        _offerings?.current?.availablePackages
+            .where((p) => p.identifier == packageId)
+            .firstOrNull;
     return pkg?.storeProduct.priceString;
   }
 
   String? _expirationFor(String entitlementId) {
-    final expDateStr = GetIt.I<SubscriptionService>()
-        .customerInfo
-        ?.entitlements
-        .active[entitlementId]
-        ?.expirationDate;
+    final expDateStr =
+        GetIt.I<SubscriptionService>()
+            .customerInfo
+            ?.entitlements
+            .active[entitlementId]
+            ?.expirationDate;
     if (expDateStr == null) return null;
     final parsed = DateTime.tryParse(expDateStr);
     if (parsed == null) return null;
@@ -91,15 +93,15 @@ class _SubscriptionScreenState extends State<SubscriptionScreen>
     if (!Platform.isIOS) {
       final user = GetIt.I<AuthRepository>().currentUser;
       if (user == null) {
-        final loggedIn = await Navigator.of(context).push<bool>(
-          MaterialPageRoute(builder: (_) => const LoginScreen()),
-        );
+        final loggedIn = await Navigator.of(
+          context,
+        ).push<bool>(MaterialPageRoute(builder: (_) => const LoginScreen()));
         if (!mounted) return;
         if (GetIt.I<AuthRepository>().currentUser == null) return;
         if (loggedIn == true) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('auth.success'.tr())),
-          );
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text('auth.success'.tr())));
         }
       }
     }
@@ -124,15 +126,15 @@ class _SubscriptionScreenState extends State<SubscriptionScreen>
     try {
       await GetIt.I<SubscriptionService>().restorePurchases();
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('paywall.restore'.tr())),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('paywall.restore'.tr())));
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(e.toString())),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('paywall.restore_failed'.tr())));
       }
     }
   }
@@ -140,28 +142,30 @@ class _SubscriptionScreenState extends State<SubscriptionScreen>
   Future<void> _openCancelDialog() async {
     final confirmed = await showDialog<bool>(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text('subscription.cancel_dialog_title'.tr()),
-        content: Text('subscription.cancel_dialog_desc'.tr()),
-        actions: [
-          OutlinedButton(
-            onPressed: () => Navigator.of(ctx).pop(false),
-            child: Text('common.cancel'.tr()),
+      builder:
+          (ctx) => AlertDialog(
+            title: Text('subscription.cancel_dialog_title'.tr()),
+            content: Text('subscription.cancel_dialog_desc'.tr()),
+            actions: [
+              OutlinedButton(
+                onPressed: () => Navigator.of(ctx).pop(false),
+                child: Text('common.cancel'.tr()),
+              ),
+              FilledButton(
+                onPressed: () => Navigator.of(ctx).pop(true),
+                child: Text('subscription.go_to_store'.tr()),
+              ),
+            ],
           ),
-          FilledButton(
-            onPressed: () => Navigator.of(ctx).pop(true),
-            child: Text('subscription.go_to_store'.tr()),
-          ),
-        ],
-      ),
     );
     if (confirmed != true) return;
 
     final managementUrl =
         GetIt.I<SubscriptionService>().customerInfo?.managementURL;
-    final uri = managementUrl != null
-        ? Uri.parse(managementUrl)
-        : Uri.parse('https://play.google.com/store/account/subscriptions');
+    final uri =
+        managementUrl != null
+            ? Uri.parse(managementUrl)
+            : Uri.parse('https://play.google.com/store/account/subscriptions');
     if (await canLaunchUrl(uri)) await launchUrl(uri);
   }
 
@@ -204,23 +208,33 @@ class _SubscriptionScreenState extends State<SubscriptionScreen>
     );
   }
 
-  Widget _buildIosFreeContent() {
-    return SingleChildScrollView(
+  Widget _buildIosComingSoonContent() {
+    return Center(
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
         children: [
-          _SectionLabel('subscription.current_plan_section'.tr()),
+          Icon(
+            Icons.hourglass_top_rounded,
+            size: 64,
+            color: AppColors.mutedOf(context),
+          ),
+          const SizedBox(height: 16),
+          Text(
+            'subscription.ios_coming_soon_title'.tr(),
+            style: Theme.of(
+              context,
+            ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+          ),
           const SizedBox(height: 8),
-          _CurrentPlanCard(
-            planLabel: 'subscription.plan_report'.tr(),
-            icon: Icons.workspace_premium_rounded,
-            features: [
-              'subscription.feature_ads'.tr(),
-              'subscription.feature_backup'.tr(),
-              'subscription.feature_stats'.tr(),
-              'subscription.feature_export'.tr(),
-            ],
-            footnote: 'subscription.ios_free_desc'.tr(),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24),
+            child: Text(
+              'subscription.ios_coming_soon_desc'.tr(),
+              textAlign: TextAlign.center,
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                color: AppColors.mutedOf(context),
+              ),
+            ),
           ),
         ],
       ),
@@ -228,6 +242,8 @@ class _SubscriptionScreenState extends State<SubscriptionScreen>
   }
 
   Widget _buildContent() {
+    if (Platform.isIOS) return _buildIosComingSoonContent();
+
     final service = GetIt.I<SubscriptionService>();
     final plan = service.currentPlan;
 
@@ -264,8 +280,8 @@ class _SubscriptionScreenState extends State<SubscriptionScreen>
                   'subscription.feature_backup'.tr(),
                 ],
                 buttonLabel: 'subscription.subscribe'.tr(),
-                onTap: () =>
-                    _navigateToPaywall(RevenueCatConfig.entitlementCloud),
+                onTap:
+                    () => _navigateToPaywall(RevenueCatConfig.entitlementCloud),
               ),
             if (plan == SubscriptionPlan.free) const SizedBox(height: 12),
             _PlanOfferCard(
@@ -277,11 +293,12 @@ class _SubscriptionScreenState extends State<SubscriptionScreen>
                 'subscription.feature_stats'.tr(),
                 'subscription.feature_export'.tr(),
               ],
-              buttonLabel: plan == SubscriptionPlan.free
-                  ? 'subscription.subscribe'.tr()
-                  : 'subscription.upgrade'.tr(),
-              onTap: () =>
-                  _navigateToPaywall(RevenueCatConfig.entitlementReport),
+              buttonLabel:
+                  plan == SubscriptionPlan.free
+                      ? 'subscription.subscribe'.tr()
+                      : 'subscription.upgrade'.tr(),
+              onTap:
+                  () => _navigateToPaywall(RevenueCatConfig.entitlementReport),
             ),
             const SizedBox(height: 20),
           ],
@@ -305,10 +322,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen>
             Card(
               margin: EdgeInsets.zero,
               child: ListTile(
-                leading: Icon(
-                  Icons.cancel_outlined,
-                  color: AppColors.danger,
-                ),
+                leading: Icon(Icons.cancel_outlined, color: AppColors.danger),
                 title: Text(
                   'subscription.cancel'.tr(),
                   style: TextStyle(color: AppColors.danger),
@@ -330,19 +344,17 @@ class _SubscriptionScreenState extends State<SubscriptionScreen>
           planLabel: 'subscription.plan_free'.tr(),
           icon: Icons.person_outline,
           subtitle: 'subscription.free_desc'.tr(),
-          features: [
-            'subscription.feature_backup_free'.tr(),
-          ],
+          features: ['subscription.feature_backup_free'.tr()],
         );
       case SubscriptionPlan.cloud:
-        final expiry =
-            _expirationFor(RevenueCatConfig.entitlementCloud);
+        final expiry = _expirationFor(RevenueCatConfig.entitlementCloud);
         return _CurrentPlanCard(
           planLabel: 'subscription.plan_cloud'.tr(),
           icon: Icons.backup_outlined,
-          subtitle: expiry != null
-              ? 'subscription.next_renewal'.tr(namedArgs: {'date': expiry})
-              : null,
+          subtitle:
+              expiry != null
+                  ? 'subscription.next_renewal'.tr(namedArgs: {'date': expiry})
+                  : null,
           features: [
             'subscription.feature_ads'.tr(),
             'subscription.feature_backup'.tr(),
@@ -350,14 +362,14 @@ class _SubscriptionScreenState extends State<SubscriptionScreen>
           isActive: true,
         );
       case SubscriptionPlan.report:
-        final expiry =
-            _expirationFor(RevenueCatConfig.entitlementReport);
+        final expiry = _expirationFor(RevenueCatConfig.entitlementReport);
         return _CurrentPlanCard(
           planLabel: 'subscription.plan_report'.tr(),
           icon: Icons.workspace_premium_rounded,
-          subtitle: expiry != null
-              ? 'subscription.next_renewal'.tr(namedArgs: {'date': expiry})
-              : null,
+          subtitle:
+              expiry != null
+                  ? 'subscription.next_renewal'.tr(namedArgs: {'date': expiry})
+                  : null,
           features: [
             'subscription.feature_ads'.tr(),
             'subscription.feature_backup'.tr(),
@@ -378,9 +390,9 @@ class _SectionLabel extends StatelessWidget {
   Widget build(BuildContext context) {
     return Text(
       label,
-      style: Theme.of(context).textTheme.labelLarge?.copyWith(
-            color: AppColors.mutedOf(context),
-          ),
+      style: Theme.of(
+        context,
+      ).textTheme.labelLarge?.copyWith(color: AppColors.mutedOf(context)),
     );
   }
 }
@@ -391,7 +403,6 @@ class _CurrentPlanCard extends StatelessWidget {
     required this.icon,
     required this.features,
     this.subtitle,
-    this.footnote,
     this.isActive = false,
   });
 
@@ -399,7 +410,6 @@ class _CurrentPlanCard extends StatelessWidget {
   final IconData icon;
   final String? subtitle;
   final List<String> features;
-  final String? footnote;
   final bool isActive;
 
   @override
@@ -408,9 +418,10 @@ class _CurrentPlanCard extends StatelessWidget {
       margin: EdgeInsets.zero,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
-        side: isActive
-            ? BorderSide(color: AppColors.primary, width: 1.5)
-            : BorderSide.none,
+        side:
+            isActive
+                ? BorderSide(color: AppColors.primary, width: 1.5)
+                : BorderSide.none,
       ),
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -419,15 +430,18 @@ class _CurrentPlanCard extends StatelessWidget {
           children: [
             Row(
               children: [
-                Icon(icon,
-                    color: isActive ? AppColors.primary : AppColors.mutedOf(context)),
+                Icon(
+                  icon,
+                  color:
+                      isActive ? AppColors.primary : AppColors.mutedOf(context),
+                ),
                 const SizedBox(width: 8),
                 Text(
                   planLabel,
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: isActive ? AppColors.primary : null,
-                      ),
+                    fontWeight: FontWeight.bold,
+                    color: isActive ? AppColors.primary : null,
+                  ),
                 ),
               ],
             ),
@@ -436,8 +450,8 @@ class _CurrentPlanCard extends StatelessWidget {
               Text(
                 subtitle!,
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: AppColors.mutedOf(context),
-                    ),
+                  color: AppColors.mutedOf(context),
+                ),
               ),
             ],
             const SizedBox(height: 12),
@@ -446,27 +460,20 @@ class _CurrentPlanCard extends StatelessWidget {
                 padding: const EdgeInsets.only(bottom: 4),
                 child: Row(
                   children: [
-                    Icon(Icons.check_circle_outline,
-                        size: 16,
-                        color: isActive
-                            ? AppColors.primary
-                            : AppColors.mutedOf(context)),
+                    Icon(
+                      Icons.check_circle_outline,
+                      size: 16,
+                      color:
+                          isActive
+                              ? AppColors.primary
+                              : AppColors.mutedOf(context),
+                    ),
                     const SizedBox(width: 6),
-                    Text(f,
-                        style: Theme.of(context).textTheme.bodyMedium),
+                    Text(f, style: Theme.of(context).textTheme.bodyMedium),
                   ],
                 ),
               ),
             ),
-            if (footnote != null) ...[
-              const SizedBox(height: 8),
-              Text(
-                footnote!,
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: AppColors.mutedOf(context),
-                    ),
-              ),
-            ],
           ],
         ),
       ),
@@ -506,19 +513,18 @@ class _PlanOfferCard extends StatelessWidget {
                 const SizedBox(width: 8),
                 Text(
                   title,
-                  style: Theme.of(context)
-                      .textTheme
-                      .titleMedium
-                      ?.copyWith(fontWeight: FontWeight.bold),
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
                 const Spacer(),
                 if (price != null)
                   Text(
                     price!,
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          color: AppColors.primary,
-                          fontWeight: FontWeight.bold,
-                        ),
+                      color: AppColors.primary,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
               ],
             ),
@@ -528,8 +534,11 @@ class _PlanOfferCard extends StatelessWidget {
                 padding: const EdgeInsets.only(bottom: 4),
                 child: Row(
                   children: [
-                    Icon(Icons.check_circle_outline,
-                        size: 16, color: AppColors.mutedOf(context)),
+                    Icon(
+                      Icons.check_circle_outline,
+                      size: 16,
+                      color: AppColors.mutedOf(context),
+                    ),
                     const SizedBox(width: 6),
                     Text(f, style: Theme.of(context).textTheme.bodyMedium),
                   ],
@@ -539,10 +548,7 @@ class _PlanOfferCard extends StatelessWidget {
             const SizedBox(height: 12),
             SizedBox(
               width: double.infinity,
-              child: FilledButton(
-                onPressed: onTap,
-                child: Text(buttonLabel),
-              ),
+              child: FilledButton(onPressed: onTap, child: Text(buttonLabel)),
             ),
           ],
         ),

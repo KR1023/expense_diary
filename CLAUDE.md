@@ -25,9 +25,13 @@ dart run flutter_launcher_icons
 dart run flutter_native_splash:create
 ```
 
+## 개발 진행 사항
+
+작업 내역은 루트의 `progress.md`에 기록한다. Claude Code와 Codex가 공동으로 참조하는 파일이므로, 기능 추가·변경·수정 작업 완료 시 해당 내용을 `progress.md`에 업데이트한다.
+
 ## 프로젝트 정보
 
-- **패키지:** `expense_diary` v2.1.2+9
+- **패키지:** `expense_diary` v2.1.4+11
 - **플랫폼:** Android, iOS
 - **주 언어:** 한국어(ko_KR), 영어(en_US) 폴백
 - **테마:** Material 3, IBM Plex Sans KR, 밝기 자동 감지
@@ -41,6 +45,7 @@ dart run flutter_native_splash:create
 - `AuthRepository` — Firebase 이메일 + Google 로그인 (google_sign_in v7: `GoogleSignIn.instance.authenticate()`)
 - `FirestoreTransactionRepository` — Firestore 클라우드 동기화
 - `AppSettings` — 통화, 언어 설정(ChangeNotifier)
+- `SubscriptionService` — RevenueCat 구독 상태 관리(ChangeNotifier)
 - `SnapshotService` — 클라우드 백업/복원
 - `ReportCsvService` / `ReportPdfService` — 내보내기 기능
 
@@ -74,13 +79,36 @@ Drift 데이터베이스 클래스 또는 테이블 정의 수정 후 `build_run
 4. 통계 (`StatisticsTabScreen`) — 통계/CSV/PDF 서브화면으로 이동하는 메뉴 화면 (`ReportStatisticsScreen`, `ReportCsvExportScreen`, `ReportPdfExportScreen` 진입점)
 5. 설정 (설정) — 언어, 통화, 백업, 계정
 
-## 구독 시스템 제거 상태
+## 구독 시스템
 
-RevenueCat, Paywall, StoreKit 로컬 구성, 요금제 제한, `purchases_flutter` 의존성은 활성 코드에서 제거됨. `lib/core/subscription/`, `lib/screen/paywall_screen.dart`, `test/core/subscription/` 등 관련 파일 전체 삭제. 백업/복원 및 통계/CSV/PDF 기능은 구독 확인 없이 사용할 수 있음.
+RevenueCat(`purchases_flutter`)으로 Android 구독 관리. iOS는 사업자 등록 전으로 Free 플랜으로 동작하며 구독 버튼 탭 시 "준비 중" 안내 표시.
+
+**플랜 구성:**
+- `Free` — 주 1회 백업, 일 1회 복원, 광고 표시
+- `Cloud` — 광고 제거, 무제한 백업/복원 (`cloud` 엔타이틀먼트)
+- `Report` — Cloud 포함 + 통계/CSV/PDF (`report` 엔타이틀먼트)
+
+**핵심 파일:**
+- `lib/const/revenuecat_config.dart` — API 키·엔타이틀먼트 ID 상수 (`--dart-define` 주입)
+- `lib/core/subscription/subscription_service.dart` — SDK 초기화, 엔타이틀먼트 상태(`ChangeNotifier`), Firebase UID 연동(`loginUser`/`logoutUser`)
+- `lib/screen/paywall_screen.dart` — 구독 결제 화면 (iOS: "준비 중" 화면)
+- `lib/screen/subscription_screen.dart` — 플랜 관리 화면 (현재 플랜, 업그레이드, 해지)
+
+**Firebase UID 연동:** 로그인 시 `Purchases.logIn(uid)`, 로그아웃 시 `Purchases.logOut()` 호출로 구독이 Firebase 계정에 귀속됨. `main()`에서 `authStateChanges` 리스너로 자동 동기화.
+
+**무료 사용자 제한:** `SharedPreferences`에 `lastBackupWeekKey`(YYYY-WW), `lastRestoreDayKey`(YYYY-MM-DD) 저장. 한도 초과 시 설정 화면에 다음 가능 일시 표시.
+
+**Android Studio 실행 설정** (`.idea/runConfigurations/`):
+- `main.dart` — 프로덕션 키
+- `main.dart (Force Entitled)` — `RC_FORCE_ENTITLED=true`, UI 테스트용
+
+**iOS App Store 연동 시 할 작업:** `docs/revenue_cat/ios_setup.md` 참고.
 
 ## 광고
 
 `lib/component/banner_ad_widget.dart`의 `BannerAdWidget`에서 직접 배너를 로드. iOS는 프로덕션 AdUnit ID, Android는 현재 테스트 ID 사용. 광고 생명 주기를 신중하게 처리. 위젯이 내부적으로 로드/해제를 관리.
+
+`BannerAdWidget`은 `AnimatedBuilder`로 `SubscriptionService`를 감시하여 `isAdsRemoved`(= `isCloudEntitled`) 가 true이면 `SizedBox.shrink()` 반환 — Cloud/Report 구독자에게는 광고가 표시되지 않음.
 
 배너 광고 표시 위치: 홈 화면 상단, 카테고리 화면 하단, 설정 화면 하단, 통계 탭 화면 하단(`StatisticsTabScreen`).
 
@@ -95,9 +123,14 @@ RevenueCat, Paywall, StoreKit 로컬 구성, 요금제 제한, `purchases_flutte
 
 ## 클라우드 백업
 
-스냅샷 기반: `SnapshotService`가 모든 Drift 데이터 + SharedPreferences를 읽고, 정규 JSON(SplayTreeMap을 통한 키 정렬)으로 직렬화한 후, SHA-256 해시를 생성하고 Firestore에 업로드. 복원은 로컬 데이터를 Drift 트랜잭션으로 초기화한 후 재삽입.
+스냅샷 기반: `SnapshotService`가 모든 Drift 데이터 + SharedPreferences를 읽고, 정규 JSON(SplayTreeMap을 통한 키 정렬)으로 직렬화한 후, SHA-256 해시를 생성.
 
-백업 메타데이터 키(`lastBackupAt`, `lastBackupWeekKey`)는 `BackupMetadataKeys` 상수 클래스(`lib/features/backup/data/backup_metadata_keys.dart`)로 중앙 관리. SharedPreferences 저장 키와 Firestore 필드명이 분리되어 있음.
+**저장 구조 (Firebase Storage 전환 후):**
+- 페이로드(JSON): Firebase Storage `users/{uid}/snapshots/{snapshotId}.json`
+- 메타데이터: Firestore `users/{uid}/snapshots/{snapshotId}` + `payloadStoragePath` 필드
+- 복원 시 `payloadStoragePath` 유무로 신/구 포맷 자동 구분 (하위 호환 유지)
+
+백업 메타데이터 키(`lastBackupAt`, `lastBackupWeekKey`, `lastRestoreDayKey`)는 `BackupMetadataKeys` 상수 클래스(`lib/features/backup/data/backup_metadata_keys.dart`)로 중앙 관리.
 
 `ConfigScreen`은 인증 상태 변경 시(`authStateChanges`) 클라우드 백업 메타데이터를 자동으로 다시 로드.
 
