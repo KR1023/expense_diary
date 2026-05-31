@@ -278,6 +278,8 @@ class _SubscriptionScreenState extends State<SubscriptionScreen>
                 features: [
                   'subscription.feature_ads'.tr(),
                   'subscription.feature_backup'.tr(),
+                  'subscription.feature_recurring'.tr(),
+                  'subscription.feature_payment'.tr(),
                 ],
                 buttonLabel: 'subscription.subscribe'.tr(),
                 onTap:
@@ -344,7 +346,11 @@ class _SubscriptionScreenState extends State<SubscriptionScreen>
           planLabel: 'subscription.plan_free'.tr(),
           icon: Icons.person_outline,
           subtitle: 'subscription.free_desc'.tr(),
-          features: ['subscription.feature_backup_free'.tr()],
+          features: [
+            'subscription.feature_backup_free'.tr(),
+            'subscription.feature_recurring_free'.tr(),
+            'subscription.feature_payment_free'.tr(),
+          ],
         );
       case SubscriptionPlan.cloud:
         final expiry = _expirationFor(RevenueCatConfig.entitlementCloud);
@@ -358,6 +364,8 @@ class _SubscriptionScreenState extends State<SubscriptionScreen>
           features: [
             'subscription.feature_ads'.tr(),
             'subscription.feature_backup'.tr(),
+            'subscription.feature_recurring'.tr(),
+            'subscription.feature_payment'.tr(),
           ],
           isActive: true,
         );
@@ -373,6 +381,8 @@ class _SubscriptionScreenState extends State<SubscriptionScreen>
           features: [
             'subscription.feature_ads'.tr(),
             'subscription.feature_backup'.tr(),
+            'subscription.feature_recurring'.tr(),
+            'subscription.feature_payment'.tr(),
             'subscription.feature_stats'.tr(),
             'subscription.feature_export'.tr(),
           ],

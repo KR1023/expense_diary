@@ -1,7 +1,9 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:expense_diary/component/common/app_background.dart';
 import 'package:expense_diary/const/app_colors.dart';
+import 'package:expense_diary/core/subscription/subscription_service.dart';
 import 'package:expense_diary/database/drift_database.dart';
+import 'package:expense_diary/screen/subscription_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:drift/drift.dart' hide Column;
 import 'package:get_it/get_it.dart';
@@ -316,6 +318,14 @@ class _PaymentMethodFormState extends State<_PaymentMethodForm> {
 
     if (widget.existing == null) {
       final methods = await db.getPaymentMethods();
+
+      // 무료 플랜 한도 체크
+      final isSubscribed = GetIt.I<SubscriptionService>().isCloudEntitled;
+      if (!isSubscribed && methods.length >= 5) {
+        if (mounted) _showLimitDialog();
+        return;
+      }
+
       await db.createPaymentMethod(
         PaymentMethodsCompanion(
           type: Value(_type),
@@ -343,5 +353,32 @@ class _PaymentMethodFormState extends State<_PaymentMethodForm> {
     }
 
     if (mounted) Navigator.of(context).pop();
+  }
+
+  void _showLimitDialog() {
+    showDialog<void>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text('subscription.limit_payment_title'.tr()),
+        content: Text('subscription.limit_payment_msg'.tr()),
+        actions: [
+          OutlinedButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: Text('common.cancel'.tr()),
+          ),
+          FilledButton(
+            onPressed: () {
+              Navigator.of(ctx).pop();
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (_) => const SubscriptionScreen(),
+                ),
+              );
+            },
+            child: Text('subscription.upgrade_plan'.tr()),
+          ),
+        ],
+      ),
+    );
   }
 }

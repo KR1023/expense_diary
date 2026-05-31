@@ -238,6 +238,14 @@ class LocalDatabase extends _$LocalDatabase {
         .get();
   }
 
+  Future<int> countActiveRecurringExpenses() async {
+    final count = recurringExpenses.id.count();
+    final query = selectOnly(recurringExpenses)
+      ..addColumns([count])
+      ..where(recurringExpenses.isActive.equals(true));
+    return (await query.getSingle()).read(count) ?? 0;
+  }
+
   Future<int> createRecurringExpense(RecurringExpensesCompanion data) =>
       into(recurringExpenses).insert(data);
 

@@ -3,6 +3,8 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:expense_diary/component/category_select.dart';
 import 'package:expense_diary/component/common/thousands_formatter.dart';
 import 'package:expense_diary/component/common/toast.dart';
+import 'package:expense_diary/core/subscription/subscription_service.dart';
+import 'package:expense_diary/screen/subscription_screen.dart';
 import 'package:expense_diary/component/common/app_background.dart';
 import 'package:expense_diary/component/payment_method_select.dart';
 import 'package:expense_diary/const/app_colors.dart';
@@ -57,6 +59,33 @@ class _RecurringExpenseFormScreenState
     _categoryId = e?.categoryId;
     _paymentMethodId = e?.paymentMethodId;
     if (e != null) _loadExistingRelations(e);
+  }
+
+  void _showLimitDialog() {
+    showDialog<void>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text('subscription.limit_recurring_title'.tr()),
+        content: Text('subscription.limit_recurring_msg'.tr()),
+        actions: [
+          OutlinedButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: Text('common.cancel'.tr()),
+          ),
+          FilledButton(
+            onPressed: () {
+              Navigator.of(ctx).pop();
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (_) => const SubscriptionScreen(),
+                ),
+              );
+            },
+            child: Text('subscription.upgrade_plan'.tr()),
+          ),
+        ],
+      ),
+    );
   }
 
   Future<void> _loadExistingRelations(RecurringExpense e) async {
@@ -290,6 +319,19 @@ class _RecurringExpenseFormScreenState
     final now = DateTime.now();
     final amount = ThousandsFormatter.parse(_amountCtrl.text.trim());
     final endDate = _noEndDate ? null : _endDate;
+
+    // 무료 플랜 한도 체크 (추가 시에만)
+    if (widget.existing == null) {
+      final isSubscribed =
+          GetIt.I<SubscriptionService>().isCloudEntitled;
+      if (!isSubscribed) {
+        final count = await db.countActiveRecurringExpenses();
+        if (count >= 10) {
+          if (mounted) _showLimitDialog();
+          return;
+        }
+      }
+    }
 
     if (widget.existing == null) {
       await db.createRecurringExpense(
