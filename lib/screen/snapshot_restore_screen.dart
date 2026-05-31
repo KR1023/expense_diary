@@ -89,9 +89,10 @@ class _SnapshotRestoreScreenState extends State<SnapshotRestoreScreen> {
     } on FirebaseException catch (e) {
       if (!mounted) return;
       _showSnackBar(_firebaseMessage(e));
-    } catch (e) {
+    } catch (e, st) {
+      debugPrint('restore error: $e\n$st');
       if (!mounted) return;
-      _showSnackBar('복원에 실패했습니다. (${e.runtimeType})');
+      _showSnackBar('복원에 실패했습니다. $e');
     } finally {
       if (mounted) {
         setState(() {

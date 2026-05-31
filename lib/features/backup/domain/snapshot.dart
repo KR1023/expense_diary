@@ -70,10 +70,13 @@ class SnapshotPayload {
           .map(_canonicalizeMap)
           .toList(growable: false),
       'categories': categories.map(_canonicalizeMap).toList(growable: false),
-      'paymentMethods':
-          paymentMethods.map(_canonicalizeMap).toList(growable: false),
-      'recurringExpenses':
-          recurringExpenses.map(_canonicalizeMap).toList(growable: false),
+      // 빈 목록은 생략 — 기존 백업과 해시 호환성 유지
+      if (paymentMethods.isNotEmpty)
+        'paymentMethods':
+            paymentMethods.map(_canonicalizeMap).toList(growable: false),
+      if (recurringExpenses.isNotEmpty)
+        'recurringExpenses':
+            recurringExpenses.map(_canonicalizeMap).toList(growable: false),
       'settings': _canonicalizeMap(settings),
     };
   }
@@ -98,7 +101,7 @@ class SnapshotPayload {
   int sizeBytes() => utf8Bytes().length;
 
   static List<Map<String, dynamic>> _listOfMaps(dynamic value) {
-    if (value is! List) return const [];
+    if (value is! List) return [];
     return value
         .map<Map<String, dynamic>>((item) => _mapOfDynamic(item))
         .toList();

@@ -238,9 +238,15 @@ class SnapshotService {
     return ai.compareTo(bi);
   }
 
+  /// Drift 기본 직렬화는 DateTime을 unix timestamp(ms, int)로 저장한다.
+  /// String(ISO 8601), DateTime 객체, int/double 모두 처리한다.
   DateTime _parseDateTime(dynamic value) {
     if (value is DateTime) return value;
     if (value is String && value.isNotEmpty) return DateTime.parse(value);
+    if (value is int) return DateTime.fromMillisecondsSinceEpoch(value);
+    if (value is double) {
+      return DateTime.fromMillisecondsSinceEpoch(value.toInt());
+    }
     return DateTime.now();
   }
 
@@ -248,6 +254,10 @@ class SnapshotService {
     if (value == null) return null;
     if (value is DateTime) return value;
     if (value is String && value.isNotEmpty) return DateTime.tryParse(value);
+    if (value is int) return DateTime.fromMillisecondsSinceEpoch(value);
+    if (value is double) {
+      return DateTime.fromMillisecondsSinceEpoch(value.toInt());
+    }
     return null;
   }
 }
