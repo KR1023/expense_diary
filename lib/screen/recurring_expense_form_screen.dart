@@ -52,6 +52,32 @@ class _RecurringExpenseFormScreenState
     _startDate = e?.startDate;
     _endDate = e?.endDate;
     _noEndDate = e?.endDate == null;
+    _categoryId = e?.categoryId;
+    _paymentMethodId = e?.paymentMethodId;
+    if (e != null) _loadExistingRelations(e);
+  }
+
+  Future<void> _loadExistingRelations(RecurringExpense e) async {
+    final db = GetIt.I<LocalDatabase>();
+
+    CategoryData? category;
+    if (e.categoryId != null) {
+      final all = await db.select(db.category).get();
+      category = all.where((c) => c.id == e.categoryId).firstOrNull;
+    }
+
+    PaymentMethod? paymentMethod;
+    if (e.paymentMethodId != null) {
+      final all = await db.getPaymentMethods();
+      paymentMethod = all.where((m) => m.id == e.paymentMethodId).firstOrNull;
+    }
+
+    if (mounted) {
+      setState(() {
+        _category = category;
+        _paymentMethod = paymentMethod;
+      });
+    }
   }
 
   @override
@@ -157,6 +183,7 @@ class _RecurringExpenseFormScreenState
                             selectedValue: _category,
                             onSavedCategory: (val) {
                               _categoryId = val?.id;
+                              _category = val;
                             },
                           ),
                           const SizedBox(height: 20),
@@ -165,6 +192,7 @@ class _RecurringExpenseFormScreenState
                             selectedValue: _paymentMethod,
                             onSaved: (val) {
                               _paymentMethodId = val?.id;
+                              _paymentMethod = val;
                             },
                           ),
                           const SizedBox(height: 20),

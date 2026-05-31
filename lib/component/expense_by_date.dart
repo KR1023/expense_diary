@@ -247,15 +247,17 @@ class _ExpenseByDateState extends State<ExpenseByDate> {
                                   snapshot.data!.map((row) {
                                     final expense = row['expenses'];
                                     final category = row['category'];
+                                    final paymentMethod = row['paymentMethod'];
                                     return Padding(
                                       padding: const EdgeInsets.only(bottom: 12),
                                       child: ExpenseCard(
                                         expenseId: expense.id,
                                         category: category,
+                                        paymentMethod: paymentMethod,
                                         expenseName: expense.expenseName,
                                         expense: expense.expense,
                                         expenseDate: expense.expenseDate,
-                                        expenseDetail: expense.expenseDetail!,
+                                        expenseDetail: expense.expenseDetail ?? '',
                                       ),
                                     );
                                   }).toList(),
