@@ -16,6 +16,7 @@ class ExpenseCard extends StatelessWidget {
   final int expense;
   final DateTime expenseDate;
   final String expenseDetail;
+  final bool isRecurring;
 
   const ExpenseCard({
     required this.expenseId,
@@ -25,6 +26,7 @@ class ExpenseCard extends StatelessWidget {
     required this.expense,
     required this.expenseDate,
     required this.expenseDetail,
+    this.isRecurring = false,
   });
 
   @override
@@ -102,13 +104,26 @@ class ExpenseCard extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 4),
-                  Text(
-                    expenseDateFormat.format(expenseDate),
-                    overflow: TextOverflow.ellipsis,
-                    maxLines: 1,
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: Colors.grey.shade600,
-                    ),
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      if (isRecurring) ...[
+                        Icon(
+                          Icons.repeat_rounded,
+                          size: 12,
+                          color: AppColors.primary.withValues(alpha: 0.7),
+                        ),
+                        const SizedBox(width: 3),
+                      ],
+                      Text(
+                        expenseDateFormat.format(expenseDate),
+                        overflow: TextOverflow.ellipsis,
+                        maxLines: 1,
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: Colors.grey.shade600,
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),

@@ -258,6 +258,7 @@ class _ExpenseByDateState extends State<ExpenseByDate> {
                                         expense: expense.expense,
                                         expenseDate: expense.expenseDate,
                                         expenseDetail: expense.expenseDetail ?? '',
+                                        isRecurring: expense.recurringExpenseId != null,
                                       ),
                                     );
                                   }).toList(),

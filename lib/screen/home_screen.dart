@@ -168,6 +168,7 @@ class HomeScreen extends StatelessWidget {
                           expense: expense.expense,
                           expenseDate: expense.expenseDate,
                           expenseDetail: expense.expenseDetail ?? '',
+                          isRecurring: expense.recurringExpenseId != null,
                         ),
                       );
                     },
