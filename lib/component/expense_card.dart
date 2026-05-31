@@ -11,6 +11,7 @@ import 'package:expense_diary/service/app_settings.dart';
 class ExpenseCard extends StatelessWidget {
   final int expenseId;
   final CategoryData? category;
+  final PaymentMethod? paymentMethod;
   final String expenseName;
   final int expense;
   final DateTime expenseDate;
@@ -19,6 +20,7 @@ class ExpenseCard extends StatelessWidget {
   const ExpenseCard({
     required this.expenseId,
     this.category,
+    this.paymentMethod,
     required this.expenseName,
     required this.expense,
     required this.expenseDate,
@@ -45,6 +47,7 @@ class ExpenseCard extends StatelessWidget {
                     expenseName: expenseName,
                     expenseDate: expenseDate,
                     category: category,
+                    paymentMethod: paymentMethod,
                     expense: expense,
                     detail: expenseDetail,
                   ),
@@ -56,30 +59,26 @@ class ExpenseCard extends StatelessWidget {
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 10,
-                  vertical: 6,
-                ),
-                decoration: BoxDecoration(
-                  color: Theme.of(
-                    context,
-                  ).colorScheme.primary.withValues(alpha: isDark ? 0.24 : 0.08),
-                  border: Border.all(
-                    color: Theme.of(context).colorScheme.primary.withValues(
-                      alpha: isDark ? 0.42 : 0.15,
-                    ),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _Badge(
+                    label: category != null
+                        ? category!.categoryName
+                        : 'common.unclassified'.tr(),
+                    isDark: isDark,
+                    context: context,
                   ),
-                  borderRadius: BorderRadius.circular(999),
-                ),
-                child: Text(
-                  category != null
-                      ? category!.categoryName
-                      : 'common.unclassified'.tr(),
-                  overflow: TextOverflow.ellipsis,
-                  maxLines: 1,
-                  style: Theme.of(context).textTheme.labelLarge,
-                ),
+                  if (paymentMethod != null) ...[
+                    const SizedBox(height: 4),
+                    _Badge(
+                      label: paymentMethod!.name,
+                      isDark: isDark,
+                      context: context,
+                      muted: true,
+                    ),
+                  ],
+                ],
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -116,6 +115,43 @@ class ExpenseCard extends StatelessWidget {
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+class _Badge extends StatelessWidget {
+  const _Badge({
+    required this.label,
+    required this.isDark,
+    required this.context,
+    this.muted = false,
+  });
+
+  final String label;
+  final bool isDark;
+  final BuildContext context;
+  final bool muted;
+
+  @override
+  Widget build(BuildContext _) {
+    final color = muted
+        ? Theme.of(context).colorScheme.outline
+        : Theme.of(context).colorScheme.primary;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: isDark ? 0.2 : 0.08),
+        border: Border.all(color: color.withValues(alpha: isDark ? 0.36 : 0.15)),
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Text(
+        label,
+        overflow: TextOverflow.ellipsis,
+        maxLines: 1,
+        style: Theme.of(context).textTheme.labelSmall?.copyWith(
+              color: muted ? AppColors.mutedOf(context) : null,
+            ),
       ),
     );
   }

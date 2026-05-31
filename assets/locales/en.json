@@ -3,6 +3,7 @@
     "expense": "Expense",
     "history": "History",
     "category": "Category",
+    "fixed": "Fixed",
     "stats": "Stats",
     "settings": "Settings"
   },
@@ -226,6 +227,60 @@
       "name_required": "Please enter an expense name.",
       "amount_required": "Please enter an amount."
     }
+  },
+  "payment_method": {
+    "manage_title": "Payment Methods",
+    "manage_subtitle": "Manage your cards, cash, bank accounts, and mobile pay.",
+    "select_label": "Payment Method",
+    "select_hint": "Select payment method",
+    "add_title": "Add Payment Method",
+    "edit_title": "Edit Payment Method",
+    "name_label": "Name",
+    "name_hint": "Enter a name.",
+    "name_required": "Please enter a name.",
+    "memo_label": "Memo",
+    "memo_hint": "Memo (optional)",
+    "type_label": "Type",
+    "empty": "No payment methods registered.",
+    "delete_confirm": "Delete this payment method?\nPast expenses will be kept.",
+    "type": {
+      "cash": "Cash",
+      "card": "Card",
+      "bank": "Bank",
+      "mobilePay": "Mobile Pay",
+      "other": "Other"
+    }
+  },
+  "recurring_expense": {
+    "title": "Fixed Expenses",
+    "subtitle": "Manage your recurring fixed expenses.",
+    "add_title": "Add Fixed Expense",
+    "edit_title": "Edit Fixed Expense",
+    "empty": "No fixed expenses registered.",
+    "section_active": "Active",
+    "section_inactive": "Inactive",
+    "next_run": "Next: {date}",
+    "deactivate": "Deactivate",
+    "activate": "Activate",
+    "deactivate_confirm": "Deactivate this fixed expense?\nAlready-generated expenses will be kept.",
+    "name_label": "Name",
+    "name_hint": "Enter expense name.",
+    "name_required": "Please enter a name.",
+    "amount_label": "Amount",
+    "amount_required": "Please enter an amount.",
+    "frequency_label": "Frequency",
+    "start_date_label": "Start Date",
+    "end_date_label": "End Date",
+    "no_end_date": "No end date",
+    "detail_label": "Memo",
+    "frequency": {
+      "daily": "Daily",
+      "weekly": "Weekly",
+      "monthly": "Monthly",
+      "yearly": "Yearly"
+    },
+    "start_date_required": "Please select a start date.",
+    "end_date_before_start": "End date cannot be before start date."
   },
   "common": {
     "cancel": "Cancel",

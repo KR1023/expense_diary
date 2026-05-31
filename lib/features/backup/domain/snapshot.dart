@@ -54,10 +54,14 @@ class SnapshotPayload {
     required this.transactions,
     required this.categories,
     required this.settings,
+    this.paymentMethods = const [],
+    this.recurringExpenses = const [],
   });
 
   final List<Map<String, dynamic>> transactions;
   final List<Map<String, dynamic>> categories;
+  final List<Map<String, dynamic>> paymentMethods;
+  final List<Map<String, dynamic>> recurringExpenses;
   final Map<String, dynamic> settings;
 
   Map<String, dynamic> toJson() {
@@ -66,6 +70,10 @@ class SnapshotPayload {
           .map(_canonicalizeMap)
           .toList(growable: false),
       'categories': categories.map(_canonicalizeMap).toList(growable: false),
+      'paymentMethods':
+          paymentMethods.map(_canonicalizeMap).toList(growable: false),
+      'recurringExpenses':
+          recurringExpenses.map(_canonicalizeMap).toList(growable: false),
       'settings': _canonicalizeMap(settings),
     };
   }
@@ -74,6 +82,9 @@ class SnapshotPayload {
     return SnapshotPayload(
       transactions: _listOfMaps(json['transactions']),
       categories: _listOfMaps(json['categories']),
+      // 이전 백업에는 없을 수 있으므로 기본값 빈 목록
+      paymentMethods: _listOfMaps(json['paymentMethods']),
+      recurringExpenses: _listOfMaps(json['recurringExpenses']),
       settings: _mapOfDynamic(json['settings']),
     );
   }

@@ -9,6 +9,7 @@ import 'package:expense_diary/screen/subscription_screen.dart';
 import 'package:expense_diary/core/time/week_key.dart';
 import 'package:expense_diary/features/backup/data/backup_metadata_keys.dart';
 import 'package:expense_diary/features/backup/data/snapshot_service.dart';
+import 'package:expense_diary/screen/payment_method_screen.dart';
 import 'package:expense_diary/screen/snapshot_restore_screen.dart';
 import 'package:expense_diary/screen/login_screen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -432,6 +433,24 @@ class _ConfigScreenState extends State<ConfigScreen> {
                             ),
                           ),
                         ],
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    Card(
+                      margin: EdgeInsets.zero,
+                      child: ListTile(
+                        leading: Icon(
+                          Icons.credit_card_outlined,
+                          color: AppColors.primary,
+                        ),
+                        title: Text('payment_method.manage_title'.tr()),
+                        subtitle: Text('payment_method.manage_subtitle'.tr()),
+                        trailing: const Icon(Icons.chevron_right),
+                        onTap: () => Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (_) => const PaymentMethodScreen(),
+                          ),
+                        ),
                       ),
                     ),
                     const SizedBox(height: 12),

@@ -1,8 +1,10 @@
+import 'package:drift/drift.dart' hide Column;
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:expense_diary/component/label_field.dart';
 import 'package:expense_diary/component/expense_screen_header.dart';
 import 'package:expense_diary/component/category_select.dart';
+import 'package:expense_diary/component/payment_method_select.dart';
 import 'package:get_it/get_it.dart';
 import 'package:expense_diary/database/drift_database.dart';
 import 'package:expense_diary/component/common/app_background.dart';
@@ -15,6 +17,7 @@ class DetailScreen extends StatefulWidget {
   final DateTime expenseDate;
   final int expense;
   final CategoryData? category;
+  final PaymentMethod? paymentMethod;
   final String detail;
 
   DetailScreen({
@@ -23,6 +26,7 @@ class DetailScreen extends StatefulWidget {
     required this.expenseDate,
     required this.expense,
     this.category,
+    this.paymentMethod,
     required this.detail,
   });
 
@@ -39,6 +43,8 @@ class _DetailScreenState extends State<DetailScreen> {
   int? expense;
   int? categoryId;
   CategoryData? category;
+  int? paymentMethodId;
+  PaymentMethod? paymentMethod;
   String? detail;
 
   @override
@@ -47,8 +53,10 @@ class _DetailScreenState extends State<DetailScreen> {
     expenseName = widget.expenseName;
     expenseDate = widget.expenseDate;
     expense = widget.expense;
-    categoryId = widget.category != null ? widget.category!.id : null;
-    category = widget.category != null ? widget.category : null;
+    categoryId = widget.category?.id;
+    category = widget.category;
+    paymentMethodId = widget.paymentMethod?.id;
+    paymentMethod = widget.paymentMethod;
     detail = widget.detail;
 
     super.initState();
@@ -130,11 +138,14 @@ class _DetailScreenState extends State<DetailScreen> {
                           CategorySelect(
                             selectedValue: category,
                             onSavedCategory: (CategoryData? val) {
-                              if (val != null) {
-                                categoryId = val.id;
-                              } else {
-                                categoryId = null;
-                              }
+                              categoryId = val?.id;
+                            },
+                          ),
+                          const SizedBox(height: 20),
+                          PaymentMethodSelect(
+                            selectedValue: paymentMethod,
+                            onSaved: (val) {
+                              paymentMethodId = val?.id;
                             },
                           ),
                           const SizedBox(height: 20),
@@ -187,13 +198,14 @@ class _DetailScreenState extends State<DetailScreen> {
       formKey.currentState!.save();
 
       await GetIt.I<LocalDatabase>().updateExpense(
-        Expense(
-          id: expenseId!,
-          expenseName: expenseName!,
-          expenseDate: expenseDate!,
-          expense: expense!,
-          categoryId: categoryId,
-          expenseDetail: detail!,
+        ExpensesCompanion(
+          id: Value(expenseId!),
+          expenseName: Value(expenseName!),
+          expenseDate: Value(expenseDate!),
+          expense: Value(expense!),
+          categoryId: Value(categoryId),
+          paymentMethodId: Value(paymentMethodId),
+          expenseDetail: Value(detail!),
         ),
       );
 

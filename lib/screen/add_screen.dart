@@ -7,6 +7,7 @@ import 'package:drift/drift.dart' hide Column;
 import 'package:get_it/get_it.dart';
 import 'package:expense_diary/database/drift_database.dart';
 import 'package:expense_diary/component/category_select.dart';
+import 'package:expense_diary/component/payment_method_select.dart';
 import 'package:expense_diary/component/common/app_background.dart';
 import 'package:expense_diary/const/app_colors.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -23,6 +24,7 @@ class _AddScreenState extends State<AddScreen> {
   DateTime? expenseDate;
   int? expense;
   int? categoryId;
+  int? paymentMethodId;
   String? detail;
 
   @override
@@ -96,11 +98,13 @@ class _AddScreenState extends State<AddScreen> {
                           const SizedBox(height: 24),
                           CategorySelect(
                             onSavedCategory: (CategoryData? val) {
-                              if (val != null) {
-                                categoryId = val.id;
-                              } else {
-                                categoryId = null;
-                              }
+                              categoryId = val?.id;
+                            },
+                          ),
+                          const SizedBox(height: 20),
+                          PaymentMethodSelect(
+                            onSaved: (val) {
+                              paymentMethodId = val?.id;
                             },
                           ),
                           const SizedBox(height: 20),
@@ -158,6 +162,7 @@ class _AddScreenState extends State<AddScreen> {
           expenseDate: Value(expenseDate!),
           expense: Value(expense!),
           categoryId: Value(categoryId),
+          paymentMethodId: Value(paymentMethodId),
           expenseDetail: Value(detail!),
         ),
       );

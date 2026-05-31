@@ -145,6 +145,7 @@ class HomeScreen extends StatelessWidget {
                     itemBuilder: (context, index) {
                       final expense = data[index]['expenses'];
                       final category = data[index]['category'];
+                      final paymentMethod = data[index]['paymentMethod'];
 
                       return TweenAnimationBuilder<double>(
                         tween: Tween(begin: 0, end: 1),
@@ -162,10 +163,11 @@ class HomeScreen extends StatelessWidget {
                         child: ExpenseCard(
                           expenseId: expense.id,
                           category: category,
+                          paymentMethod: paymentMethod,
                           expenseName: expense.expenseName,
                           expense: expense.expense,
                           expenseDate: expense.expenseDate,
-                          expenseDetail: expense.expenseDetail!,
+                          expenseDetail: expense.expenseDetail ?? '',
                         ),
                       );
                     },
@@ -181,6 +183,7 @@ class HomeScreen extends StatelessWidget {
 
   FloatingActionButton floatingActionButton(BuildContext context) {
     return FloatingActionButton.extended(
+      heroTag: 'home_fab',
       onPressed: () {
         Navigator.push(
           context,

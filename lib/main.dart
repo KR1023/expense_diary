@@ -1,4 +1,5 @@
 import 'package:expense_diary/auth/auth_repository.dart';
+import 'package:expense_diary/core/recurring/recurring_expense_service.dart';
 import 'package:expense_diary/core/subscription/subscription_service.dart';
 import 'package:expense_diary/data/firestore/firestore_transaction_repository.dart';
 import 'package:expense_diary/features/backup/data/snapshot_service.dart';
@@ -74,6 +75,9 @@ void main() async {
   GetIt.I.registerSingleton<ReportPdfService>(
     ReportPdfService(localDatabase: database),
   );
+
+  // 앱 시작 시 due된 반복 지출 생성
+  RecurringExpenseService.generateDueExpenses();
 
   runApp(
     EasyLocalization(

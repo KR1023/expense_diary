@@ -3,6 +3,7 @@
     "expense": "지출",
     "history": "지출 내역",
     "category": "분류",
+    "fixed": "고정 지출",
     "stats": "통계",
     "settings": "설정"
   },
@@ -226,6 +227,60 @@
       "name_required": "지출명을 입력해 주세요.",
       "amount_required": "금액을 입력해 주세요."
     }
+  },
+  "payment_method": {
+    "manage_title": "결제 수단 관리",
+    "manage_subtitle": "자주 사용하는 카드, 현금, 계좌, 간편결제를 관리합니다.",
+    "select_label": "결제 수단",
+    "select_hint": "결제 수단 선택",
+    "add_title": "결제 수단 추가",
+    "edit_title": "결제 수단 수정",
+    "name_label": "이름",
+    "name_hint": "이름을 입력하세요.",
+    "name_required": "이름을 입력해 주세요.",
+    "memo_label": "메모",
+    "memo_hint": "메모 (선택)",
+    "type_label": "유형",
+    "empty": "등록된 결제 수단이 없습니다.",
+    "delete_confirm": "이 결제 수단을 삭제하시겠습니까?\n과거 지출 내역은 유지됩니다.",
+    "type": {
+      "cash": "현금",
+      "card": "카드",
+      "bank": "계좌",
+      "mobilePay": "간편결제",
+      "other": "기타"
+    }
+  },
+  "recurring_expense": {
+    "title": "고정 지출",
+    "subtitle": "반복되는 고정 지출을 관리합니다.",
+    "add_title": "고정 지출 추가",
+    "edit_title": "고정 지출 수정",
+    "empty": "등록된 고정 지출이 없습니다.",
+    "section_active": "활성",
+    "section_inactive": "비활성",
+    "next_run": "다음 생성일: {date}",
+    "deactivate": "비활성화",
+    "activate": "활성화",
+    "deactivate_confirm": "이 고정 지출을 비활성화하시겠습니까?\n이미 생성된 지출 내역은 유지됩니다.",
+    "name_label": "이름",
+    "name_hint": "고정 지출명을 입력하세요.",
+    "name_required": "이름을 입력해 주세요.",
+    "amount_label": "금액",
+    "amount_required": "금액을 입력해 주세요.",
+    "frequency_label": "반복 주기",
+    "start_date_label": "시작일",
+    "end_date_label": "종료일",
+    "no_end_date": "무기한",
+    "detail_label": "메모",
+    "frequency": {
+      "daily": "매일",
+      "weekly": "매주",
+      "monthly": "매월",
+      "yearly": "매년"
+    },
+    "start_date_required": "시작일을 선택해 주세요.",
+    "end_date_before_start": "종료일이 시작일보다 빠를 수 없습니다."
   },
   "common": {
     "cancel": "취소",

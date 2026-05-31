@@ -1,4 +1,5 @@
 import 'package:expense_diary/screen/calendar_screen.dart';
+import 'package:expense_diary/screen/recurring_expense_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:expense_diary/screen/home_screen.dart';
 import 'package:expense_diary/screen/category_screen.dart';
@@ -20,6 +21,7 @@ class _RootScreenState extends State<RootScreen> {
     HomeScreen(),
     CalendarScreen(),
     CategoryScreen(),
+    RecurringExpenseScreen(),
     StatisticsTabScreen(),
     ConfigScreen(),
   ];
@@ -60,6 +62,11 @@ class _RootScreenState extends State<RootScreen> {
           icon: const Icon(Icons.topic_outlined),
           selectedIcon: const Icon(Icons.topic),
           label: 'tab.category'.tr(),
+        ),
+        NavigationDestination(
+          icon: const Icon(Icons.repeat_outlined),
+          selectedIcon: const Icon(Icons.repeat),
+          label: 'tab.fixed'.tr(),
         ),
         NavigationDestination(
           icon: const Icon(Icons.bar_chart_outlined),
