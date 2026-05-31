@@ -5,6 +5,7 @@ import 'package:drift/native.dart';
 import 'package:expense_diary/model/category.dart';
 import 'package:expense_diary/model/category_expense.dart';
 import 'package:expense_diary/model/expense.dart';
+import 'package:expense_diary/model/payment_method_expense.dart';
 import 'package:expense_diary/model/payment_method.dart';
 import 'package:expense_diary/model/recurring_expense.dart';
 import 'package:path/path.dart' as p;
@@ -93,6 +94,75 @@ class LocalDatabase extends _$LocalDatabase {
           ..addColumns([totalExpense])
           ..where(expenses.expenseDate.isBetweenValues(startDate, endDate));
     return query.watchSingle().map((row) => row.read(totalExpense) ?? 0);
+  }
+
+  Stream<int> countMonthExpenses(DateTime selectedDate) {
+    final start = DateTime(selectedDate.year, selectedDate.month, 1);
+    final end = DateTime(selectedDate.year, selectedDate.month + 1, 1);
+    final count = expenses.id.count();
+    final query =
+        selectOnly(expenses)
+          ..addColumns([count])
+          ..where(expenses.expenseDate.isBetweenValues(start, end));
+    return query.watchSingle().map((row) => row.read(count) ?? 0);
+  }
+
+  Stream<List<PaymentMethodExpense>> watchMonthlyPaymentMethodExpense(
+    DateTime selectedDate,
+  ) {
+    final start = DateTime(selectedDate.year, selectedDate.month, 1);
+    final end = DateTime(selectedDate.year, selectedDate.month + 1, 1);
+
+    final query =
+        selectOnly(expenses).join([
+            leftOuterJoin(
+              paymentMethods,
+              paymentMethods.id.equalsExp(expenses.paymentMethodId),
+            ),
+          ])
+          ..addColumns([
+            paymentMethods.name,
+            expenses.expense.sum(),
+            expenses.paymentMethodId,
+          ])
+          ..where(expenses.expenseDate.isBetweenValues(start, end))
+          ..groupBy([expenses.paymentMethodId]);
+
+    return query.watch().map((rows) {
+      return rows.map((row) {
+        return PaymentMethodExpense(
+          name: row.read<String>(paymentMethods.name) ?? '',
+          total: row.read<int>(expenses.expense.sum()) ?? 0,
+          paymentMethodId: row.read<int>(expenses.paymentMethodId),
+        );
+      }).toList();
+    });
+  }
+
+  Stream<List<Map<String, dynamic>>> watchMonthExpensesByPaymentMethod(
+    DateTime selectedDate,
+    int? paymentMethodId,
+  ) {
+    final start = DateTime(selectedDate.year, selectedDate.month, 1);
+    final end = DateTime(selectedDate.year, selectedDate.month + 1, 1);
+
+    final query = select(expenses).join([
+      leftOuterJoin(category, category.id.equalsExp(expenses.categoryId)),
+    ])
+      ..where(
+        expenses.expenseDate.isBetweenValues(start, end) &
+            (paymentMethodId != null
+                ? expenses.paymentMethodId.equals(paymentMethodId)
+                : expenses.paymentMethodId.isNull()),
+      )
+      ..orderBy([OrderingTerm.desc(expenses.expenseDate)]);
+
+    return query.watch().map((rows) {
+      return rows.map((row) => {
+        'expense': row.readTable(expenses),
+        'category': row.readTableOrNull(category),
+      }).toList();
+    });
   }
 
   Stream<List<CategoryExpense>> watchMonthlyCategoryExpense(
