@@ -29,6 +29,16 @@ class _PaymentMethodSelectState extends State<PaymentMethodSelect> {
   }
 
   @override
+  void didUpdateWidget(PaymentMethodSelect oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.selectedValue != oldWidget.selectedValue) {
+      setState(() {
+        _selectedValue = widget.selectedValue;
+      });
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     return StreamBuilder<List<PaymentMethod>>(
       stream: GetIt.I<LocalDatabase>().watchPaymentMethods(),

@@ -29,6 +29,16 @@ class _CategorySelectState extends State<CategorySelect> {
   }
 
   @override
+  void didUpdateWidget(CategorySelect oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.selectedValue != oldWidget.selectedValue) {
+      setState(() {
+        _selectedValue = widget.selectedValue;
+      });
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     return StreamBuilder<List<CategoryData>>(
       stream: GetIt.I<LocalDatabase>().watchCategory(null),
