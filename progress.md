@@ -192,6 +192,60 @@ Android 실기기에서 테스트 광고가 표시됨. 원인은 Android 배너 
 
 ---
 
+### 8. 결제 수단 + 고정 지출 + 6탭 네비게이션 (`725050b`)
+
+**배경**
+지출 입력에 결제 수단 선택 기능을 추가하고, 반복되는 고정 지출을 자동으로 실제 지출 내역에 반영하는 기능 구현. 탭 구조도 5개 → 6개로 확장.
+
+**DB 변경 (스키마 버전 1 → 2)**
+- `PaymentMethods` 테이블 추가 (type, name, memo, sortOrder, isArchived, createdAt, updatedAt)
+- `RecurringExpenses` 테이블 추가 (name, amount, frequency, interval, startDate, endDate, nextRunDate, isActive, ...)
+- `Expenses` 테이블에 `paymentMethodId`, `recurringExpenseId`, `recurringOccurrenceDate` 컬럼 추가
+- 기존 사용자 보호를 위한 마이그레이션 작성 (`addColumn` + `createTable`)
+
+**결제 수단**
+- 유형: cash / card / bank / mobilePay / other
+- `isArchived` 방식으로 삭제 처리 (과거 지출 참조 보호)
+- `ReorderableListView`로 드래그 순서 변경 지원
+- 설정 화면 → 결제 수단 관리 진입
+- 지출 추가/수정 화면에 `PaymentMethodSelect` 컴포넌트 추가
+- `ExpenseCard`에 결제 수단 배지 표시
+
+**고정 지출**
+- `RecurringSchedule`: 주기별(daily/weekly/monthly/yearly) 다음 실행일 계산, 월말 처리(clamp to last day)
+- `RecurringExpenseService`: nextRunDate <= today인 항목을 실제 Expense로 생성 (최대 100건, 중복 방지)
+- 자동 생성 타이밍: 앱 시작, 고정 지출 탭 진입, 폼 저장 직후
+- 반복 규칙 수정 → 앞으로 생성될 지출에만 반영 (이미 생성된 지출은 유지)
+- 비활성화(isActive=false) 방식으로 삭제 처리
+
+**탭 구조 변경**
+`지출 / 지출 내역 / 분류 / 고정 지출 / 통계 / 설정` (5탭 → 6탭)
+IndexedStack FAB hero 태그 충돌 방지를 위해 각 FAB에 고유 heroTag 지정
+
+**백업/복원 확장**
+- `SnapshotPayload`에 `paymentMethods`, `recurringExpenses` 포함
+- 복원 시 FK 순서 준수 (expenses → recurringExpenses → category → paymentMethods 삭제 후 역순 삽입)
+- 이전 백업 하위 호환: 키 없으면 빈 목록으로 처리
+- Drift snake_case / camelCase 키 양쪽 처리
+
+**관련 파일**
+- `lib/model/payment_method.dart` (신규)
+- `lib/model/recurring_expense.dart` (신규)
+- `lib/model/expense.dart`
+- `lib/database/drift_database.dart`
+- `lib/core/recurring/recurring_schedule.dart` (신규)
+- `lib/core/recurring/recurring_expense_service.dart` (신규)
+- `lib/component/payment_method_select.dart` (신규)
+- `lib/component/expense_card.dart`
+- `lib/screen/payment_method_screen.dart` (신규)
+- `lib/screen/recurring_expense_screen.dart` (신규)
+- `lib/screen/recurring_expense_form_screen.dart` (신규)
+- `lib/screen/add_screen.dart`, `detail_screen.dart`, `home_screen.dart`, `config_screen.dart`, `root_screen.dart`
+- `lib/features/backup/domain/snapshot.dart`
+- `lib/features/backup/data/snapshot_service.dart`
+
+---
+
 ## 문서
 
 | 파일 | 내용 |

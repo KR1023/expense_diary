@@ -8,11 +8,13 @@ import 'package:easy_localization/easy_localization.dart';
 class CategorySelect extends StatefulWidget {
   final CategoryData? selectedValue;
   final FormFieldSetter<CategoryData> onSavedCategory;
+  final bool showIcon;
 
   const CategorySelect({
     super.key,
     this.selectedValue,
     required this.onSavedCategory,
+    this.showIcon = true,
   });
 
   @override
@@ -63,7 +65,7 @@ class _CategorySelectState extends State<CategorySelect> {
               child: SelectField<CategoryData>(
                 label: 'category.select_label'.tr(),
                 hint: 'category.select_hint'.tr(),
-                icon: Icons.category_outlined,
+                icon: widget.showIcon ? Icons.category_outlined : null,
                 value: _selectedValue,
                 options:
                     categories.map((category) {

@@ -93,12 +93,14 @@ class ExpenseScreenHeader extends StatelessWidget {
               onPressed: () async {
                 try {
                   await GetIt.I<LocalDatabase>().removeExpense(id);
-                  showBasicToast(message: 'expense.toast_deleted'.tr());
+                  showToast(context, 'expense.toast_deleted'.tr(),
+                      icon: Icons.delete_outline_rounded);
                   Navigator.pop(context);
                   Navigator.pop(context);
                 } catch (e) {
-                  print(e);
-                  showBasicToast(message: 'error.generic'.tr());
+                  debugPrint(e.toString());
+                  showToast(context, 'error.generic'.tr(),
+                      icon: Icons.error_outline_rounded);
                 }
               },
             ),

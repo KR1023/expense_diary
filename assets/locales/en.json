@@ -42,6 +42,8 @@
     "edit_hint": "Enter a new category name.",
     "duplicate_error": "This category name already exists!",
     "select_label": "Category",
+    "toast_added": "Category added.",
+    "toast_updated": "Category updated.",
     "select_hint": "Select category"
   },
   "category_expense": {
@@ -218,6 +220,7 @@
     "delete_title": "Delete",
     "delete_confirm": "Are you sure you want to delete this item?",
     "toast_added": "Expense added.",
+    "toast_updated": "Expense updated.",
     "toast_deleted": "Deleted.",
     "form": {
       "name": "Expense Name",
@@ -280,7 +283,11 @@
       "yearly": "Yearly"
     },
     "start_date_required": "Please select a start date.",
-    "end_date_before_start": "End date cannot be before start date."
+    "end_date_before_start": "End date cannot be before start date.",
+    "toast_added": "Fixed expense added.",
+    "toast_updated": "Fixed expense updated.",
+    "toast_deactivated": "Fixed expense deactivated.",
+    "toast_activated": "Fixed expense activated."
   },
   "common": {
     "cancel": "Cancel",

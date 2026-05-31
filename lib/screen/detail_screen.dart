@@ -1,4 +1,5 @@
 import 'package:drift/drift.dart' hide Column;
+import 'package:expense_diary/component/common/toast.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:expense_diary/component/label_field.dart';
@@ -124,7 +125,7 @@ class _DetailScreenState extends State<DetailScreen> {
                             isExpense: true,
                             initValue: expense.toString(),
                             onSaved: (String? val) {
-                              expense = int.parse(val!);
+                              expense = int.parse(val!.replaceAll(',', ''));
                             },
                             validator: (String? val) {
                               if (val == '' || val == null) {
@@ -137,6 +138,7 @@ class _DetailScreenState extends State<DetailScreen> {
                           const SizedBox(height: 20),
                           CategorySelect(
                             selectedValue: category,
+                            showIcon: false,
                             onSavedCategory: (CategoryData? val) {
                               categoryId = val?.id;
                             },
@@ -144,6 +146,7 @@ class _DetailScreenState extends State<DetailScreen> {
                           const SizedBox(height: 20),
                           PaymentMethodSelect(
                             selectedValue: paymentMethod,
+                            showIcon: false,
                             onSaved: (val) {
                               paymentMethodId = val?.id;
                             },
@@ -209,6 +212,7 @@ class _DetailScreenState extends State<DetailScreen> {
         ),
       );
 
+      showToast(context, 'expense.toast_updated'.tr());
       Navigator.pop(context);
     }
   }

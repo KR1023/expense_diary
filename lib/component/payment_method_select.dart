@@ -8,11 +8,13 @@ import 'package:easy_localization/easy_localization.dart';
 class PaymentMethodSelect extends StatefulWidget {
   final PaymentMethod? selectedValue;
   final FormFieldSetter<PaymentMethod> onSaved;
+  final bool showIcon;
 
   const PaymentMethodSelect({
     super.key,
     this.selectedValue,
     required this.onSaved,
+    this.showIcon = true,
   });
 
   @override
@@ -52,7 +54,7 @@ class _PaymentMethodSelectState extends State<PaymentMethodSelect> {
               child: SelectField<PaymentMethod>(
                 label: 'payment_method.select_label'.tr(),
                 hint: 'payment_method.select_hint'.tr(),
-                icon: Icons.credit_card_outlined,
+                icon: widget.showIcon ? Icons.credit_card_outlined : null,
                 value: _selectedValue,
                 options: methods.map((m) {
                   return SelectOption<PaymentMethod>(

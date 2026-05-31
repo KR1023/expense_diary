@@ -1,5 +1,5 @@
+import 'package:expense_diary/component/common/thousands_formatter.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:get_it/get_it.dart';
@@ -45,8 +45,11 @@ class _LabelFieldState extends State<LabelField> {
       }
     } else if (widget.initValue != null) {
       if (widget.isDate) {
-        String expenseDate = widget.initValue!.substring(0, 10);
-        _textController.text = expenseDate;
+        _textController.text = widget.initValue!.substring(0, 10);
+      } else if (widget.isExpense) {
+        final num = int.tryParse(widget.initValue!);
+        _textController.text =
+            num != null ? ThousandsFormatter.format(num) : widget.initValue!;
       } else {
         _textController.text = widget.initValue!;
       }
@@ -79,9 +82,7 @@ class _LabelFieldState extends State<LabelField> {
                         ? TextInputType.number
                         : TextInputType.multiline,
                 inputFormatters:
-                    widget.isExpense
-                        ? [FilteringTextInputFormatter.digitsOnly]
-                        : [],
+                    widget.isExpense ? [ThousandsFormatter()] : [],
                 decoration: InputDecoration(
                   suffixText:
                       widget.isExpense

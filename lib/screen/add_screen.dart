@@ -85,7 +85,7 @@ class _AddScreenState extends State<AddScreen> {
                             isExpense: true,
                             initValue: null,
                             onSaved: (String? val) {
-                              expense = int.parse(val!);
+                              expense = int.parse(val!.replaceAll(',', ''));
                             },
                             validator: (String? val) {
                               if (val == '' || val == null) {
@@ -97,12 +97,14 @@ class _AddScreenState extends State<AddScreen> {
                           ),
                           const SizedBox(height: 24),
                           CategorySelect(
+                            showIcon: false,
                             onSavedCategory: (CategoryData? val) {
                               categoryId = val?.id;
                             },
                           ),
                           const SizedBox(height: 20),
                           PaymentMethodSelect(
+                            showIcon: false,
                             onSaved: (val) {
                               paymentMethodId = val?.id;
                             },
@@ -166,7 +168,7 @@ class _AddScreenState extends State<AddScreen> {
           expenseDetail: Value(detail!),
         ),
       );
-      showBasicToast(message: 'expense.toast_added'.tr());
+      showToast(context, 'expense.toast_added'.tr());
       Navigator.pop(context);
     }
   }

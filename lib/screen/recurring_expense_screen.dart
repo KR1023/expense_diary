@@ -1,5 +1,6 @@
 import 'package:drift/drift.dart' hide Column;
 import 'package:easy_localization/easy_localization.dart';
+import 'package:expense_diary/component/common/toast.dart';
 import 'package:expense_diary/component/common/app_background.dart';
 import 'package:expense_diary/const/app_colors.dart';
 import 'package:expense_diary/core/recurring/recurring_expense_service.dart';
@@ -227,6 +228,10 @@ class _RecurringExpenseTile extends StatelessWidget {
       );
       if (confirmed != true) return;
       await GetIt.I<LocalDatabase>().deactivateRecurringExpense(item.id);
+      if (context.mounted) {
+        showToast(context, 'recurring_expense.toast_deactivated'.tr(),
+            icon: Icons.pause_circle_outline);
+      }
     } else {
       await GetIt.I<LocalDatabase>().updateRecurringExpense(
         RecurringExpensesCompanion(
@@ -235,6 +240,10 @@ class _RecurringExpenseTile extends StatelessWidget {
           updatedAt: Value(DateTime.now()),
         ),
       );
+      if (context.mounted) {
+        showToast(context, 'recurring_expense.toast_activated'.tr(),
+            icon: Icons.play_circle_outline);
+      }
     }
   }
 }

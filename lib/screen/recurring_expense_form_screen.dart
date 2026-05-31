@@ -1,6 +1,8 @@
 import 'package:drift/drift.dart' hide Column;
 import 'package:easy_localization/easy_localization.dart';
 import 'package:expense_diary/component/category_select.dart';
+import 'package:expense_diary/component/common/thousands_formatter.dart';
+import 'package:expense_diary/component/common/toast.dart';
 import 'package:expense_diary/component/common/app_background.dart';
 import 'package:expense_diary/component/payment_method_select.dart';
 import 'package:expense_diary/const/app_colors.dart';
@@ -46,7 +48,7 @@ class _RecurringExpenseFormScreenState
     final e = widget.existing;
     _nameCtrl = TextEditingController(text: e?.name ?? '');
     _amountCtrl = TextEditingController(
-        text: e != null ? e.amount.toString() : '');
+        text: e != null ? ThousandsFormatter.format(e.amount) : '');
     _detailCtrl = TextEditingController(text: e?.detail ?? '');
     _frequency = e?.frequency ?? 'monthly';
     _startDate = e?.startDate;
@@ -141,6 +143,7 @@ class _RecurringExpenseFormScreenState
                           TextFormField(
                             controller: _amountCtrl,
                             keyboardType: TextInputType.number,
+                            inputFormatters: [ThousandsFormatter()],
                             decoration: InputDecoration(
                               labelText:
                                   'recurring_expense.amount_label'.tr(),
@@ -150,7 +153,7 @@ class _RecurringExpenseFormScreenState
                                 return 'recurring_expense.amount_required'
                                     .tr();
                               }
-                              if (int.tryParse(v) == null) {
+                              if (int.tryParse(v.replaceAll(',', '')) == null) {
                                 return 'recurring_expense.amount_required'
                                     .tr();
                               }
@@ -181,6 +184,7 @@ class _RecurringExpenseFormScreenState
                           // 분류
                           CategorySelect(
                             selectedValue: _category,
+                            showIcon: false,
                             onSavedCategory: (val) {
                               _categoryId = val?.id;
                               _category = val;
@@ -190,6 +194,7 @@ class _RecurringExpenseFormScreenState
                           // 결제 수단
                           PaymentMethodSelect(
                             selectedValue: _paymentMethod,
+                            showIcon: false,
                             onSaved: (val) {
                               _paymentMethodId = val?.id;
                               _paymentMethod = val;
@@ -283,7 +288,7 @@ class _RecurringExpenseFormScreenState
 
     final db = GetIt.I<LocalDatabase>();
     final now = DateTime.now();
-    final amount = int.parse(_amountCtrl.text.trim());
+    final amount = ThousandsFormatter.parse(_amountCtrl.text.trim());
     final endDate = _noEndDate ? null : _endDate;
 
     if (widget.existing == null) {
@@ -328,6 +333,15 @@ class _RecurringExpenseFormScreenState
 
     // 저장 직후 due 지출 생성
     await RecurringExpenseService.generateDueExpenses();
+
+    if (mounted) {
+      showToast(
+        context,
+        widget.existing == null
+            ? 'recurring_expense.toast_added'.tr()
+            : 'recurring_expense.toast_updated'.tr(),
+      );
+    }
 
     if (mounted) Navigator.of(context).pop();
   }

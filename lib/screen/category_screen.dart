@@ -1,4 +1,5 @@
 import 'package:expense_diary/component/banner_ad_widget.dart';
+import 'package:expense_diary/component/common/toast.dart';
 import 'package:flutter/material.dart';
 import 'package:drift/drift.dart' hide Column;
 import 'package:expense_diary/database/drift_database.dart';
@@ -110,9 +111,16 @@ class CategoryScreenState extends State<CategoryScreen> {
                                   );
                                   return;
                                 } else {
-                                  GetIt.I<LocalDatabase>().deleteCategory(
+                                  await GetIt.I<LocalDatabase>().deleteCategory(
                                     category.id,
                                   );
+                                  if (context.mounted) {
+                                    showToast(
+                                      context,
+                                      'expense.toast_deleted'.tr(),
+                                      icon: Icons.delete_outline_rounded,
+                                    );
+                                  }
                                 }
                               },
                             ),
@@ -201,9 +209,10 @@ class CategoryScreenState extends State<CategoryScreen> {
                           categoryName: Value(textController.text),
                         ),
                       );
-                      setState(() {
-                        _errorText = null;
-                      });
+                      setState(() => _errorText = null);
+                      if (context.mounted) {
+                        showToast(context, 'category.toast_added'.tr());
+                      }
                     } catch (e) {
                       bool conflictName = e.toString().contains('2067');
                       if (conflictName) {
@@ -279,6 +288,9 @@ class CategoryScreenState extends State<CategoryScreen> {
                           categoryName: textController.text,
                         ),
                       );
+                      if (context.mounted) {
+                        showToast(context, 'category.toast_updated'.tr());
+                      }
                     } catch (e) {
                       bool conflictName = e.toString().contains('2067');
                       if (conflictName) {
