@@ -329,6 +329,99 @@ class _ConfigScreenState extends State<ConfigScreen> {
     ).showSnackBar(SnackBar(content: Text(message)));
   }
 
+  Future<void> _deleteAccount(User user) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder:
+          (ctx) => AlertDialog(
+            title: Text('settings.account.delete_confirm_title'.tr()),
+            content: Text(
+              'settings.account.delete_confirm_content'.tr(
+                namedArgs: {
+                  'email':
+                      (user.email?.isNotEmpty ?? false)
+                          ? user.email!
+                          : 'settings.account.unknown_account'.tr(),
+                },
+              ),
+            ),
+            actions: [
+              OutlinedButton(
+                onPressed: () => Navigator.of(ctx).pop(false),
+                child: Text('common.cancel'.tr()),
+              ),
+              FilledButton(
+                style: FilledButton.styleFrom(
+                  backgroundColor: AppColors.danger,
+                ),
+                onPressed: () => Navigator.of(ctx).pop(true),
+                child: Text('settings.account.delete'.tr()),
+              ),
+            ],
+          ),
+    );
+    if (confirmed != true || !mounted) return;
+
+    final secondConfirmed = await showDialog<bool>(
+      context: context,
+      builder:
+          (ctx) => AlertDialog(
+            title: Text('settings.account.delete_final_title'.tr()),
+            content: Text(
+              'settings.account.delete_final_content'.tr(
+                namedArgs: {
+                  'email':
+                      (user.email?.isNotEmpty ?? false)
+                          ? user.email!
+                          : 'settings.account.unknown_account'.tr(),
+                },
+              ),
+            ),
+            actions: [
+              OutlinedButton(
+                onPressed: () => Navigator.of(ctx).pop(false),
+                child: Text('common.cancel'.tr()),
+              ),
+              FilledButton(
+                style: FilledButton.styleFrom(
+                  backgroundColor: AppColors.danger,
+                ),
+                onPressed: () => Navigator.of(ctx).pop(true),
+                child: Text('settings.account.delete'.tr()),
+              ),
+            ],
+          ),
+    );
+    if (secondConfirmed != true || !mounted) return;
+
+    try {
+      await GetIt.I<AuthRepository>().deleteCurrentUserAndCloudData();
+      if (!mounted) return;
+      await _loadBackupMetadata(user: null);
+      _showSnackBar('settings.account.delete_success'.tr());
+    } on FirebaseAuthException catch (e) {
+      if (!mounted) return;
+      if (e.code == 'requires-recent-login') {
+        _showSnackBar('settings.account.delete_requires_recent_login'.tr());
+        return;
+      }
+      _showSnackBar(
+        'settings.account.delete_failed'.tr(namedArgs: {'code': e.code}),
+      );
+    } on FirebaseException catch (e) {
+      if (!mounted) return;
+      _showSnackBar(
+        'settings.account.delete_failed'.tr(namedArgs: {'code': e.code}),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      debugPrint('Account deletion failed: $e');
+      _showSnackBar(
+        'settings.account.delete_failed'.tr(namedArgs: {'code': 'unknown'}),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -446,11 +539,12 @@ class _ConfigScreenState extends State<ConfigScreen> {
                         title: Text('payment_method.manage_title'.tr()),
                         subtitle: Text('payment_method.manage_subtitle'.tr()),
                         trailing: const Icon(Icons.chevron_right),
-                        onTap: () => Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (_) => const PaymentMethodScreen(),
-                          ),
-                        ),
+                        onTap:
+                            () => Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (_) => const PaymentMethodScreen(),
+                              ),
+                            ),
                       ),
                     ),
                     const SizedBox(height: 12),
@@ -477,71 +571,98 @@ class _ConfigScreenState extends State<ConfigScreen> {
 
                         return Card(
                           margin: EdgeInsets.zero,
-                          child: ListTile(
-                            leading: Icon(
-                              user == null
-                                  ? Icons.login_rounded
-                                  : Icons.logout_rounded,
-                              color: AppColors.primary,
-                            ),
-                            title: Text(
-                              user == null
-                                  ? 'settings.account.login'.tr()
-                                  : 'settings.account.logout'.tr(),
-                            ),
-                            subtitle: Text(
-                              user == null
-                                  ? 'settings.account.login_subtitle'.tr()
-                                  : (user.email?.isNotEmpty ?? false)
-                                  ? user.email!
-                                  : 'settings.account.subtitle'.tr(),
-                            ),
-                            trailing: const Icon(Icons.chevron_right),
-                            onTap: () async {
-                              if (user == null) {
-                                final loggedIn = await Navigator.of(
-                                  context,
-                                ).push<bool>(
-                                  MaterialPageRoute(
-                                    builder: (_) => const LoginScreen(),
+                          child: Column(
+                            children: [
+                              ListTile(
+                                leading: Icon(
+                                  user == null
+                                      ? Icons.login_rounded
+                                      : Icons.logout_rounded,
+                                  color: AppColors.primary,
+                                ),
+                                title: Text(
+                                  user == null
+                                      ? 'settings.account.login'.tr()
+                                      : 'settings.account.logout'.tr(),
+                                ),
+                                subtitle: Text(
+                                  user == null
+                                      ? 'settings.account.login_subtitle'.tr()
+                                      : (user.email?.isNotEmpty ?? false)
+                                      ? user.email!
+                                      : 'settings.account.subtitle'.tr(),
+                                ),
+                                trailing: const Icon(Icons.chevron_right),
+                                onTap: () async {
+                                  if (user == null) {
+                                    final loggedIn = await Navigator.of(
+                                      context,
+                                    ).push<bool>(
+                                      MaterialPageRoute(
+                                        builder: (_) => const LoginScreen(),
+                                      ),
+                                    );
+                                    if (loggedIn == true && mounted) {
+                                      _showSnackBar('auth.success'.tr());
+                                    }
+                                    return;
+                                  }
+                                  final confirmed = await showDialog<bool>(
+                                    context: context,
+                                    builder:
+                                        (ctx) => AlertDialog(
+                                          title: Text(
+                                            'settings.account.logout_confirm_title'
+                                                .tr(),
+                                          ),
+                                          content: Text(
+                                            'settings.account.logout_confirm_content'
+                                                .tr(),
+                                          ),
+                                          actions: [
+                                            OutlinedButton(
+                                              onPressed:
+                                                  () => Navigator.of(
+                                                    ctx,
+                                                  ).pop(false),
+                                              child: Text('common.cancel'.tr()),
+                                            ),
+                                            FilledButton(
+                                              onPressed:
+                                                  () => Navigator.of(
+                                                    ctx,
+                                                  ).pop(true),
+                                              child: Text(
+                                                'common.confirm'.tr(),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                  );
+                                  if (confirmed == true) {
+                                    await GetIt.I<AuthRepository>().signOut();
+                                  }
+                                },
+                              ),
+                              if (user != null) ...[
+                                const Divider(height: 1),
+                                ListTile(
+                                  leading: Icon(
+                                    Icons.person_remove_alt_1_outlined,
+                                    color: AppColors.danger,
                                   ),
-                                );
-                                if (loggedIn == true && mounted) {
-                                  _showSnackBar('auth.success'.tr());
-                                }
-                                return;
-                              }
-                              final confirmed = await showDialog<bool>(
-                                context: context,
-                                builder:
-                                    (ctx) => AlertDialog(
-                                      title: Text(
-                                        'settings.account.logout_confirm_title'
-                                            .tr(),
-                                      ),
-                                      content: Text(
-                                        'settings.account.logout_confirm_content'
-                                            .tr(),
-                                      ),
-                                      actions: [
-                                        OutlinedButton(
-                                          onPressed:
-                                              () =>
-                                                  Navigator.of(ctx).pop(false),
-                                          child: Text('common.cancel'.tr()),
-                                        ),
-                                        FilledButton(
-                                          onPressed:
-                                              () => Navigator.of(ctx).pop(true),
-                                          child: Text('common.confirm'.tr()),
-                                        ),
-                                      ],
-                                    ),
-                              );
-                              if (confirmed == true) {
-                                await GetIt.I<AuthRepository>().signOut();
-                              }
-                            },
+                                  title: Text(
+                                    'settings.account.delete'.tr(),
+                                    style: TextStyle(color: AppColors.danger),
+                                  ),
+                                  subtitle: Text(
+                                    'settings.account.delete_subtitle'.tr(),
+                                  ),
+                                  trailing: const Icon(Icons.chevron_right),
+                                  onTap: () => _deleteAccount(user),
+                                ),
+                              ],
+                            ],
                           ),
                         );
                       },

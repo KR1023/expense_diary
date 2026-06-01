@@ -79,7 +79,17 @@
       "logout": "Sign out",
       "subtitle": "Sign out of the currently logged-in account.",
       "logout_confirm_title": "Sign Out",
-      "logout_confirm_content": "Are you sure you want to sign out?\nIf you have an active subscription, features will be restricted until you sign in again."
+      "logout_confirm_content": "Are you sure you want to sign out?\nIf you have an active subscription, features will be restricted until you sign in again.",
+      "delete": "Delete Account",
+      "delete_subtitle": "Permanently delete your cloud account and backup data.",
+      "delete_confirm_title": "Data Deletion Notice",
+      "delete_confirm_content": "Deleting your account removes the following data:\n\n- Cloud account\n- Cloud backup data\n- Cloud transaction data\n- Backup metadata\n\nLocal expense data on this device will not be deleted. To remove local data, use Reset all data in Settings.",
+      "delete_final_title": "Final Confirmation",
+      "delete_final_content": "Delete the account {email}?\nThis action cannot be undone. Continue?",
+      "delete_success": "Account deleted.",
+      "delete_requires_recent_login": "For security, sign in again and retry account deletion.",
+      "delete_failed": "Failed to delete account. Please try again. ({code})",
+      "unknown_account": "current account"
     },
     "cloud_tx": {
       "title": "Cloud Transactions (Firebase)",
@@ -186,6 +196,7 @@
     "sign_in": "Sign In",
     "sign_up": "Create Account",
     "sign_in_google": "Continue with Google",
+    "sign_in_apple": "Continue with Apple",
     "no_account": "Don't have an account?",
     "go_to_sign_up": "Sign up",
     "loading": "Checking authentication state...",
@@ -219,7 +230,8 @@
       "email_password_not_enabled": "Email/Password sign-in is disabled in Firebase Console.",
       "account_exists_different_credential": "An account already exists with a different sign-in method.",
       "google_token_missing": "Failed to get a Google sign-in token.",
-      "google_sign_in_failed": "Google sign-in failed."
+      "google_sign_in_failed": "Google sign-in failed.",
+      "provider_cancelled": "Sign-in was cancelled."
     }
   },
   "expense": {
