@@ -381,15 +381,19 @@ App Store Review에서 다음 항목으로 리젝됨.
 - Firebase Console Authentication Apple provider 활성화 확인
 
 **심사 대응 시 남은 작업**
-- App Review 요구사항에 맞춰 실제 기기에서 화면 녹화 필요:
+- App Review 요구사항에 맞춰 실제 기기에서 화면 녹화 완료:
   `앱 실행 → 설정 → 로그인/회원가입 → Apple로 로그인 → 설정 복귀 → 계정 삭제 → 삭제 안내 수락 → 최종 확인 → 삭제 완료`
 - App Store Connect `App Review Information > Notes`에 녹화 파일 또는 링크 첨부
+  - 권장 Notes 문구:
+    `We added Sign in with Apple as an equivalent login option on iOS. Account deletion is available in Settings tab -> Account section -> Delete Account. The attached screen recording was captured on a physical device and demonstrates signing in with Apple, reviewing the data deletion notice, and completing the account deletion flow.`
 
 **검증**
 - `flutter analyze lib/auth/auth_repository.dart lib/screen/login_screen.dart lib/screen/config_screen.dart` 통과
 - `flutter analyze lib/screen/config_screen.dart` 통과
 - `plutil -lint ios/Runner/Runner.entitlements ios/Runner/Info.plist` 통과
 - `assets/locales/ko.json`, `assets/locales/en.json` JSON 유효성 확인
+- 실제 iOS 기기(`00008130-000170510EE3803A`, iOS 26.5)에서 release 모드 실행 및 Apple 로그인/계정 삭제 녹화 완료
+- iOS 26.5 + Flutter 3.7.2 조합에서는 debug JIT 실행 크래시가 발생하므로 실기기 테스트/녹화는 `--release` 또는 `--profile` 사용 필요
 
 **관련 파일**
 - `lib/auth/auth_repository.dart`
