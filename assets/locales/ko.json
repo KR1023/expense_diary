@@ -9,7 +9,11 @@
   },
   "home": {
     "title": "오늘 지출",
+    "date_title": "{date} 지출",
     "today_total": "오늘 합계",
+    "date_total": "{date} 합계",
+    "calendar_action": "날짜 선택",
+    "today_action": "오늘",
     "count_label": "{count}건",
     "empty": "지출 내역이 없습니다!"
   },

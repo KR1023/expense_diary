@@ -478,6 +478,37 @@ App Store Review에서 다음 항목으로 리젝됨.
 
 ---
 
+### 17. 지출 탭 날짜 선택 및 슬라이드 전환
+
+**변경 내용**
+- 지출 탭을 선택 날짜 기반 화면으로 변경
+- 상단 제목/날짜 행 우측에 날짜 선택 버튼과 오늘 버튼 추가
+- 날짜 선택 버튼 클릭 시 `showDatePicker`로 날짜 선택 가능
+- 오늘 버튼 클릭 시 현재 로컬 날짜로 복귀
+- 선택 날짜가 오늘이면 기존처럼 `오늘 지출`, `오늘 합계` 표시
+- 선택 날짜가 오늘이 아니면 `{yyyy.MM.dd} 지출`, `{yyyy.MM.dd} 합계` 표시
+- 좌우 스와이프 시 선택 날짜를 하루씩 이동
+- 날짜 변경 시 제목, 날짜, 합계 카드, 지출 목록이 슬라이드/페이드 애니메이션으로 전환
+- 상단 날짜 액션 버튼을 pill 스타일로 개선
+  - 달력 버튼은 primary 강조
+  - 오늘 버튼은 보조 스타일이며 오늘 날짜에서는 비활성 표시
+- 지출 탭에서 지출 추가 화면을 열 때 현재 선택 날짜를 기본 지출 날짜로 전달
+
+**검증**
+- `flutter analyze lib/screen/home_screen.dart lib/screen/add_screen.dart` 통과
+- `flutter analyze lib/screen/home_screen.dart` 통과
+- `assets/locales/ko.json`, `assets/locales/en.json` JSON 유효성 확인
+- `git diff --check` 통과
+
+**관련 파일**
+- `lib/screen/home_screen.dart`
+- `lib/screen/add_screen.dart`
+- `assets/locales/ko.json`
+- `assets/locales/en.json`
+- `AGENTS.md`
+
+---
+
 ## 문서
 
 | 파일 | 내용 |

@@ -158,6 +158,9 @@ flutter build appbundle \
 - `RootScreen` manages 6 tabs (지출 / 지출 내역 / 분류 / 고정 지출 / 통계 / 설정) using `IndexedStack`.
 - Each tab with a FAB must use a unique `heroTag` to avoid `IndexedStack` hero collisions.
 - UI queries the DB directly with `StreamBuilder` for reactive updates.
+- The expense home tab is date-selectable. Header calendar opens `showDatePicker`, Today jumps to the current local date, and horizontal swipes move one day at a time with slide/fade animation.
+- When the selected home date is today, labels use "오늘 지출/오늘 합계"; otherwise they use `{yyyy.MM.dd} 지출/{yyyy.MM.dd} 합계`.
+- Opening `AddScreen` from the home tab passes the currently selected date as the default expense date.
 - Statistics screen is named `지출 통계` and includes monthly summary, day average, previous-month comparison, max spending day, category breakdown, and payment-method breakdown/detail sheet.
 
 ## Generated Files

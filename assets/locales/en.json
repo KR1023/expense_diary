@@ -9,7 +9,11 @@
   },
   "home": {
     "title": "Today's Expenses",
+    "date_title": "{date} Expenses",
     "today_total": "Today's Total",
+    "date_total": "{date} Total",
+    "calendar_action": "Select date",
+    "today_action": "Today",
     "count_label": "{count} items",
     "empty": "No expenses yet!"
   },

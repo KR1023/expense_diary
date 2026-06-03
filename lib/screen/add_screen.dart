@@ -13,7 +13,9 @@ import 'package:expense_diary/const/app_colors.dart';
 import 'package:easy_localization/easy_localization.dart';
 
 class AddScreen extends StatefulWidget {
-  const AddScreen({super.key});
+  const AddScreen({super.key, this.initialDate});
+
+  final DateTime? initialDate;
 
   @override
   State<AddScreen> createState() => _AddScreenState();
@@ -95,7 +97,7 @@ class _AddScreenState extends State<AddScreen> {
                             isDetail: false,
                             isDate: true,
                             isExpense: false,
-                            initValue: null,
+                            initValue: widget.initialDate?.toIso8601String(),
                             onSaved: (String? val) {
                               DateFormat formatter = DateFormat('yyyy-MM-dd');
                               expenseDate = formatter.parse(val!);
