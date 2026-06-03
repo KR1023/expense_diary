@@ -153,6 +153,7 @@ flutter build appbundle \
 ## Fixed Expenses / Payment Methods
 - Payment methods are managed from Settings → 결제 수단 관리.
 - Expense add/edit screens include `PaymentMethodSelect`; expense cards show payment-method badges.
+- Expense add/edit category and payment-method selectors support quick-add actions. Payment-method quick-add must enforce the same Free-plan limit of 5 methods unless Cloud/Report entitlement is active.
 - Fixed expenses are managed in the `고정 지출` tab.
 - `RecurringExpenseService.generateDueExpenses()` runs on app start, fixed-expense tab entry, and after fixed-expense form save.
 - `RecurringSchedule` handles daily/weekly/monthly/yearly recurrence and clamps invalid month-end dates to the last valid day.

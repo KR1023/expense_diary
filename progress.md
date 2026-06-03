@@ -554,6 +554,32 @@ userEntitlements/{uid}
 
 ---
 
+### 19. 지출 추가/수정 셀렉트 즉시 추가
+
+**변경 내용**
+- 지출 추가/수정 화면의 분류 셀렉트에 즉시 추가 버튼 추가
+- 분류 즉시 추가 시 분류명, 기본 금액 설정, 자동 이름 채우기 옵션 입력 가능
+- 새로 생성한 분류는 즉시 선택 상태로 반영
+- 지출 추가/수정 화면의 결제 수단 셀렉트에 즉시 추가 버튼 추가
+- 결제 수단 즉시 추가 시 유형, 이름, 메모 입력 가능
+- 새로 생성한 결제 수단은 즉시 선택 상태로 반영
+- 결제 수단 즉시 추가에서도 기존 무료 플랜 한도 5개를 동일하게 확인
+- Cloud/Report 권한이 있으면 결제 수단 개수 제한 없이 즉시 추가 가능
+
+**검증**
+- `flutter analyze lib/component/category_select.dart lib/component/payment_method_select.dart lib/screen/add_screen.dart lib/screen/detail_screen.dart` 통과
+- `assets/locales/ko.json`, `assets/locales/en.json` JSON 유효성 확인
+- `git diff --check` 통과
+
+**관련 파일**
+- `lib/component/category_select.dart`
+- `lib/component/payment_method_select.dart`
+- `assets/locales/ko.json`
+- `assets/locales/en.json`
+- `AGENTS.md`
+
+---
+
 ## 문서
 
 | 파일 | 내용 |

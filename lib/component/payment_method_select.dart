@@ -1,6 +1,9 @@
 import 'package:expense_diary/component/common/select_field.dart';
+import 'package:drift/drift.dart' hide Column;
+import 'package:expense_diary/core/subscription/subscription_service.dart';
 import 'package:expense_diary/const/app_colors.dart';
 import 'package:expense_diary/database/drift_database.dart';
+import 'package:expense_diary/screen/subscription_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -56,13 +59,14 @@ class _PaymentMethodSelectState extends State<PaymentMethodSelect> {
                 hint: 'payment_method.select_hint'.tr(),
                 icon: widget.showIcon ? Icons.credit_card_outlined : null,
                 value: _selectedValue,
-                options: methods.map((m) {
-                  return SelectOption<PaymentMethod>(
-                    value: m,
-                    label: m.name,
-                    icon: _iconForType(m.type),
-                  );
-                }).toList(),
+                options:
+                    methods.map((m) {
+                      return SelectOption<PaymentMethod>(
+                        value: m,
+                        label: m.name,
+                        icon: _iconForType(m.type),
+                      );
+                    }).toList(),
                 onChanged: (val) => setState(() => _selectedValue = val),
                 onSaved: widget.onSaved,
               ),
@@ -71,15 +75,18 @@ class _PaymentMethodSelectState extends State<PaymentMethodSelect> {
             Padding(
               padding: const EdgeInsets.only(bottom: 1),
               child: IconButton.filledTonal(
+                tooltip: 'payment_method.quick_add'.tr(),
+                style: _actionButtonStyle(context),
+                icon: const Icon(Icons.add_rounded),
+                onPressed: _quickAddPaymentMethod,
+              ),
+            ),
+            const SizedBox(width: 6),
+            Padding(
+              padding: const EdgeInsets.only(bottom: 1),
+              child: IconButton.filledTonal(
                 tooltip: 'common.cancel'.tr(),
-                style: IconButton.styleFrom(
-                  backgroundColor: AppColors.surfaceAltOf(context),
-                  foregroundColor: AppColors.mutedOf(context),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(14),
-                    side: BorderSide(color: AppColors.outlineOf(context)),
-                  ),
-                ),
+                style: _actionButtonStyle(context),
                 icon: const Icon(Icons.close_rounded),
                 onPressed: () => setState(() => _selectedValue = null),
               ),
@@ -98,5 +105,197 @@ class _PaymentMethodSelectState extends State<PaymentMethodSelect> {
       'mobilePay' => Icons.phone_android_rounded,
       _ => Icons.payment_rounded,
     };
+  }
+
+  ButtonStyle _actionButtonStyle(BuildContext context) {
+    return IconButton.styleFrom(
+      backgroundColor: AppColors.surfaceAltOf(context),
+      foregroundColor: AppColors.mutedOf(context),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(14),
+        side: BorderSide(color: AppColors.outlineOf(context)),
+      ),
+    );
+  }
+
+  Future<void> _quickAddPaymentMethod() async {
+    final db = GetIt.I<LocalDatabase>();
+    final methods = await db.getPaymentMethods();
+    final isSubscribed = GetIt.I<SubscriptionService>().isCloudEntitled;
+    if (!isSubscribed && methods.length >= 5) {
+      if (mounted) _showLimitDialog();
+      return;
+    }
+
+    if (!mounted) return;
+    final created = await showDialog<PaymentMethod>(
+      context: context,
+      builder: (_) => _QuickPaymentMethodDialog(sortOrder: methods.length),
+    );
+
+    if (created == null || !mounted) return;
+    setState(() {
+      _selectedValue = created;
+    });
+  }
+
+  void _showLimitDialog() {
+    showDialog<void>(
+      context: context,
+      builder:
+          (ctx) => AlertDialog(
+            title: Text('subscription.limit_payment_title'.tr()),
+            content: Text('subscription.limit_payment_msg'.tr()),
+            actions: [
+              OutlinedButton(
+                onPressed: () => Navigator.of(ctx).pop(),
+                child: Text('common.cancel'.tr()),
+              ),
+              FilledButton(
+                onPressed: () {
+                  Navigator.of(ctx).pop();
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => const SubscriptionScreen(),
+                    ),
+                  );
+                },
+                child: Text('subscription.upgrade_plan'.tr()),
+              ),
+            ],
+          ),
+    );
+  }
+}
+
+class _QuickPaymentMethodDialog extends StatefulWidget {
+  const _QuickPaymentMethodDialog({required this.sortOrder});
+
+  final int sortOrder;
+
+  @override
+  State<_QuickPaymentMethodDialog> createState() =>
+      _QuickPaymentMethodDialogState();
+}
+
+class _QuickPaymentMethodDialogState extends State<_QuickPaymentMethodDialog> {
+  static const List<String> _types = [
+    'cash',
+    'card',
+    'bank',
+    'mobilePay',
+    'other',
+  ];
+
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+  final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _memoController = TextEditingController();
+  String _type = 'card';
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _memoController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _save() async {
+    if (!_formKey.currentState!.validate()) return;
+
+    final db = GetIt.I<LocalDatabase>();
+    final now = DateTime.now();
+    final name = _nameController.text.trim();
+    final memo = _memoController.text.trim();
+    final id = await db.createPaymentMethod(
+      PaymentMethodsCompanion(
+        type: Value(_type),
+        name: Value(name),
+        memo: Value(memo.isEmpty ? null : memo),
+        sortOrder: Value(widget.sortOrder),
+        createdAt: Value(now),
+        updatedAt: Value(now),
+      ),
+    );
+
+    if (!mounted) return;
+    Navigator.of(context).pop(
+      PaymentMethod(
+        id: id,
+        type: _type,
+        name: name,
+        memo: memo.isEmpty ? null : memo,
+        sortOrder: widget.sortOrder,
+        isArchived: false,
+        createdAt: now,
+        updatedAt: now,
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+      title: Text('payment_method.add_title'.tr()),
+      content: Form(
+        key: _formKey,
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'payment_method.type_label'.tr(),
+                style: Theme.of(context).textTheme.labelSmall,
+              ),
+              const SizedBox(height: 8),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children:
+                    _types.map((type) {
+                      return FilterChip(
+                        label: Text('payment_method.type.$type'.tr()),
+                        selected: _type == type,
+                        onSelected: (_) => setState(() => _type = type),
+                      );
+                    }).toList(),
+              ),
+              const SizedBox(height: 16),
+              TextFormField(
+                controller: _nameController,
+                autofocus: true,
+                decoration: InputDecoration(
+                  labelText: 'payment_method.name_label'.tr(),
+                  hintText: 'payment_method.name_hint'.tr(),
+                  prefixIcon: const Icon(Icons.payment_rounded),
+                ),
+                validator:
+                    (value) =>
+                        value == null || value.trim().isEmpty
+                            ? 'payment_method.name_required'.tr()
+                            : null,
+              ),
+              const SizedBox(height: 12),
+              TextFormField(
+                controller: _memoController,
+                decoration: InputDecoration(
+                  labelText: 'payment_method.memo_label'.tr(),
+                  hintText: 'payment_method.memo_hint'.tr(),
+                  prefixIcon: const Icon(Icons.notes_rounded),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+      actions: [
+        OutlinedButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: Text('common.cancel'.tr()),
+        ),
+        FilledButton(onPressed: _save, child: Text('common.save'.tr())),
+      ],
+    );
   }
 }
