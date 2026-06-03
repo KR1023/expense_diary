@@ -509,6 +509,51 @@ App Store Review에서 다음 항목으로 리젝됨.
 
 ---
 
+### 18. 계정별 수동 권한 시스템 추가
+
+**변경 내용**
+- Firestore `userEntitlements/{uid}` 문서를 통해 계정별 수동 권한을 부여할 수 있도록 변경
+- 권한 문서가 없으면 기본 role은 `normal`로 처리
+- 지원 필드
+  - `role`: `normal`, `cloud`, `report`, `special`, `admin`
+  - `manualCloud`
+  - `manualReport`
+  - `manualAdsRemoved`
+  - 호환 alias: `cloud`, `report`, `adsRemoved`
+- 최종 권한은 RevenueCat 구독 권한과 Firestore 수동 권한을 OR로 합산
+- `report`, `special`, `admin` role은 Cloud 권한 포함
+- `special`, `admin` role은 Report 포함 전체 유료 기능 사용 가능
+- iOS는 RevenueCat 구독 UI가 비활성화되어 있어도 Firebase 수동 권한으로 유료 기능 사용 가능
+- 로그아웃 시 수동 권한은 `normal`/false로 초기화
+- Firestore Rules에 `userEntitlements/{uid}` read-only 규칙 추가
+  - 본인 문서 read 허용
+  - 클라이언트 write 전체 차단
+- `userEntitlements/{uid}` 규칙을 Firebase 프로젝트 `expense-diary-4892a`에 배포 완료
+- Firestore Rules 의미와 CLI/Console 수동 적용 방법을 문서화
+
+**운영 예시**
+```text
+userEntitlements/{uid}
+  role: "normal"
+  manualCloud: true
+  manualReport: false
+  manualAdsRemoved: true
+```
+
+**검증**
+- `flutter analyze lib/core/subscription/subscription_service.dart lib/main.dart` 통과
+- `git diff --check` 통과
+- `./scripts/firebase_deploy_firestore_rules.sh expense-diary-4892a` 배포 완료
+
+**관련 파일**
+- `lib/core/subscription/subscription_service.dart`
+- `firestore.rules`
+- `docs/auth/account_entitlements.md`
+- `docs/auth/firestore_entitlement_rules.md`
+- `AGENTS.md`
+
+---
+
 ## 문서
 
 | 파일 | 내용 |

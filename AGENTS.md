@@ -76,6 +76,10 @@ dart run flutter_native_splash:create
 ## RevenueCat / Subscription Status
 - RevenueCat is re-integrated for Android. iOS is currently disabled in `SubscriptionService._configure()` and behaves as Free until App Store subscription setup is ready.
 - Firebase UID is linked to RevenueCat app user ID in `lib/main.dart` via `loginUser()` / `logoutUser()`.
+- Account-level manual entitlements are supported through Firestore `userEntitlements/{uid}`. Missing documents default to role `normal` with no manual entitlements.
+- Manual entitlement fields: `role` (`normal`, `cloud`, `report`, `special`, `admin`), `manualCloud`, `manualReport`, `manualAdsRemoved`. The app also accepts alias booleans `cloud`, `report`, `adsRemoved`.
+- Final entitlement checks combine RevenueCat and manual entitlements. `report`, `special`, and `admin` include Cloud access; `special` and `admin` unlock all paid features.
+- Firestore rules allow users to read only their own `userEntitlements/{uid}` document and deny all client writes. Modify manual entitlements via Firebase Console/Admin SDK only.
 - Plans:
   - Free: ads shown, backup limited to once per KST week, restore limited to once per KST day, active fixed expenses limited to 10, payment methods limited to 5.
   - Cloud: ads removed, unlimited backup/restore, unlimited fixed expenses, unlimited payment methods.
