@@ -580,6 +580,60 @@ userEntitlements/{uid}
 
 ---
 
+### 20. 분류 삭제 시 관련 지출 미분류 처리
+
+**변경 내용**
+- 관련 지출이 있는 분류도 삭제할 수 있도록 변경
+- 삭제 전 관련 지출 개수를 안내하고, 삭제 시 해당 지출들이 `미분류`로 변경된다는 확인 다이얼로그 표시
+- 확인 시 transaction 안에서 관련 지출의 `categoryId`를 `null`로 변경한 뒤 분류 삭제
+- 지출 데이터는 삭제하지 않음
+- 관련 지출이 없는 분류는 일반 삭제 확인 후 삭제
+
+**검증**
+- `flutter analyze lib/database/drift_database.dart lib/screen/category_screen.dart` 통과
+- `assets/locales/ko.json`, `assets/locales/en.json` JSON 유효성 확인
+
+**관련 파일**
+- `lib/database/drift_database.dart`
+- `lib/screen/category_screen.dart`
+- `assets/locales/ko.json`
+- `assets/locales/en.json`
+- `AGENTS.md`
+
+---
+
+### 21. 결제 수단 중복/복원 정책 개선
+
+**변경 내용**
+- 결제 수단 삭제는 기존처럼 `isArchived=true`로 보관
+- 같은 유형과 이름의 활성 결제 수단이 이미 있으면 신규 추가 차단
+- 결제 수단 수정 시에도 다른 활성 결제 수단과 같은 유형/이름으로 저장하는 것을 차단
+- 같은 유형과 이름의 삭제된 결제 수단이 있으면 복원 여부 확인 다이얼로그 표시
+- 복원 시 새 결제 수단 ID를 만들지 않고 기존 ID를 재사용
+- 복원된 결제 수단은 현재 목록 마지막 순서로 다시 표시
+- 복원 시 입력한 메모로 갱신하고 `isArchived=false`로 변경
+- 과거 지출 내역은 기존 결제 수단 ID를 유지하므로 다시 같은 결제 수단으로 연결됨
+- 결제 수단별 통계도 과거/현재 지출이 같은 결제 수단으로 합산됨
+- 설정의 결제 수단 관리 화면과 지출 추가/수정 화면의 즉시 추가 다이얼로그에 동일하게 적용
+- 무료 플랜의 활성 결제 수단 5개 제한은 유지
+- 삭제된 결제 수단을 참조하는 과거 지출/고정지출을 열 때 드롭다운 assertion이 발생하지 않도록 `PaymentMethodSelect`가 archived selected value를 현재 선택 항목으로 표시
+- 삭제된 결제 수단은 셀렉트 박스에서 `{이름} (삭제됨)`으로 표시
+
+**검증**
+- `flutter analyze lib/database/drift_database.dart lib/screen/payment_method_screen.dart lib/component/payment_method_select.dart` 통과
+- `assets/locales/ko.json`, `assets/locales/en.json` JSON 유효성 확인
+- `git diff --check` 통과
+
+**관련 파일**
+- `lib/database/drift_database.dart`
+- `lib/screen/payment_method_screen.dart`
+- `lib/component/payment_method_select.dart`
+- `assets/locales/ko.json`
+- `assets/locales/en.json`
+- `AGENTS.md`
+
+---
+
 ## 문서
 
 | 파일 | 내용 |

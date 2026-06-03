@@ -37,8 +37,8 @@ class PaymentMethodScreen extends StatelessWidget {
             Text(
               'payment_method.manage_subtitle'.tr(),
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: AppColors.mutedOf(context),
-                  ),
+                color: AppColors.mutedOf(context),
+              ),
             ),
             const SizedBox(height: 16),
             Expanded(
@@ -52,8 +52,8 @@ class PaymentMethodScreen extends StatelessWidget {
                       child: Text(
                         'payment_method.empty'.tr(),
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              color: AppColors.mutedOf(context),
-                            ),
+                          color: AppColors.mutedOf(context),
+                        ),
                       ),
                     );
                   }
@@ -117,19 +117,20 @@ class _PaymentMethodTile extends StatelessWidget {
       child: ListTile(
         leading: _TypeIcon(type: method.type),
         title: Text(method.name),
-        subtitle: method.memo?.isNotEmpty == true
-            ? Text(
-                method.memo!,
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: AppColors.mutedOf(context),
-                    ),
-              )
-            : Text(
-                'payment_method.type.${method.type}'.tr(),
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: AppColors.mutedOf(context),
-                    ),
-              ),
+        subtitle:
+            method.memo?.isNotEmpty == true
+                ? Text(
+                  method.memo!,
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: AppColors.mutedOf(context),
+                  ),
+                )
+                : Text(
+                  'payment_method.type.${method.type}'.tr(),
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: AppColors.mutedOf(context),
+                  ),
+                ),
         trailing: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -160,24 +161,25 @@ class _PaymentMethodTile extends StatelessWidget {
   void _confirmDelete(BuildContext context, PaymentMethod method) async {
     final confirmed = await showDialog<bool>(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text('payment_method.delete_confirm'.tr().split('\n').first),
-        content: Text('payment_method.delete_confirm'.tr()),
-        actions: [
-          OutlinedButton(
-            onPressed: () => Navigator.of(ctx).pop(false),
-            child: Text('common.cancel'.tr()),
+      builder:
+          (ctx) => AlertDialog(
+            title: Text('payment_method.delete_confirm'.tr().split('\n').first),
+            content: Text('payment_method.delete_confirm'.tr()),
+            actions: [
+              OutlinedButton(
+                onPressed: () => Navigator.of(ctx).pop(false),
+                child: Text('common.cancel'.tr()),
+              ),
+              FilledButton(
+                style: FilledButton.styleFrom(
+                  backgroundColor: AppColors.danger,
+                  foregroundColor: Colors.white,
+                ),
+                onPressed: () => Navigator.of(ctx).pop(true),
+                child: Text('common.delete'.tr()),
+              ),
+            ],
           ),
-          FilledButton(
-            style: FilledButton.styleFrom(
-              backgroundColor: AppColors.danger,
-              foregroundColor: Colors.white,
-            ),
-            onPressed: () => Navigator.of(ctx).pop(true),
-            child: Text('common.delete'.tr()),
-          ),
-        ],
-      ),
     );
     if (confirmed == true) {
       await GetIt.I<LocalDatabase>().archivePaymentMethod(method.id);
@@ -264,19 +266,22 @@ class _PaymentMethodFormState extends State<_PaymentMethodForm> {
               style: Theme.of(context).textTheme.titleMedium,
             ),
             const SizedBox(height: 16),
-            Text('payment_method.type_label'.tr(),
-                style: Theme.of(context).textTheme.labelSmall),
+            Text(
+              'payment_method.type_label'.tr(),
+              style: Theme.of(context).textTheme.labelSmall,
+            ),
             const SizedBox(height: 8),
             Wrap(
               spacing: 8,
-              children: _types.map((t) {
-                final selected = _type == t;
-                return FilterChip(
-                  label: Text('payment_method.type.$t'.tr()),
-                  selected: selected,
-                  onSelected: (_) => setState(() => _type = t),
-                );
-              }).toList(),
+              children:
+                  _types.map((t) {
+                    final selected = _type == t;
+                    return FilterChip(
+                      label: Text('payment_method.type.$t'.tr()),
+                      selected: selected,
+                      onSelected: (_) => setState(() => _type = t),
+                    );
+                  }).toList(),
             ),
             const SizedBox(height: 16),
             TextFormField(
@@ -285,9 +290,11 @@ class _PaymentMethodFormState extends State<_PaymentMethodForm> {
                 labelText: 'payment_method.name_label'.tr(),
                 hintText: 'payment_method.name_hint'.tr(),
               ),
-              validator: (v) => (v == null || v.isEmpty)
-                  ? 'payment_method.name_required'.tr()
-                  : null,
+              validator:
+                  (v) =>
+                      (v == null || v.isEmpty)
+                          ? 'payment_method.name_required'.tr()
+                          : null,
             ),
             const SizedBox(height: 12),
             TextFormField(
@@ -318,6 +325,17 @@ class _PaymentMethodFormState extends State<_PaymentMethodForm> {
 
     if (widget.existing == null) {
       final methods = await db.getPaymentMethods();
+      final name = _nameCtrl.text.trim();
+      final memo = _memoCtrl.text.trim();
+      final activeDuplicate = await db.findPaymentMethodByTypeAndName(
+        type: _type,
+        name: name,
+        isArchived: false,
+      );
+      if (activeDuplicate != null) {
+        if (mounted) _showInfoDialog('payment_method.duplicate_error'.tr());
+        return;
+      }
 
       // 무료 플랜 한도 체크
       final isSubscribed = GetIt.I<SubscriptionService>().isCloudEntitled;
@@ -326,27 +344,53 @@ class _PaymentMethodFormState extends State<_PaymentMethodForm> {
         return;
       }
 
+      final archivedDuplicate = await db.findPaymentMethodByTypeAndName(
+        type: _type,
+        name: name,
+        isArchived: true,
+      );
+      if (archivedDuplicate != null) {
+        final restore = await _confirmRestore();
+        if (restore != true) return;
+        await db.restorePaymentMethod(
+          archivedDuplicate,
+          memo: memo,
+          sortOrder: methods.length,
+        );
+        if (mounted) Navigator.of(context).pop();
+        return;
+      }
+
       await db.createPaymentMethod(
         PaymentMethodsCompanion(
           type: Value(_type),
-          name: Value(_nameCtrl.text.trim()),
-          memo: Value(_memoCtrl.text.trim().isEmpty
-              ? null
-              : _memoCtrl.text.trim()),
+          name: Value(name),
+          memo: Value(memo.isEmpty ? null : memo),
           sortOrder: Value(methods.length),
           createdAt: Value(now),
           updatedAt: Value(now),
         ),
       );
     } else {
+      final name = _nameCtrl.text.trim();
+      final memo = _memoCtrl.text.trim();
+      final activeDuplicate = await db.findPaymentMethodByTypeAndName(
+        type: _type,
+        name: name,
+        isArchived: false,
+        excludeId: widget.existing!.id,
+      );
+      if (activeDuplicate != null) {
+        if (mounted) _showInfoDialog('payment_method.duplicate_error'.tr());
+        return;
+      }
+
       await db.updatePaymentMethod(
         PaymentMethodsCompanion(
           id: Value(widget.existing!.id),
           type: Value(_type),
-          name: Value(_nameCtrl.text.trim()),
-          memo: Value(_memoCtrl.text.trim().isEmpty
-              ? null
-              : _memoCtrl.text.trim()),
+          name: Value(name),
+          memo: Value(memo.isEmpty ? null : memo),
           updatedAt: Value(now),
         ),
       );
@@ -355,30 +399,69 @@ class _PaymentMethodFormState extends State<_PaymentMethodForm> {
     if (mounted) Navigator.of(context).pop();
   }
 
+  Future<bool?> _confirmRestore() {
+    return showDialog<bool>(
+      context: context,
+      builder:
+          (ctx) => AlertDialog(
+            title: Text('payment_method.restore_title'.tr()),
+            content: Text('payment_method.restore_message'.tr()),
+            actions: [
+              OutlinedButton(
+                onPressed: () => Navigator.of(ctx).pop(false),
+                child: Text('common.cancel'.tr()),
+              ),
+              FilledButton(
+                onPressed: () => Navigator.of(ctx).pop(true),
+                child: Text('payment_method.restore_action'.tr()),
+              ),
+            ],
+          ),
+    );
+  }
+
+  void _showInfoDialog(String message) {
+    showDialog<void>(
+      context: context,
+      builder:
+          (ctx) => AlertDialog(
+            title: Text('payment_method.add_title'.tr()),
+            content: Text(message),
+            actions: [
+              FilledButton(
+                onPressed: () => Navigator.of(ctx).pop(),
+                child: Text('common.confirm'.tr()),
+              ),
+            ],
+          ),
+    );
+  }
+
   void _showLimitDialog() {
     showDialog<void>(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text('subscription.limit_payment_title'.tr()),
-        content: Text('subscription.limit_payment_msg'.tr()),
-        actions: [
-          OutlinedButton(
-            onPressed: () => Navigator.of(ctx).pop(),
-            child: Text('common.cancel'.tr()),
+      builder:
+          (ctx) => AlertDialog(
+            title: Text('subscription.limit_payment_title'.tr()),
+            content: Text('subscription.limit_payment_msg'.tr()),
+            actions: [
+              OutlinedButton(
+                onPressed: () => Navigator.of(ctx).pop(),
+                child: Text('common.cancel'.tr()),
+              ),
+              FilledButton(
+                onPressed: () {
+                  Navigator.of(ctx).pop();
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => const SubscriptionScreen(),
+                    ),
+                  );
+                },
+                child: Text('subscription.upgrade_plan'.tr()),
+              ),
+            ],
           ),
-          FilledButton(
-            onPressed: () {
-              Navigator.of(ctx).pop();
-              Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (_) => const SubscriptionScreen(),
-                ),
-              );
-            },
-            child: Text('subscription.upgrade_plan'.tr()),
-          ),
-        ],
-      ),
     );
   }
 }

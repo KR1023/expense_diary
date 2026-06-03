@@ -49,6 +49,11 @@ class _PaymentMethodSelectState extends State<PaymentMethodSelect> {
       stream: GetIt.I<LocalDatabase>().watchPaymentMethods(),
       builder: (context, snapshot) {
         final methods = snapshot.data ?? [];
+        final options = [...methods];
+        final selected = _resolveSelectedPaymentMethod(methods);
+        if (selected != null && !options.any((m) => m.id == selected.id)) {
+          options.add(selected);
+        }
 
         return Row(
           crossAxisAlignment: CrossAxisAlignment.end,
@@ -58,12 +63,17 @@ class _PaymentMethodSelectState extends State<PaymentMethodSelect> {
                 label: 'payment_method.select_label'.tr(),
                 hint: 'payment_method.select_hint'.tr(),
                 icon: widget.showIcon ? Icons.credit_card_outlined : null,
-                value: _selectedValue,
+                value: selected,
                 options:
-                    methods.map((m) {
+                    options.map((m) {
                       return SelectOption<PaymentMethod>(
                         value: m,
-                        label: m.name,
+                        label:
+                            m.isArchived
+                                ? 'payment_method.archived_label'.tr(
+                                  args: [m.name],
+                                )
+                                : m.name,
                         icon: _iconForType(m.type),
                       );
                     }).toList(),
@@ -95,6 +105,16 @@ class _PaymentMethodSelectState extends State<PaymentMethodSelect> {
         );
       },
     );
+  }
+
+  PaymentMethod? _resolveSelectedPaymentMethod(List<PaymentMethod> methods) {
+    final selected = _selectedValue;
+    if (selected == null) return null;
+
+    for (final method in methods) {
+      if (method.id == selected.id) return method;
+    }
+    return selected;
   }
 
   IconData _iconForType(String type) {
@@ -206,6 +226,34 @@ class _QuickPaymentMethodDialogState extends State<_QuickPaymentMethodDialog> {
     final now = DateTime.now();
     final name = _nameController.text.trim();
     final memo = _memoController.text.trim();
+    final activeDuplicate = await db.findPaymentMethodByTypeAndName(
+      type: _type,
+      name: name,
+      isArchived: false,
+    );
+    if (activeDuplicate != null) {
+      if (mounted) _showInfoDialog('payment_method.duplicate_error'.tr());
+      return;
+    }
+
+    final archivedDuplicate = await db.findPaymentMethodByTypeAndName(
+      type: _type,
+      name: name,
+      isArchived: true,
+    );
+    if (archivedDuplicate != null) {
+      final restore = await _confirmRestore();
+      if (restore != true) return;
+      final restored = await db.restorePaymentMethod(
+        archivedDuplicate,
+        memo: memo,
+        sortOrder: widget.sortOrder,
+      );
+      if (!mounted) return;
+      Navigator.of(context).pop(restored);
+      return;
+    }
+
     final id = await db.createPaymentMethod(
       PaymentMethodsCompanion(
         type: Value(_type),
@@ -229,6 +277,44 @@ class _QuickPaymentMethodDialogState extends State<_QuickPaymentMethodDialog> {
         createdAt: now,
         updatedAt: now,
       ),
+    );
+  }
+
+  Future<bool?> _confirmRestore() {
+    return showDialog<bool>(
+      context: context,
+      builder:
+          (ctx) => AlertDialog(
+            title: Text('payment_method.restore_title'.tr()),
+            content: Text('payment_method.restore_message'.tr()),
+            actions: [
+              OutlinedButton(
+                onPressed: () => Navigator.of(ctx).pop(false),
+                child: Text('common.cancel'.tr()),
+              ),
+              FilledButton(
+                onPressed: () => Navigator.of(ctx).pop(true),
+                child: Text('payment_method.restore_action'.tr()),
+              ),
+            ],
+          ),
+    );
+  }
+
+  void _showInfoDialog(String message) {
+    showDialog<void>(
+      context: context,
+      builder:
+          (ctx) => AlertDialog(
+            title: Text('payment_method.add_title'.tr()),
+            content: Text(message),
+            actions: [
+              FilledButton(
+                onPressed: () => Navigator.of(ctx).pop(),
+                child: Text('common.confirm'.tr()),
+              ),
+            ],
+          ),
     );
   }
 

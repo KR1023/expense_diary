@@ -142,29 +142,7 @@ class CategoryScreenState extends State<CategoryScreen> {
                                     : null,
                             trailing: IconButton(
                               icon: Icon(Icons.delete_outline),
-                              onPressed: () async {
-                                int count = await GetIt.I<LocalDatabase>()
-                                    .countExpensesByCategory(category.id);
-                                if (!context.mounted) return;
-                                if (count > 0) {
-                                  _showAlertDialog(
-                                    context,
-                                    'category.delete_blocked'.tr(),
-                                  );
-                                  return;
-                                } else {
-                                  await GetIt.I<LocalDatabase>().deleteCategory(
-                                    category.id,
-                                  );
-                                  if (context.mounted) {
-                                    showToast(
-                                      context,
-                                      'expense.toast_deleted'.tr(),
-                                      icon: Icons.delete_outline_rounded,
-                                    );
-                                  }
-                                }
-                              },
+                              onPressed: () => _deleteCategory(category),
                             ),
                           ),
                         ),
@@ -181,29 +159,59 @@ class CategoryScreenState extends State<CategoryScreen> {
     );
   }
 
-  Future<void> _showAlertDialog(BuildContext context, String message) async {
-    return showDialog<void>(
+  Future<void> _deleteCategory(CategoryData category) async {
+    final db = GetIt.I<LocalDatabase>();
+    final count = await db.countExpensesByCategory(category.id);
+    if (!mounted) return;
+
+    final confirmed = await showDialog<bool>(
       context: context,
-      builder: (BuildContext context) {
+      builder: (dialogContext) {
         return AlertDialog(
           title: Row(
             children: [
-              Icon(Icons.info_outline, color: AppColors.primary),
-              SizedBox(width: 8),
-              Text('category.alert_title'.tr()),
+              Icon(Icons.warning_amber_rounded, color: AppColors.danger),
+              const SizedBox(width: 8),
+              Expanded(child: Text('category.delete_title'.tr())),
             ],
           ),
-          content: Text(message),
+          content: Text(
+            count > 0
+                ? 'category.delete_with_expenses'.tr(
+                  namedArgs: {'count': '$count'},
+                )
+                : 'category.delete_confirm'.tr(),
+          ),
           actions: [
+            OutlinedButton(
+              onPressed: () => Navigator.of(dialogContext).pop(false),
+              child: Text('common.cancel'.tr()),
+            ),
             FilledButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              child: Text('common.confirm'.tr()),
+              style: FilledButton.styleFrom(
+                backgroundColor: AppColors.danger,
+                foregroundColor: Colors.white,
+              ),
+              onPressed: () => Navigator.of(dialogContext).pop(true),
+              child: Text(
+                count > 0
+                    ? 'category.delete_unassign_action'.tr()
+                    : 'common.delete'.tr(),
+              ),
             ),
           ],
         );
       },
+    );
+
+    if (confirmed != true || !mounted) return;
+
+    await db.deleteCategoryAndUnassignExpenses(category.id);
+    if (!mounted) return;
+    showToast(
+      context,
+      'expense.toast_deleted'.tr(),
+      icon: Icons.delete_outline_rounded,
     );
   }
 

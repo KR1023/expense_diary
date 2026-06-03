@@ -221,6 +221,15 @@ class LocalDatabase extends _$LocalDatabase {
   Future<int> deleteCategory(int id) =>
       (delete(category)..where((t) => t.id.equals(id))).go();
 
+  Future<void> deleteCategoryAndUnassignExpenses(int categoryId) async {
+    await transaction(() async {
+      await (update(expenses)..where(
+        (t) => t.categoryId.equals(categoryId),
+      )).write(const ExpensesCompanion(categoryId: Value(null)));
+      await deleteCategory(categoryId);
+    });
+  }
+
   Future<int> countExpensesByCategory(int categoryId) async {
     final countExpense = expenses.id.count();
     final query =
@@ -250,9 +259,58 @@ class LocalDatabase extends _$LocalDatabase {
   Future<int> createPaymentMethod(PaymentMethodsCompanion data) =>
       into(paymentMethods).insert(data);
 
+  Future<PaymentMethod?> findPaymentMethodByTypeAndName({
+    required String type,
+    required String name,
+    required bool isArchived,
+    int? excludeId,
+  }) async {
+    final normalizedName = name.trim();
+    final rows =
+        await (select(paymentMethods)
+              ..where(
+                (t) =>
+                    t.type.equals(type) &
+                    t.name.equals(normalizedName) &
+                    t.isArchived.equals(isArchived) &
+                    (excludeId == null
+                        ? const Constant(true)
+                        : t.id.equals(excludeId).not()),
+              )
+              ..limit(1))
+            .get();
+    return rows.isEmpty ? null : rows.first;
+  }
+
   Future<int> updatePaymentMethod(PaymentMethodsCompanion data) =>
       (update(paymentMethods)
         ..where((t) => t.id.equals(data.id.value))).write(data);
+
+  Future<PaymentMethod> restorePaymentMethod(
+    PaymentMethod method, {
+    required String memo,
+    required int sortOrder,
+  }) async {
+    final now = DateTime.now();
+    await (update(paymentMethods)..where((t) => t.id.equals(method.id))).write(
+      PaymentMethodsCompanion(
+        memo: Value(memo.trim().isEmpty ? null : memo.trim()),
+        sortOrder: Value(sortOrder),
+        isArchived: const Value(false),
+        updatedAt: Value(now),
+      ),
+    );
+    return PaymentMethod(
+      id: method.id,
+      type: method.type,
+      name: method.name,
+      memo: memo.trim().isEmpty ? null : memo.trim(),
+      sortOrder: sortOrder,
+      isArchived: false,
+      createdAt: method.createdAt,
+      updatedAt: now,
+    );
+  }
 
   Future<void> archivePaymentMethod(int id) async {
     await (update(paymentMethods)..where((t) => t.id.equals(id))).write(

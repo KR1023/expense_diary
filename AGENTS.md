@@ -42,7 +42,10 @@
 - `RecurringExpenses`: id, name, amount, categoryId (nullable), paymentMethodId (nullable), detail (nullable), frequency (`daily` / `weekly` / `monthly` / `yearly`), interval, startDate, endDate (nullable), nextRunDate, isActive, createdAt, updatedAt
 - `PaymentMethodExpense`: DTO for payment-method monthly aggregation.
 - Category presets are optional. When `usePresetAmount=true`, selecting the category in expense add/edit fills the amount from `presetAmount`. When `autoFillExpenseName=true`, selecting the category fills the expense name with the category name.
+- Deleting a category unassigns related expenses by setting `Expense.categoryId` to null inside a transaction, then deletes the category. Expense rows are not deleted.
 - Payment methods are archived with `isArchived=true` instead of hard-deleted to preserve historic expense references.
+- Adding a payment method with the same active `type + name` is blocked. Adding the same `type + name` as an archived payment method prompts restore, reuses the original ID, and reconnects historic expenses/statistics.
+- `PaymentMethodSelect` must tolerate archived selected values because historic expenses and fixed-expense rules can still reference archived payment methods. Include the archived selected value in the dropdown as a deleted/current value instead of assuming it exists in `watchPaymentMethods()`.
 - Fixed expenses generate real `Expense` rows only when due (`nextRunDate <= today`), not for future dates in advance.
 - Fixed expense generation is capped at 100 rows per run and checks `recurringExpenseId + recurringOccurrenceDate` to avoid duplicates.
 
