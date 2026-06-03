@@ -16,6 +16,7 @@ class FirebaseSnapshotRepository {
 
   final FirebaseFirestore _firestore;
   final FirebaseStorage _storage;
+  static const int maxSnapshotCount = 5;
 
   CollectionReference<Map<String, dynamic>> _snapshotsRef(String uid) {
     return _firestore.collection('users').doc(uid).collection('snapshots');
@@ -60,6 +61,8 @@ class FirebaseSnapshotRepository {
         BackupMetadataKeys.cloudLastBackupWeekKey: weekKey,
       }, SetOptions(merge: true));
     });
+
+    await _pruneOldSnapshots(uid);
   }
 
   Future<({DateTime? lastBackupAt, String? lastBackupWeekKey})>
@@ -94,6 +97,19 @@ class FirebaseSnapshotRepository {
         .toList(growable: false);
   }
 
+  Future<void> deleteSnapshot(String uid, String snapshotId) async {
+    final doc = await _snapshotsRef(uid).doc(snapshotId).get();
+    if (!doc.exists) return;
+    await _deleteSnapshotDocument(uid, doc);
+  }
+
+  Future<void> deleteAllSnapshots(String uid) async {
+    final query = await _snapshotsRef(uid).get();
+    for (final doc in query.docs) {
+      await _deleteSnapshotDocument(uid, doc);
+    }
+  }
+
   Future<Snapshot> downloadSnapshot(String uid, String snapshotId) async {
     final doc = await _snapshotsRef(uid).doc(snapshotId).get();
     if (!doc.exists || doc.data() == null) {
@@ -115,6 +131,47 @@ class FirebaseSnapshotRepository {
 
     // 구형식: payload가 Firestore 도큐먼트에 내장된 경우
     return Snapshot.fromJson(normalized);
+  }
+
+  Future<void> _pruneOldSnapshots(String uid) async {
+    final query =
+        await _snapshotsRef(uid).orderBy('createdAt', descending: false).get();
+    final overflow = query.docs.length - maxSnapshotCount;
+    if (overflow <= 0) return;
+
+    for (final doc in query.docs.take(overflow)) {
+      await _deleteSnapshotDocument(uid, doc);
+    }
+  }
+
+  Future<void> _deleteSnapshotDocument(
+    String uid,
+    DocumentSnapshot<Map<String, dynamic>> doc,
+  ) async {
+    final data = doc.data();
+    if (data != null) {
+      await _deletePayload(uid, doc.id, data);
+    }
+    await doc.reference.delete();
+  }
+
+  Future<void> _deletePayload(
+    String uid,
+    String snapshotId,
+    Map<String, dynamic> raw,
+  ) async {
+    final normalized = _normalizeFirestoreJson(raw, snapshotId: snapshotId);
+    final storagePath = normalized['payloadStoragePath'] as String?;
+    final ref =
+        storagePath != null && storagePath.isNotEmpty
+            ? _storage.ref(storagePath)
+            : _storageRef(uid, snapshotId);
+
+    try {
+      await ref.delete();
+    } on FirebaseException catch (e) {
+      if (e.code != 'object-not-found') rethrow;
+    }
   }
 
   Map<String, dynamic> _normalizeFirestoreJson(

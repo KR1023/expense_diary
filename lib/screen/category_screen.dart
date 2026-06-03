@@ -1,5 +1,6 @@
 import 'package:expense_diary/component/banner_ad_widget.dart';
 import 'package:expense_diary/component/common/toast.dart';
+import 'package:expense_diary/component/common/thousands_formatter.dart';
 import 'package:flutter/material.dart';
 import 'package:drift/drift.dart' hide Column;
 import 'package:expense_diary/database/drift_database.dart';
@@ -9,13 +10,16 @@ import 'package:expense_diary/const/app_colors.dart';
 import 'package:easy_localization/easy_localization.dart';
 
 class CategoryScreen extends StatefulWidget {
+  const CategoryScreen({super.key});
+
   @override
   State<StatefulWidget> createState() => CategoryScreenState();
 }
 
 class CategoryScreenState extends State<CategoryScreen> {
-  String? _errorText = null;
-  TextEditingController _inputCategoryController = TextEditingController();
+  String? _errorText;
+  final TextEditingController _inputCategoryController =
+      TextEditingController();
   String _keyword = '';
 
   @override
@@ -73,7 +77,7 @@ class CategoryScreenState extends State<CategoryScreen> {
                   _keyword.isEmpty ? null : _keyword,
                 ),
                 builder: (context, snapshot) {
-                  if (!snapshot.hasData || snapshot.data!.length == 0) {
+                  if (!snapshot.hasData || snapshot.data!.isEmpty) {
                     return Center(
                       child: Text(
                         'category.empty'.tr(),
@@ -99,11 +103,49 @@ class CategoryScreenState extends State<CategoryScreen> {
                           margin: EdgeInsets.zero,
                           child: ListTile(
                             title: Text(category.categoryName),
+                            subtitle:
+                                category.usePresetAmount ||
+                                        category.autoFillExpenseName
+                                    ? Padding(
+                                      padding: const EdgeInsets.only(top: 6),
+                                      child: Wrap(
+                                        spacing: 6,
+                                        runSpacing: 6,
+                                        children: [
+                                          if (category.usePresetAmount &&
+                                              category.presetAmount != null)
+                                            _OptionChip(
+                                              icon: Icons.payments_outlined,
+                                              label:
+                                                  'category.preset_amount_chip'
+                                                      .tr(
+                                                        namedArgs: {
+                                                          'amount': NumberFormat(
+                                                            '#,###',
+                                                          ).format(
+                                                            category
+                                                                .presetAmount,
+                                                          ),
+                                                        },
+                                                      ),
+                                            ),
+                                          if (category.autoFillExpenseName)
+                                            _OptionChip(
+                                              icon: Icons.text_fields_rounded,
+                                              label:
+                                                  'category.auto_name_chip'
+                                                      .tr(),
+                                            ),
+                                        ],
+                                      ),
+                                    )
+                                    : null,
                             trailing: IconButton(
                               icon: Icon(Icons.delete_outline),
                               onPressed: () async {
                                 int count = await GetIt.I<LocalDatabase>()
                                     .countExpensesByCategory(category.id);
+                                if (!context.mounted) return;
                                 if (count > 0) {
                                   _showAlertDialog(
                                     context,
@@ -167,6 +209,10 @@ class CategoryScreenState extends State<CategoryScreen> {
 
   Future<void> _showInputDialog(BuildContext context) async {
     TextEditingController textController = TextEditingController();
+    TextEditingController amountController = TextEditingController();
+    bool usePresetAmount = false;
+    bool autoFillExpenseName = false;
+    String? amountErrorText;
     _errorText = null;
 
     await showDialog<String>(
@@ -175,20 +221,52 @@ class CategoryScreenState extends State<CategoryScreen> {
         return StatefulBuilder(
           builder: (context, setState) {
             return AlertDialog(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(24),
+              ),
+              titlePadding: const EdgeInsets.fromLTRB(24, 22, 24, 8),
+              contentPadding: const EdgeInsets.fromLTRB(24, 8, 24, 4),
               title: Row(
                 children: [
-                  Icon(Icons.label_outline, color: AppColors.primary),
-                  SizedBox(width: 8),
-                  Text('category.input_title'.tr()),
+                  Container(
+                    width: 34,
+                    height: 34,
+                    decoration: BoxDecoration(
+                      color: AppColors.primary.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: const Icon(
+                      Icons.label_outline,
+                      color: AppColors.primary,
+                      size: 19,
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(child: Text('category.input_title'.tr())),
                 ],
               ),
-              content: TextField(
-                controller: textController,
-                autofocus: true,
-                decoration: InputDecoration(
-                  hintText: 'category.input_hint'.tr(),
-                  errorText: _errorText,
-                ),
+              content: _CategoryDialogBody(
+                nameController: textController,
+                amountController: amountController,
+                nameHint: 'category.input_hint'.tr(),
+                nameErrorText: _errorText,
+                amountErrorText: amountErrorText,
+                usePresetAmount: usePresetAmount,
+                autoFillExpenseName: autoFillExpenseName,
+                onUsePresetAmountChanged: (value) {
+                  setState(() {
+                    usePresetAmount = value;
+                    if (!usePresetAmount) {
+                      amountController.clear();
+                      amountErrorText = null;
+                    }
+                  });
+                },
+                onAutoFillExpenseNameChanged: (value) {
+                  setState(() {
+                    autoFillExpenseName = value;
+                  });
+                },
               ),
               actions: <Widget>[
                 OutlinedButton(
@@ -204,9 +282,24 @@ class CategoryScreenState extends State<CategoryScreen> {
                   child: Text('common.confirm'.tr()),
                   onPressed: () async {
                     try {
+                      final presetAmount = int.tryParse(
+                        amountController.text.replaceAll(',', ''),
+                      );
+                      if (usePresetAmount && presetAmount == null) {
+                        setState(() {
+                          amountErrorText =
+                              'category.preset_amount_required'.tr();
+                        });
+                        return;
+                      }
                       await GetIt.I<LocalDatabase>().addCategory(
                         CategoryCompanion(
                           categoryName: Value(textController.text),
+                          usePresetAmount: Value(usePresetAmount),
+                          presetAmount: Value(
+                            usePresetAmount ? presetAmount : null,
+                          ),
+                          autoFillExpenseName: Value(autoFillExpenseName),
                         ),
                       );
                       setState(() => _errorText = null);
@@ -227,6 +320,7 @@ class CategoryScreenState extends State<CategoryScreen> {
                       _errorText = null;
                     });
 
+                    if (!context.mounted) return;
                     Navigator.of(context).pop(textController.text);
                   },
                 ),
@@ -243,7 +337,15 @@ class CategoryScreenState extends State<CategoryScreen> {
     CategoryData category,
   ) async {
     TextEditingController textController = TextEditingController();
+    TextEditingController amountController = TextEditingController();
     textController.text = category.categoryName;
+    amountController.text =
+        category.presetAmount == null
+            ? ''
+            : ThousandsFormatter.format(category.presetAmount!);
+    bool usePresetAmount = category.usePresetAmount;
+    bool autoFillExpenseName = category.autoFillExpenseName;
+    String? amountErrorText;
     _errorText = null;
 
     await showDialog<String>(
@@ -252,20 +354,52 @@ class CategoryScreenState extends State<CategoryScreen> {
         return StatefulBuilder(
           builder: (context, setState) {
             return AlertDialog(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(24),
+              ),
+              titlePadding: const EdgeInsets.fromLTRB(24, 22, 24, 8),
+              contentPadding: const EdgeInsets.fromLTRB(24, 8, 24, 4),
               title: Row(
                 children: [
-                  Icon(Icons.edit_outlined, color: AppColors.primary),
-                  SizedBox(width: 8),
-                  Text('category.edit_title'.tr()),
+                  Container(
+                    width: 34,
+                    height: 34,
+                    decoration: BoxDecoration(
+                      color: AppColors.primary.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: const Icon(
+                      Icons.edit_outlined,
+                      color: AppColors.primary,
+                      size: 19,
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(child: Text('category.edit_title'.tr())),
                 ],
               ),
-              content: TextField(
-                controller: textController,
-                autofocus: true,
-                decoration: InputDecoration(
-                  hintText: 'category.edit_hint'.tr(),
-                  errorText: _errorText,
-                ),
+              content: _CategoryDialogBody(
+                nameController: textController,
+                amountController: amountController,
+                nameHint: 'category.edit_hint'.tr(),
+                nameErrorText: _errorText,
+                amountErrorText: amountErrorText,
+                usePresetAmount: usePresetAmount,
+                autoFillExpenseName: autoFillExpenseName,
+                onUsePresetAmountChanged: (value) {
+                  setState(() {
+                    usePresetAmount = value;
+                    if (!usePresetAmount) {
+                      amountController.clear();
+                      amountErrorText = null;
+                    }
+                  });
+                },
+                onAutoFillExpenseNameChanged: (value) {
+                  setState(() {
+                    autoFillExpenseName = value;
+                  });
+                },
               ),
               actions: <Widget>[
                 OutlinedButton(
@@ -282,10 +416,25 @@ class CategoryScreenState extends State<CategoryScreen> {
                   child: Text('common.confirm'.tr()),
                   onPressed: () async {
                     try {
+                      final presetAmount = int.tryParse(
+                        amountController.text.replaceAll(',', ''),
+                      );
+                      if (usePresetAmount && presetAmount == null) {
+                        setState(() {
+                          amountErrorText =
+                              'category.preset_amount_required'.tr();
+                        });
+                        return;
+                      }
                       await GetIt.I<LocalDatabase>().updateCategory(
-                        CategoryData(
-                          id: category.id,
-                          categoryName: textController.text,
+                        CategoryCompanion(
+                          id: Value(category.id),
+                          categoryName: Value(textController.text),
+                          usePresetAmount: Value(usePresetAmount),
+                          presetAmount: Value(
+                            usePresetAmount ? presetAmount : null,
+                          ),
+                          autoFillExpenseName: Value(autoFillExpenseName),
                         ),
                       );
                       if (context.mounted) {
@@ -304,6 +453,7 @@ class CategoryScreenState extends State<CategoryScreen> {
                       _errorText = null;
                     });
 
+                    if (!context.mounted) return;
                     Navigator.of(context).pop(textController.text);
                   },
                 ),
@@ -312,6 +462,241 @@ class CategoryScreenState extends State<CategoryScreen> {
           },
         );
       },
+    );
+  }
+}
+
+class _CategoryDialogBody extends StatelessWidget {
+  const _CategoryDialogBody({
+    required this.nameController,
+    required this.amountController,
+    required this.nameHint,
+    required this.usePresetAmount,
+    required this.autoFillExpenseName,
+    required this.onUsePresetAmountChanged,
+    required this.onAutoFillExpenseNameChanged,
+    this.nameErrorText,
+    this.amountErrorText,
+  });
+
+  final TextEditingController nameController;
+  final TextEditingController amountController;
+  final String nameHint;
+  final String? nameErrorText;
+  final String? amountErrorText;
+  final bool usePresetAmount;
+  final bool autoFillExpenseName;
+  final ValueChanged<bool> onUsePresetAmountChanged;
+  final ValueChanged<bool> onAutoFillExpenseNameChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
+
+    return ConstrainedBox(
+      constraints: const BoxConstraints(maxWidth: 420),
+      child: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'category.select_label'.tr(),
+              style: textTheme.labelSmall?.copyWith(
+                color: AppColors.mutedOf(context),
+              ),
+            ),
+            const SizedBox(height: 6),
+            TextField(
+              controller: nameController,
+              autofocus: true,
+              decoration: InputDecoration(
+                hintText: nameHint,
+                errorText: nameErrorText,
+                prefixIcon: const Icon(Icons.sell_outlined),
+              ),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'category.default_options_title'.tr(),
+              style: textTheme.labelSmall?.copyWith(
+                color: AppColors.mutedOf(context),
+              ),
+            ),
+            const SizedBox(height: 8),
+            _DialogOptionCard(
+              icon: Icons.payments_outlined,
+              title: 'category.preset_amount_option'.tr(),
+              description: 'category.preset_amount_help'.tr(),
+              checked: usePresetAmount,
+              onChanged: onUsePresetAmountChanged,
+              child: AnimatedSwitcher(
+                duration: const Duration(milliseconds: 180),
+                child:
+                    usePresetAmount
+                        ? Padding(
+                          key: const ValueKey('amount-field'),
+                          padding: const EdgeInsets.only(top: 12),
+                          child: TextField(
+                            controller: amountController,
+                            keyboardType: TextInputType.number,
+                            inputFormatters: [ThousandsFormatter()],
+                            decoration: InputDecoration(
+                              hintText: 'category.preset_amount_hint'.tr(),
+                              errorText: amountErrorText,
+                              prefixIcon: const Icon(
+                                Icons.attach_money_rounded,
+                              ),
+                            ),
+                          ),
+                        )
+                        : const SizedBox.shrink(key: ValueKey('no-amount')),
+              ),
+            ),
+            const SizedBox(height: 10),
+            _DialogOptionCard(
+              icon: Icons.text_fields_rounded,
+              title: 'category.auto_name_option'.tr(),
+              description: 'category.auto_name_help'.tr(),
+              checked: autoFillExpenseName,
+              onChanged: onAutoFillExpenseNameChanged,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _DialogOptionCard extends StatelessWidget {
+  const _DialogOptionCard({
+    required this.icon,
+    required this.title,
+    required this.description,
+    required this.checked,
+    required this.onChanged,
+    this.child,
+  });
+
+  final IconData icon;
+  final String title;
+  final String description;
+  final bool checked;
+  final ValueChanged<bool> onChanged;
+  final Widget? child;
+
+  @override
+  Widget build(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
+    final borderColor =
+        checked ? AppColors.primary : AppColors.outlineOf(context);
+
+    return InkWell(
+      borderRadius: BorderRadius.circular(16),
+      onTap: () => onChanged(!checked),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 160),
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color:
+              checked
+                  ? AppColors.primary.withValues(alpha: 0.08)
+                  : AppColors.surfaceAltOf(context),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: borderColor, width: checked ? 1.4 : 1),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  width: 34,
+                  height: 34,
+                  decoration: BoxDecoration(
+                    color:
+                        checked
+                            ? AppColors.primary.withValues(alpha: 0.14)
+                            : AppColors.surfaceOf(context),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Icon(
+                    icon,
+                    size: 18,
+                    color:
+                        checked
+                            ? AppColors.primary
+                            : AppColors.mutedOf(context),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        title,
+                        style: textTheme.bodyMedium?.copyWith(
+                          fontWeight: FontWeight.w700,
+                          color:
+                              checked
+                                  ? AppColors.primary
+                                  : AppColors.inkOf(context),
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        description,
+                        style: textTheme.bodySmall?.copyWith(
+                          color: AppColors.mutedOf(context),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Checkbox(
+                  value: checked,
+                  onChanged: (value) => onChanged(value ?? false),
+                ),
+              ],
+            ),
+            if (child != null) child!,
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _OptionChip extends StatelessWidget {
+  const _OptionChip({required this.icon, required this.label});
+
+  final IconData icon;
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: AppColors.surfaceAltOf(context),
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(color: AppColors.outlineOf(context)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 13, color: AppColors.mutedOf(context)),
+          const SizedBox(width: 4),
+          Text(
+            label,
+            style: Theme.of(
+              context,
+            ).textTheme.bodySmall?.copyWith(color: AppColors.mutedOf(context)),
+          ),
+        ],
+      ),
     );
   }
 }

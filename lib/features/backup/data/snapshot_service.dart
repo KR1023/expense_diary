@@ -30,7 +30,7 @@ class SnapshotService {
   final Uuid _uuid;
   final String _appVersion;
 
-  Future<Snapshot> buildLocalSnapshot({DateTime? now}) async {
+  Future<Snapshot> buildLocalSnapshot({DateTime? now, String? name}) async {
     final expenses = await _localDatabase.select(_localDatabase.expenses).get();
     final categories =
         await _localDatabase.select(_localDatabase.category).get();
@@ -76,6 +76,7 @@ class SnapshotService {
     return Snapshot.create(
       snapshotId: _uuid.v4(),
       createdAt: createdAt,
+      name: name?.trim() ?? '',
       schemaVersion: _localDatabase.schemaVersion,
       appVersion: _appVersion,
       payload: payload,
@@ -93,6 +94,14 @@ class SnapshotService {
 
   Future<List<SnapshotMeta>> listSnapshots(String uid) {
     return _firebaseRepository.listSnapshots(uid);
+  }
+
+  Future<void> deleteSnapshot(String uid, String snapshotId) {
+    return _firebaseRepository.deleteSnapshot(uid, snapshotId);
+  }
+
+  Future<void> deleteAllSnapshots(String uid) {
+    return _firebaseRepository.deleteAllSnapshots(uid);
   }
 
   Future<Snapshot> downloadSnapshot(
@@ -132,76 +141,151 @@ class SnapshotService {
       await _localDatabase.delete(_localDatabase.paymentMethods).go();
 
       // 결제 수단 복원 (이전 백업에 없으면 빈 목록)
-      final pmList = payload.paymentMethods
-        ..sort((a, b) => _compareNum(a['id'], b['id']));
+      final pmList =
+          payload.paymentMethods..sort((a, b) => _compareNum(a['id'], b['id']));
       for (final pm in pmList) {
-        await _localDatabase.into(_localDatabase.paymentMethods).insert(
-          PaymentMethodsCompanion(
-            id: Value(pm['id'] as int),
-            type: Value(pm['type'] as String? ?? 'other'),
-            name: Value(pm['name'] as String? ?? ''),
-            memo: Value(pm['memo'] as String?),
-            sortOrder: Value(pm['sort_order'] as int? ?? pm['sortOrder'] as int? ?? 0),
-            isArchived: Value(pm['is_archived'] as bool? ?? pm['isArchived'] as bool? ?? false),
-            createdAt: Value(_parseDateTime(pm['created_at'] ?? pm['createdAt'])),
-            updatedAt: Value(_parseDateTime(pm['updated_at'] ?? pm['updatedAt'])),
-          ),
-        );
+        await _localDatabase
+            .into(_localDatabase.paymentMethods)
+            .insert(
+              PaymentMethodsCompanion(
+                id: Value(pm['id'] as int),
+                type: Value(pm['type'] as String? ?? 'other'),
+                name: Value(pm['name'] as String? ?? ''),
+                memo: Value(pm['memo'] as String?),
+                sortOrder: Value(
+                  pm['sort_order'] as int? ?? pm['sortOrder'] as int? ?? 0,
+                ),
+                isArchived: Value(
+                  pm['is_archived'] as bool? ??
+                      pm['isArchived'] as bool? ??
+                      false,
+                ),
+                createdAt: Value(
+                  _parseDateTime(pm['created_at'] ?? pm['createdAt']),
+                ),
+                updatedAt: Value(
+                  _parseDateTime(pm['updated_at'] ?? pm['updatedAt']),
+                ),
+              ),
+            );
       }
 
       // 분류 복원
-      final catList = payload.categories
-        ..sort((a, b) => _compareNum(a['id'], b['id']));
+      final catList =
+          payload.categories..sort((a, b) => _compareNum(a['id'], b['id']));
       for (final cat in catList) {
-        await _localDatabase.into(_localDatabase.category).insert(
-          CategoryCompanion(
-            id: Value(cat['id'] as int),
-            categoryName: Value(cat['category_name'] as String? ?? cat['categoryName'] as String? ?? ''),
-          ),
-        );
+        await _localDatabase
+            .into(_localDatabase.category)
+            .insert(
+              CategoryCompanion(
+                id: Value(cat['id'] as int),
+                categoryName: Value(
+                  cat['category_name'] as String? ??
+                      cat['categoryName'] as String? ??
+                      '',
+                ),
+                usePresetAmount: Value(
+                  cat['use_preset_amount'] as bool? ??
+                      cat['usePresetAmount'] as bool? ??
+                      false,
+                ),
+                presetAmount: Value(
+                  cat['preset_amount'] as int? ?? cat['presetAmount'] as int?,
+                ),
+                autoFillExpenseName: Value(
+                  cat['auto_fill_expense_name'] as bool? ??
+                      cat['autoFillExpenseName'] as bool? ??
+                      false,
+                ),
+              ),
+            );
       }
 
       // 고정 지출 복원 (이전 백업에 없으면 빈 목록)
-      final reList = payload.recurringExpenses
-        ..sort((a, b) => _compareNum(a['id'], b['id']));
+      final reList =
+          payload.recurringExpenses
+            ..sort((a, b) => _compareNum(a['id'], b['id']));
       for (final re in reList) {
-        await _localDatabase.into(_localDatabase.recurringExpenses).insert(
-          RecurringExpensesCompanion(
-            id: Value(re['id'] as int),
-            name: Value(re['name'] as String? ?? ''),
-            amount: Value(re['amount'] as int? ?? 0),
-            categoryId: Value(re['category_id'] as int? ?? re['categoryId'] as int?),
-            paymentMethodId: Value(re['payment_method_id'] as int? ?? re['paymentMethodId'] as int?),
-            detail: Value(re['detail'] as String?),
-            frequency: Value(re['frequency'] as String? ?? 'monthly'),
-            interval: Value(re['interval'] as int? ?? 1),
-            startDate: Value(_parseDateTime(re['start_date'] ?? re['startDate'])),
-            endDate: Value(_parseDateTimeNullable(re['end_date'] ?? re['endDate'])),
-            nextRunDate: Value(_parseDateTime(re['next_run_date'] ?? re['nextRunDate'])),
-            isActive: Value(re['is_active'] as bool? ?? re['isActive'] as bool? ?? true),
-            createdAt: Value(_parseDateTime(re['created_at'] ?? re['createdAt'])),
-            updatedAt: Value(_parseDateTime(re['updated_at'] ?? re['updatedAt'])),
-          ),
-        );
+        await _localDatabase
+            .into(_localDatabase.recurringExpenses)
+            .insert(
+              RecurringExpensesCompanion(
+                id: Value(re['id'] as int),
+                name: Value(re['name'] as String? ?? ''),
+                amount: Value(re['amount'] as int? ?? 0),
+                categoryId: Value(
+                  re['category_id'] as int? ?? re['categoryId'] as int?,
+                ),
+                paymentMethodId: Value(
+                  re['payment_method_id'] as int? ??
+                      re['paymentMethodId'] as int?,
+                ),
+                detail: Value(re['detail'] as String?),
+                frequency: Value(re['frequency'] as String? ?? 'monthly'),
+                interval: Value(re['interval'] as int? ?? 1),
+                startDate: Value(
+                  _parseDateTime(re['start_date'] ?? re['startDate']),
+                ),
+                endDate: Value(
+                  _parseDateTimeNullable(re['end_date'] ?? re['endDate']),
+                ),
+                nextRunDate: Value(
+                  _parseDateTime(re['next_run_date'] ?? re['nextRunDate']),
+                ),
+                isActive: Value(
+                  re['is_active'] as bool? ?? re['isActive'] as bool? ?? true,
+                ),
+                createdAt: Value(
+                  _parseDateTime(re['created_at'] ?? re['createdAt']),
+                ),
+                updatedAt: Value(
+                  _parseDateTime(re['updated_at'] ?? re['updatedAt']),
+                ),
+              ),
+            );
       }
 
       // 지출 복원
-      final expList = payload.transactions
-        ..sort((a, b) => _compareNum(a['id'], b['id']));
+      final expList =
+          payload.transactions..sort((a, b) => _compareNum(a['id'], b['id']));
       for (final exp in expList) {
-        await _localDatabase.into(_localDatabase.expenses).insert(
-          ExpensesCompanion(
-            id: Value(exp['id'] as int),
-            categoryId: Value(exp['category_id'] as int? ?? exp['categoryId'] as int?),
-            expenseName: Value(exp['expense_name'] as String? ?? exp['expenseName'] as String? ?? ''),
-            expense: Value(exp['expense'] as int? ?? 0),
-            expenseDate: Value(_parseDateTime(exp['expense_date'] ?? exp['expenseDate'])),
-            expenseDetail: Value(exp['expense_detail'] as String? ?? exp['expenseDetail'] as String?),
-            paymentMethodId: Value(exp['payment_method_id'] as int? ?? exp['paymentMethodId'] as int?),
-            recurringExpenseId: Value(exp['recurring_expense_id'] as int? ?? exp['recurringExpenseId'] as int?),
-            recurringOccurrenceDate: Value(_parseDateTimeNullable(exp['recurring_occurrence_date'] ?? exp['recurringOccurrenceDate'])),
-          ),
-        );
+        await _localDatabase
+            .into(_localDatabase.expenses)
+            .insert(
+              ExpensesCompanion(
+                id: Value(exp['id'] as int),
+                categoryId: Value(
+                  exp['category_id'] as int? ?? exp['categoryId'] as int?,
+                ),
+                expenseName: Value(
+                  exp['expense_name'] as String? ??
+                      exp['expenseName'] as String? ??
+                      '',
+                ),
+                expense: Value(exp['expense'] as int? ?? 0),
+                expenseDate: Value(
+                  _parseDateTime(exp['expense_date'] ?? exp['expenseDate']),
+                ),
+                expenseDetail: Value(
+                  exp['expense_detail'] as String? ??
+                      exp['expenseDetail'] as String?,
+                ),
+                paymentMethodId: Value(
+                  exp['payment_method_id'] as int? ??
+                      exp['paymentMethodId'] as int?,
+                ),
+                recurringExpenseId: Value(
+                  exp['recurring_expense_id'] as int? ??
+                      exp['recurringExpenseId'] as int?,
+                ),
+                recurringOccurrenceDate: Value(
+                  _parseDateTimeNullable(
+                    exp['recurring_occurrence_date'] ??
+                        exp['recurringOccurrenceDate'],
+                  ),
+                ),
+              ),
+            );
       }
     });
 

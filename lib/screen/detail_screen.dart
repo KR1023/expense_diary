@@ -1,7 +1,7 @@
 import 'package:drift/drift.dart' hide Column;
+import 'package:expense_diary/component/common/thousands_formatter.dart';
 import 'package:expense_diary/component/common/toast.dart';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'package:expense_diary/component/label_field.dart';
 import 'package:expense_diary/component/expense_screen_header.dart';
 import 'package:expense_diary/component/category_select.dart';
@@ -21,7 +21,8 @@ class DetailScreen extends StatefulWidget {
   final PaymentMethod? paymentMethod;
   final String detail;
 
-  DetailScreen({
+  const DetailScreen({
+    super.key,
     required this.expenseId,
     required this.expenseName,
     required this.expenseDate,
@@ -37,6 +38,9 @@ class DetailScreen extends StatefulWidget {
 
 class _DetailScreenState extends State<DetailScreen> {
   final GlobalKey<FormState> formKey = GlobalKey();
+  final TextEditingController _expenseNameController = TextEditingController();
+  final TextEditingController _expenseAmountController =
+      TextEditingController();
 
   int? expenseId;
   String? expenseName;
@@ -59,8 +63,29 @@ class _DetailScreenState extends State<DetailScreen> {
     paymentMethodId = widget.paymentMethod?.id;
     paymentMethod = widget.paymentMethod;
     detail = widget.detail;
+    _expenseNameController.text = widget.expenseName;
+    _expenseAmountController.text = ThousandsFormatter.format(widget.expense);
 
     super.initState();
+  }
+
+  @override
+  void dispose() {
+    _expenseNameController.dispose();
+    _expenseAmountController.dispose();
+    super.dispose();
+  }
+
+  void _applyCategoryDefaults(CategoryData? category) {
+    if (category == null) return;
+    if (category.autoFillExpenseName) {
+      _expenseNameController.text = category.categoryName;
+    }
+    if (category.usePresetAmount && category.presetAmount != null) {
+      _expenseAmountController.text = ThousandsFormatter.format(
+        category.presetAmount!,
+      );
+    }
   }
 
   @override
@@ -93,6 +118,7 @@ class _DetailScreenState extends State<DetailScreen> {
                             isDate: false,
                             isExpense: false,
                             initValue: expenseName,
+                            controller: _expenseNameController,
                             onSaved: (String? val) {
                               expenseName = val!;
                             },
@@ -115,7 +141,7 @@ class _DetailScreenState extends State<DetailScreen> {
                               DateFormat formatter = DateFormat('yyyy-MM-dd');
                               expenseDate = formatter.parse(val!);
                             },
-                            validator: (String? val) {},
+                            validator: (String? val) => null,
                           ),
                           const SizedBox(height: 20),
                           LabelField(
@@ -124,6 +150,7 @@ class _DetailScreenState extends State<DetailScreen> {
                             isDate: false,
                             isExpense: true,
                             initValue: expense.toString(),
+                            controller: _expenseAmountController,
                             onSaved: (String? val) {
                               expense = int.parse(val!.replaceAll(',', ''));
                             },
@@ -139,6 +166,7 @@ class _DetailScreenState extends State<DetailScreen> {
                           CategorySelect(
                             selectedValue: category,
                             showIcon: false,
+                            onChanged: _applyCategoryDefaults,
                             onSavedCategory: (CategoryData? val) {
                               categoryId = val?.id;
                             },
@@ -161,7 +189,7 @@ class _DetailScreenState extends State<DetailScreen> {
                             onSaved: (String? val) {
                               detail = val!;
                             },
-                            validator: (String? val) {},
+                            validator: (String? val) => null,
                           ),
                           const SizedBox(height: 20),
                           Container(
@@ -212,6 +240,7 @@ class _DetailScreenState extends State<DetailScreen> {
         ),
       );
 
+      if (!context.mounted) return;
       showToast(context, 'expense.toast_updated'.tr());
       Navigator.pop(context);
     }

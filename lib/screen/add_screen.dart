@@ -1,6 +1,6 @@
 import 'package:expense_diary/component/common/toast.dart';
+import 'package:expense_diary/component/common/thousands_formatter.dart';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'package:expense_diary/component/label_field.dart';
 import 'package:expense_diary/component/expense_screen_header.dart';
 import 'package:drift/drift.dart' hide Column;
@@ -13,12 +13,17 @@ import 'package:expense_diary/const/app_colors.dart';
 import 'package:easy_localization/easy_localization.dart';
 
 class AddScreen extends StatefulWidget {
+  const AddScreen({super.key});
+
   @override
   State<AddScreen> createState() => _AddScreenState();
 }
 
 class _AddScreenState extends State<AddScreen> {
   final GlobalKey<FormState> formKey = GlobalKey();
+  final TextEditingController _expenseNameController = TextEditingController();
+  final TextEditingController _expenseAmountController =
+      TextEditingController();
 
   String? expenseName;
   DateTime? expenseDate;
@@ -26,6 +31,25 @@ class _AddScreenState extends State<AddScreen> {
   int? categoryId;
   int? paymentMethodId;
   String? detail;
+
+  @override
+  void dispose() {
+    _expenseNameController.dispose();
+    _expenseAmountController.dispose();
+    super.dispose();
+  }
+
+  void _applyCategoryDefaults(CategoryData? category) {
+    if (category == null) return;
+    if (category.autoFillExpenseName) {
+      _expenseNameController.text = category.categoryName;
+    }
+    if (category.usePresetAmount && category.presetAmount != null) {
+      _expenseAmountController.text = ThousandsFormatter.format(
+        category.presetAmount!,
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -53,6 +77,7 @@ class _AddScreenState extends State<AddScreen> {
                             isDate: false,
                             isExpense: false,
                             initValue: null,
+                            controller: _expenseNameController,
                             onSaved: (String? val) {
                               expenseName = val!;
                             },
@@ -75,7 +100,7 @@ class _AddScreenState extends State<AddScreen> {
                               DateFormat formatter = DateFormat('yyyy-MM-dd');
                               expenseDate = formatter.parse(val!);
                             },
-                            validator: (String? val) {},
+                            validator: (String? val) => null,
                           ),
                           const SizedBox(height: 20),
                           LabelField(
@@ -84,6 +109,7 @@ class _AddScreenState extends State<AddScreen> {
                             isDate: false,
                             isExpense: true,
                             initValue: null,
+                            controller: _expenseAmountController,
                             onSaved: (String? val) {
                               expense = int.parse(val!.replaceAll(',', ''));
                             },
@@ -98,6 +124,7 @@ class _AddScreenState extends State<AddScreen> {
                           const SizedBox(height: 24),
                           CategorySelect(
                             showIcon: false,
+                            onChanged: _applyCategoryDefaults,
                             onSavedCategory: (CategoryData? val) {
                               categoryId = val?.id;
                             },
@@ -119,7 +146,7 @@ class _AddScreenState extends State<AddScreen> {
                             onSaved: (String? val) {
                               detail = val!;
                             },
-                            validator: (String? val) {},
+                            validator: (String? val) => null,
                           ),
                           const SizedBox(height: 20),
                           Container(
@@ -168,6 +195,7 @@ class _AddScreenState extends State<AddScreen> {
           expenseDetail: Value(detail!),
         ),
       );
+      if (!context.mounted) return;
       showToast(context, 'expense.toast_added'.tr());
       Navigator.pop(context);
     }

@@ -226,13 +226,18 @@ class _ConfigScreenState extends State<ConfigScreen> {
       }
     }
 
+    final snapshotName = await _askSnapshotName();
+    if (snapshotName == null || !mounted) return;
+
     setState(() {
       _isBackingUp = true;
     });
 
     try {
       final snapshotService = GetIt.I<SnapshotService>();
-      final snapshot = await snapshotService.buildLocalSnapshot();
+      final snapshot = await snapshotService.buildLocalSnapshot(
+        name: snapshotName,
+      );
       await snapshotService.uploadSnapshot(user.uid, snapshot);
 
       final savedAt = snapshot.meta.createdAt.toUtc();
@@ -273,6 +278,16 @@ class _ConfigScreenState extends State<ConfigScreen> {
         });
       }
     }
+  }
+
+  Future<String?> _askSnapshotName() async {
+    final now = DateTime.now();
+    final defaultName = DateFormat('yyyy.MM.dd HH:mm').format(now);
+
+    return showDialog<String>(
+      context: context,
+      builder: (_) => _SnapshotNameDialog(defaultName: defaultName),
+    );
   }
 
   Future<void> _openSnapshotRestore(User? user) async {
@@ -967,6 +982,70 @@ class _ConfigScreenState extends State<ConfigScreen> {
           ],
         );
       },
+    );
+  }
+}
+
+class _SnapshotNameDialog extends StatefulWidget {
+  const _SnapshotNameDialog({required this.defaultName});
+
+  final String defaultName;
+
+  @override
+  State<_SnapshotNameDialog> createState() => _SnapshotNameDialogState();
+}
+
+class _SnapshotNameDialogState extends State<_SnapshotNameDialog> {
+  late final TextEditingController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = TextEditingController();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  void _submit() {
+    final typed = _controller.text.trim();
+    Navigator.of(context).pop(typed.isEmpty ? widget.defaultName : typed);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Text('스냅샷 이름'),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text('백업 스냅샷 이름을 입력하세요. 비워두면 날짜와 시간으로 저장됩니다.'),
+          const SizedBox(height: 14),
+          TextField(
+            controller: _controller,
+            maxLength: 40,
+            decoration: InputDecoration(
+              labelText: '스냅샷 이름',
+              hintText: widget.defaultName,
+              border: const OutlineInputBorder(),
+              counterText: '',
+            ),
+            textInputAction: TextInputAction.done,
+            onSubmitted: (_) => _submit(),
+          ),
+        ],
+      ),
+      actions: [
+        OutlinedButton(
+          onPressed: () => Navigator.of(context).pop(null),
+          child: const Text('취소'),
+        ),
+        FilledButton(onPressed: _submit, child: const Text('백업 시작')),
+      ],
     );
   }
 }

@@ -146,22 +146,27 @@ class LocalDatabase extends _$LocalDatabase {
     final start = DateTime(selectedDate.year, selectedDate.month, 1);
     final end = DateTime(selectedDate.year, selectedDate.month + 1, 1);
 
-    final query = select(expenses).join([
-      leftOuterJoin(category, category.id.equalsExp(expenses.categoryId)),
-    ])
-      ..where(
-        expenses.expenseDate.isBetweenValues(start, end) &
-            (paymentMethodId != null
-                ? expenses.paymentMethodId.equals(paymentMethodId)
-                : expenses.paymentMethodId.isNull()),
-      )
-      ..orderBy([OrderingTerm.desc(expenses.expenseDate)]);
+    final query =
+        select(expenses).join([
+            leftOuterJoin(category, category.id.equalsExp(expenses.categoryId)),
+          ])
+          ..where(
+            expenses.expenseDate.isBetweenValues(start, end) &
+                (paymentMethodId != null
+                    ? expenses.paymentMethodId.equals(paymentMethodId)
+                    : expenses.paymentMethodId.isNull()),
+          )
+          ..orderBy([OrderingTerm.desc(expenses.expenseDate)]);
 
     return query.watch().map((rows) {
-      return rows.map((row) => {
-        'expense': row.readTable(expenses),
-        'category': row.readTableOrNull(category),
-      }).toList();
+      return rows
+          .map(
+            (row) => {
+              'expense': row.readTable(expenses),
+              'category': row.readTableOrNull(category),
+            },
+          )
+          .toList();
     });
   }
 
@@ -172,10 +177,7 @@ class LocalDatabase extends _$LocalDatabase {
     final end = DateTime(selectedDate.year, selectedDate.month + 1, 1);
     final query =
         selectOnly(expenses).join([
-            leftOuterJoin(
-              category,
-              category.id.equalsExp(expenses.categoryId),
-            ),
+            leftOuterJoin(category, category.id.equalsExp(expenses.categoryId)),
           ])
           ..addColumns([category.categoryName, expenses.expense.sum()])
           ..where(expenses.expenseDate.isBetweenValues(start, end))
@@ -213,10 +215,8 @@ class LocalDatabase extends _$LocalDatabase {
     return select(category).watch();
   }
 
-  Future<int> updateCategory(CategoryData data) =>
-      (update(category)..where((t) => t.id.equals(data.id))).write(
-        CategoryCompanion(categoryName: Value(data.categoryName)),
-      );
+  Future<int> updateCategory(CategoryCompanion data) =>
+      (update(category)..where((t) => t.id.equals(data.id.value))).write(data);
 
   Future<int> deleteCategory(int id) =>
       (delete(category)..where((t) => t.id.equals(id))).go();
@@ -251,8 +251,8 @@ class LocalDatabase extends _$LocalDatabase {
       into(paymentMethods).insert(data);
 
   Future<int> updatePaymentMethod(PaymentMethodsCompanion data) =>
-      (update(paymentMethods)..where((t) => t.id.equals(data.id.value)))
-          .write(data);
+      (update(paymentMethods)
+        ..where((t) => t.id.equals(data.id.value))).write(data);
 
   Future<void> archivePaymentMethod(int id) async {
     await (update(paymentMethods)..where((t) => t.id.equals(id))).write(
@@ -267,8 +267,7 @@ class LocalDatabase extends _$LocalDatabase {
     await transaction(() async {
       for (int i = 0; i < orderedIds.length; i++) {
         await (update(paymentMethods)
-              ..where((t) => t.id.equals(orderedIds[i])))
-            .write(
+          ..where((t) => t.id.equals(orderedIds[i]))).write(
           PaymentMethodsCompanion(
             sortOrder: Value(i),
             updatedAt: Value(DateTime.now()),
@@ -291,28 +290,23 @@ class LocalDatabase extends _$LocalDatabase {
   // ── RecurringExpense ──────────────────────────────────────────────────────
 
   Stream<List<RecurringExpense>> watchRecurringExpenses() {
-    return (select(recurringExpenses)
-          ..orderBy([
-            (t) => OrderingTerm(
-              expression: t.isActive,
-              mode: OrderingMode.desc,
-            ),
-            (t) => OrderingTerm.asc(t.createdAt),
-          ]))
-        .watch();
+    return (select(recurringExpenses)..orderBy([
+      (t) => OrderingTerm(expression: t.isActive, mode: OrderingMode.desc),
+      (t) => OrderingTerm.asc(t.createdAt),
+    ])).watch();
   }
 
   Future<List<RecurringExpense>> getActiveRecurringExpenses() {
     return (select(recurringExpenses)
-          ..where((t) => t.isActive.equals(true)))
-        .get();
+      ..where((t) => t.isActive.equals(true))).get();
   }
 
   Future<int> countActiveRecurringExpenses() async {
     final count = recurringExpenses.id.count();
-    final query = selectOnly(recurringExpenses)
-      ..addColumns([count])
-      ..where(recurringExpenses.isActive.equals(true));
+    final query =
+        selectOnly(recurringExpenses)
+          ..addColumns([count])
+          ..where(recurringExpenses.isActive.equals(true));
     return (await query.getSingle()).read(count) ?? 0;
   }
 
@@ -320,8 +314,8 @@ class LocalDatabase extends _$LocalDatabase {
       into(recurringExpenses).insert(data);
 
   Future<int> updateRecurringExpense(RecurringExpensesCompanion data) =>
-      (update(recurringExpenses)..where((t) => t.id.equals(data.id.value)))
-          .write(data);
+      (update(recurringExpenses)
+        ..where((t) => t.id.equals(data.id.value))).write(data);
 
   Future<void> deactivateRecurringExpense(int id) async {
     await (update(recurringExpenses)..where((t) => t.id.equals(id))).write(
@@ -339,13 +333,11 @@ class LocalDatabase extends _$LocalDatabase {
     int recurringExpenseId,
     DateTime occurrenceDate,
   ) async {
-    final query =
-        select(expenses)
-          ..where(
-            (t) =>
-                t.recurringExpenseId.equals(recurringExpenseId) &
-                t.recurringOccurrenceDate.equals(occurrenceDate),
-          );
+    final query = select(expenses)..where(
+      (t) =>
+          t.recurringExpenseId.equals(recurringExpenseId) &
+          t.recurringOccurrenceDate.equals(occurrenceDate),
+    );
     final result = await query.get();
     return result.isNotEmpty;
   }
@@ -364,7 +356,7 @@ class LocalDatabase extends _$LocalDatabase {
   // ── Schema ────────────────────────────────────────────────────────────────
 
   @override
-  int get schemaVersion => 2;
+  int get schemaVersion => 3;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -375,6 +367,11 @@ class LocalDatabase extends _$LocalDatabase {
         await m.addColumn(expenses, expenses.recurringOccurrenceDate);
         await m.createTable(paymentMethods);
         await m.createTable(recurringExpenses);
+      }
+      if (from < 3) {
+        await m.addColumn(category, category.usePresetAmount);
+        await m.addColumn(category, category.presetAmount);
+        await m.addColumn(category, category.autoFillExpenseName);
       }
     },
   );

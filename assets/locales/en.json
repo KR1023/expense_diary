@@ -44,7 +44,16 @@
     "select_label": "Category",
     "toast_added": "Category added.",
     "toast_updated": "Category updated.",
-    "select_hint": "Select category"
+    "select_hint": "Select category",
+    "default_options_title": "Auto-fill options",
+    "preset_amount_option": "Set amount",
+    "preset_amount_help": "When this category is selected, the amount is filled automatically.",
+    "preset_amount_hint": "Amount to auto-fill",
+    "preset_amount_required": "Please enter an amount.",
+    "preset_amount_chip": "{amount}",
+    "auto_name_option": "Auto-fill name",
+    "auto_name_help": "When this category is selected, the expense name is filled with the category name.",
+    "auto_name_chip": "Auto name"
   },
   "category_expense": {
     "title": "Expenses by Category",

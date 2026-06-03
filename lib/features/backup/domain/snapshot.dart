@@ -6,6 +6,7 @@ import 'package:crypto/crypto.dart';
 class SnapshotMeta {
   const SnapshotMeta({
     required this.snapshotId,
+    required this.name,
     required this.createdAt,
     required this.schemaVersion,
     required this.appVersion,
@@ -14,6 +15,7 @@ class SnapshotMeta {
   });
 
   final String snapshotId;
+  final String name;
   final DateTime createdAt;
   final int schemaVersion;
   final String appVersion;
@@ -23,6 +25,7 @@ class SnapshotMeta {
   Map<String, dynamic> toJson() {
     return {
       'snapshotId': snapshotId,
+      'name': name,
       'createdAt': createdAt.toUtc().toIso8601String(),
       'schemaVersion': schemaVersion,
       'appVersion': appVersion,
@@ -35,6 +38,7 @@ class SnapshotMeta {
     final createdAtValue = json['createdAt'];
     return SnapshotMeta(
       snapshotId: (json['snapshotId'] as String?) ?? '',
+      name: (json['name'] as String?) ?? '',
       createdAt:
           createdAtValue is DateTime
               ? createdAtValue
@@ -72,11 +76,13 @@ class SnapshotPayload {
       'categories': categories.map(_canonicalizeMap).toList(growable: false),
       // 빈 목록은 생략 — 기존 백업과 해시 호환성 유지
       if (paymentMethods.isNotEmpty)
-        'paymentMethods':
-            paymentMethods.map(_canonicalizeMap).toList(growable: false),
+        'paymentMethods': paymentMethods
+            .map(_canonicalizeMap)
+            .toList(growable: false),
       if (recurringExpenses.isNotEmpty)
-        'recurringExpenses':
-            recurringExpenses.map(_canonicalizeMap).toList(growable: false),
+        'recurringExpenses': recurringExpenses
+            .map(_canonicalizeMap)
+            .toList(growable: false),
       'settings': _canonicalizeMap(settings),
     };
   }
@@ -120,8 +126,9 @@ class SnapshotPayload {
   static dynamic _normalizeJsonLike(dynamic value) {
     if (value is DateTime) return value.toUtc().toIso8601String();
     if (value is Map) return _mapOfDynamic(value);
-    if (value is List)
+    if (value is List) {
       return value.map(_normalizeJsonLike).toList(growable: false);
+    }
     return value;
   }
 
@@ -205,6 +212,7 @@ class Snapshot {
   static Snapshot create({
     required String snapshotId,
     required DateTime createdAt,
+    required String name,
     required int schemaVersion,
     required String appVersion,
     required SnapshotPayload payload,
@@ -215,6 +223,7 @@ class Snapshot {
     return Snapshot(
       meta: SnapshotMeta(
         snapshotId: snapshotId,
+        name: name,
         createdAt: createdAt,
         schemaVersion: schemaVersion,
         appVersion: appVersion,

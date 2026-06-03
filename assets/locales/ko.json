@@ -44,7 +44,16 @@
     "select_label": "분류",
     "toast_added": "분류를 추가했습니다.",
     "toast_updated": "분류를 수정했습니다.",
-    "select_hint": "분류 선택"
+    "select_hint": "분류 선택",
+    "default_options_title": "자동 입력 옵션",
+    "preset_amount_option": "금액 설정",
+    "preset_amount_help": "지출에서 이 분류를 선택하면 금액을 자동 입력합니다.",
+    "preset_amount_hint": "자동 입력할 금액",
+    "preset_amount_required": "금액을 입력해 주세요.",
+    "preset_amount_chip": "{amount}원",
+    "auto_name_option": "자동 이름 채우기",
+    "auto_name_help": "지출에서 이 분류를 선택하면 지출명을 분류명으로 채웁니다.",
+    "auto_name_chip": "이름 자동 입력"
   },
   "category_expense": {
     "title": "분류별 지출",

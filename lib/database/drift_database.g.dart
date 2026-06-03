@@ -24,8 +24,35 @@ class $CategoryTable extends Category
   late final GeneratedColumn<String> categoryName = GeneratedColumn<String>(
       'category_name', aliasedName, false,
       type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _usePresetAmountMeta =
+      const VerificationMeta('usePresetAmount');
   @override
-  List<GeneratedColumn> get $columns => [id, categoryName];
+  late final GeneratedColumn<bool> usePresetAmount = GeneratedColumn<bool>(
+      'use_preset_amount', aliasedName, false,
+      type: DriftSqlType.bool,
+      requiredDuringInsert: false,
+      defaultConstraints: GeneratedColumn.constraintIsAlways(
+          'CHECK ("use_preset_amount" IN (0, 1))'),
+      defaultValue: const Constant(false));
+  static const VerificationMeta _presetAmountMeta =
+      const VerificationMeta('presetAmount');
+  @override
+  late final GeneratedColumn<int> presetAmount = GeneratedColumn<int>(
+      'preset_amount', aliasedName, true,
+      type: DriftSqlType.int, requiredDuringInsert: false);
+  static const VerificationMeta _autoFillExpenseNameMeta =
+      const VerificationMeta('autoFillExpenseName');
+  @override
+  late final GeneratedColumn<bool> autoFillExpenseName = GeneratedColumn<bool>(
+      'auto_fill_expense_name', aliasedName, false,
+      type: DriftSqlType.bool,
+      requiredDuringInsert: false,
+      defaultConstraints: GeneratedColumn.constraintIsAlways(
+          'CHECK ("auto_fill_expense_name" IN (0, 1))'),
+      defaultValue: const Constant(false));
+  @override
+  List<GeneratedColumn> get $columns =>
+      [id, categoryName, usePresetAmount, presetAmount, autoFillExpenseName];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -47,6 +74,24 @@ class $CategoryTable extends Category
     } else if (isInserting) {
       context.missing(_categoryNameMeta);
     }
+    if (data.containsKey('use_preset_amount')) {
+      context.handle(
+          _usePresetAmountMeta,
+          usePresetAmount.isAcceptableOrUnknown(
+              data['use_preset_amount']!, _usePresetAmountMeta));
+    }
+    if (data.containsKey('preset_amount')) {
+      context.handle(
+          _presetAmountMeta,
+          presetAmount.isAcceptableOrUnknown(
+              data['preset_amount']!, _presetAmountMeta));
+    }
+    if (data.containsKey('auto_fill_expense_name')) {
+      context.handle(
+          _autoFillExpenseNameMeta,
+          autoFillExpenseName.isAcceptableOrUnknown(
+              data['auto_fill_expense_name']!, _autoFillExpenseNameMeta));
+    }
     return context;
   }
 
@@ -64,6 +109,12 @@ class $CategoryTable extends Category
           .read(DriftSqlType.int, data['${effectivePrefix}id'])!,
       categoryName: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}category_name'])!,
+      usePresetAmount: attachedDatabase.typeMapping.read(
+          DriftSqlType.bool, data['${effectivePrefix}use_preset_amount'])!,
+      presetAmount: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}preset_amount']),
+      autoFillExpenseName: attachedDatabase.typeMapping.read(
+          DriftSqlType.bool, data['${effectivePrefix}auto_fill_expense_name'])!,
     );
   }
 
@@ -76,12 +127,25 @@ class $CategoryTable extends Category
 class CategoryData extends DataClass implements Insertable<CategoryData> {
   final int id;
   final String categoryName;
-  const CategoryData({required this.id, required this.categoryName});
+  final bool usePresetAmount;
+  final int? presetAmount;
+  final bool autoFillExpenseName;
+  const CategoryData(
+      {required this.id,
+      required this.categoryName,
+      required this.usePresetAmount,
+      this.presetAmount,
+      required this.autoFillExpenseName});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
     map['id'] = Variable<int>(id);
     map['category_name'] = Variable<String>(categoryName);
+    map['use_preset_amount'] = Variable<bool>(usePresetAmount);
+    if (!nullToAbsent || presetAmount != null) {
+      map['preset_amount'] = Variable<int>(presetAmount);
+    }
+    map['auto_fill_expense_name'] = Variable<bool>(autoFillExpenseName);
     return map;
   }
 
@@ -89,6 +153,11 @@ class CategoryData extends DataClass implements Insertable<CategoryData> {
     return CategoryCompanion(
       id: Value(id),
       categoryName: Value(categoryName),
+      usePresetAmount: Value(usePresetAmount),
+      presetAmount: presetAmount == null && nullToAbsent
+          ? const Value.absent()
+          : Value(presetAmount),
+      autoFillExpenseName: Value(autoFillExpenseName),
     );
   }
 
@@ -98,6 +167,10 @@ class CategoryData extends DataClass implements Insertable<CategoryData> {
     return CategoryData(
       id: serializer.fromJson<int>(json['id']),
       categoryName: serializer.fromJson<String>(json['categoryName']),
+      usePresetAmount: serializer.fromJson<bool>(json['usePresetAmount']),
+      presetAmount: serializer.fromJson<int?>(json['presetAmount']),
+      autoFillExpenseName:
+          serializer.fromJson<bool>(json['autoFillExpenseName']),
     );
   }
   @override
@@ -106,12 +179,25 @@ class CategoryData extends DataClass implements Insertable<CategoryData> {
     return <String, dynamic>{
       'id': serializer.toJson<int>(id),
       'categoryName': serializer.toJson<String>(categoryName),
+      'usePresetAmount': serializer.toJson<bool>(usePresetAmount),
+      'presetAmount': serializer.toJson<int?>(presetAmount),
+      'autoFillExpenseName': serializer.toJson<bool>(autoFillExpenseName),
     };
   }
 
-  CategoryData copyWith({int? id, String? categoryName}) => CategoryData(
+  CategoryData copyWith(
+          {int? id,
+          String? categoryName,
+          bool? usePresetAmount,
+          Value<int?> presetAmount = const Value.absent(),
+          bool? autoFillExpenseName}) =>
+      CategoryData(
         id: id ?? this.id,
         categoryName: categoryName ?? this.categoryName,
+        usePresetAmount: usePresetAmount ?? this.usePresetAmount,
+        presetAmount:
+            presetAmount.present ? presetAmount.value : this.presetAmount,
+        autoFillExpenseName: autoFillExpenseName ?? this.autoFillExpenseName,
       );
   CategoryData copyWithCompanion(CategoryCompanion data) {
     return CategoryData(
@@ -119,6 +205,15 @@ class CategoryData extends DataClass implements Insertable<CategoryData> {
       categoryName: data.categoryName.present
           ? data.categoryName.value
           : this.categoryName,
+      usePresetAmount: data.usePresetAmount.present
+          ? data.usePresetAmount.value
+          : this.usePresetAmount,
+      presetAmount: data.presetAmount.present
+          ? data.presetAmount.value
+          : this.presetAmount,
+      autoFillExpenseName: data.autoFillExpenseName.present
+          ? data.autoFillExpenseName.value
+          : this.autoFillExpenseName,
     );
   }
 
@@ -126,46 +221,77 @@ class CategoryData extends DataClass implements Insertable<CategoryData> {
   String toString() {
     return (StringBuffer('CategoryData(')
           ..write('id: $id, ')
-          ..write('categoryName: $categoryName')
+          ..write('categoryName: $categoryName, ')
+          ..write('usePresetAmount: $usePresetAmount, ')
+          ..write('presetAmount: $presetAmount, ')
+          ..write('autoFillExpenseName: $autoFillExpenseName')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(id, categoryName);
+  int get hashCode => Object.hash(
+      id, categoryName, usePresetAmount, presetAmount, autoFillExpenseName);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       (other is CategoryData &&
           other.id == this.id &&
-          other.categoryName == this.categoryName);
+          other.categoryName == this.categoryName &&
+          other.usePresetAmount == this.usePresetAmount &&
+          other.presetAmount == this.presetAmount &&
+          other.autoFillExpenseName == this.autoFillExpenseName);
 }
 
 class CategoryCompanion extends UpdateCompanion<CategoryData> {
   final Value<int> id;
   final Value<String> categoryName;
+  final Value<bool> usePresetAmount;
+  final Value<int?> presetAmount;
+  final Value<bool> autoFillExpenseName;
   const CategoryCompanion({
     this.id = const Value.absent(),
     this.categoryName = const Value.absent(),
+    this.usePresetAmount = const Value.absent(),
+    this.presetAmount = const Value.absent(),
+    this.autoFillExpenseName = const Value.absent(),
   });
   CategoryCompanion.insert({
     this.id = const Value.absent(),
     required String categoryName,
+    this.usePresetAmount = const Value.absent(),
+    this.presetAmount = const Value.absent(),
+    this.autoFillExpenseName = const Value.absent(),
   }) : categoryName = Value(categoryName);
   static Insertable<CategoryData> custom({
     Expression<int>? id,
     Expression<String>? categoryName,
+    Expression<bool>? usePresetAmount,
+    Expression<int>? presetAmount,
+    Expression<bool>? autoFillExpenseName,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
       if (categoryName != null) 'category_name': categoryName,
+      if (usePresetAmount != null) 'use_preset_amount': usePresetAmount,
+      if (presetAmount != null) 'preset_amount': presetAmount,
+      if (autoFillExpenseName != null)
+        'auto_fill_expense_name': autoFillExpenseName,
     });
   }
 
-  CategoryCompanion copyWith({Value<int>? id, Value<String>? categoryName}) {
+  CategoryCompanion copyWith(
+      {Value<int>? id,
+      Value<String>? categoryName,
+      Value<bool>? usePresetAmount,
+      Value<int?>? presetAmount,
+      Value<bool>? autoFillExpenseName}) {
     return CategoryCompanion(
       id: id ?? this.id,
       categoryName: categoryName ?? this.categoryName,
+      usePresetAmount: usePresetAmount ?? this.usePresetAmount,
+      presetAmount: presetAmount ?? this.presetAmount,
+      autoFillExpenseName: autoFillExpenseName ?? this.autoFillExpenseName,
     );
   }
 
@@ -178,6 +304,15 @@ class CategoryCompanion extends UpdateCompanion<CategoryData> {
     if (categoryName.present) {
       map['category_name'] = Variable<String>(categoryName.value);
     }
+    if (usePresetAmount.present) {
+      map['use_preset_amount'] = Variable<bool>(usePresetAmount.value);
+    }
+    if (presetAmount.present) {
+      map['preset_amount'] = Variable<int>(presetAmount.value);
+    }
+    if (autoFillExpenseName.present) {
+      map['auto_fill_expense_name'] = Variable<bool>(autoFillExpenseName.value);
+    }
     return map;
   }
 
@@ -185,7 +320,10 @@ class CategoryCompanion extends UpdateCompanion<CategoryData> {
   String toString() {
     return (StringBuffer('CategoryCompanion(')
           ..write('id: $id, ')
-          ..write('categoryName: $categoryName')
+          ..write('categoryName: $categoryName, ')
+          ..write('usePresetAmount: $usePresetAmount, ')
+          ..write('presetAmount: $presetAmount, ')
+          ..write('autoFillExpenseName: $autoFillExpenseName')
           ..write(')'))
         .toString();
   }
@@ -1819,10 +1957,16 @@ abstract class _$LocalDatabase extends GeneratedDatabase {
 typedef $$CategoryTableCreateCompanionBuilder = CategoryCompanion Function({
   Value<int> id,
   required String categoryName,
+  Value<bool> usePresetAmount,
+  Value<int?> presetAmount,
+  Value<bool> autoFillExpenseName,
 });
 typedef $$CategoryTableUpdateCompanionBuilder = CategoryCompanion Function({
   Value<int> id,
   Value<String> categoryName,
+  Value<bool> usePresetAmount,
+  Value<int?> presetAmount,
+  Value<bool> autoFillExpenseName,
 });
 
 final class $$CategoryTableReferences
@@ -1876,6 +2020,17 @@ class $$CategoryTableFilterComposer
 
   ColumnFilters<String> get categoryName => $composableBuilder(
       column: $table.categoryName, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<bool> get usePresetAmount => $composableBuilder(
+      column: $table.usePresetAmount,
+      builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get presetAmount => $composableBuilder(
+      column: $table.presetAmount, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<bool> get autoFillExpenseName => $composableBuilder(
+      column: $table.autoFillExpenseName,
+      builder: (column) => ColumnFilters(column));
 
   Expression<bool> recurringExpensesRefs(
       Expression<bool> Function($$RecurringExpensesTableFilterComposer f) f) {
@@ -1935,6 +2090,18 @@ class $$CategoryTableOrderingComposer
   ColumnOrderings<String> get categoryName => $composableBuilder(
       column: $table.categoryName,
       builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<bool> get usePresetAmount => $composableBuilder(
+      column: $table.usePresetAmount,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get presetAmount => $composableBuilder(
+      column: $table.presetAmount,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<bool> get autoFillExpenseName => $composableBuilder(
+      column: $table.autoFillExpenseName,
+      builder: (column) => ColumnOrderings(column));
 }
 
 class $$CategoryTableAnnotationComposer
@@ -1951,6 +2118,15 @@ class $$CategoryTableAnnotationComposer
 
   GeneratedColumn<String> get categoryName => $composableBuilder(
       column: $table.categoryName, builder: (column) => column);
+
+  GeneratedColumn<bool> get usePresetAmount => $composableBuilder(
+      column: $table.usePresetAmount, builder: (column) => column);
+
+  GeneratedColumn<int> get presetAmount => $composableBuilder(
+      column: $table.presetAmount, builder: (column) => column);
+
+  GeneratedColumn<bool> get autoFillExpenseName => $composableBuilder(
+      column: $table.autoFillExpenseName, builder: (column) => column);
 
   Expression<T> recurringExpensesRefs<T extends Object>(
       Expression<T> Function($$RecurringExpensesTableAnnotationComposer a) f) {
@@ -2021,18 +2197,30 @@ class $$CategoryTableTableManager extends RootTableManager<
           updateCompanionCallback: ({
             Value<int> id = const Value.absent(),
             Value<String> categoryName = const Value.absent(),
+            Value<bool> usePresetAmount = const Value.absent(),
+            Value<int?> presetAmount = const Value.absent(),
+            Value<bool> autoFillExpenseName = const Value.absent(),
           }) =>
               CategoryCompanion(
             id: id,
             categoryName: categoryName,
+            usePresetAmount: usePresetAmount,
+            presetAmount: presetAmount,
+            autoFillExpenseName: autoFillExpenseName,
           ),
           createCompanionCallback: ({
             Value<int> id = const Value.absent(),
             required String categoryName,
+            Value<bool> usePresetAmount = const Value.absent(),
+            Value<int?> presetAmount = const Value.absent(),
+            Value<bool> autoFillExpenseName = const Value.absent(),
           }) =>
               CategoryCompanion.insert(
             id: id,
             categoryName: categoryName,
+            usePresetAmount: usePresetAmount,
+            presetAmount: presetAmount,
+            autoFillExpenseName: autoFillExpenseName,
           ),
           withReferenceMapper: (p0) => p0
               .map((e) =>

@@ -48,6 +48,7 @@ void main() {
       final snapshot = Snapshot.create(
         snapshotId: 's1',
         createdAt: DateTime.utc(2026, 2, 23),
+        name: '테스트 백업',
         schemaVersion: 1,
         appVersion: '2.1.0',
         payload: payload,

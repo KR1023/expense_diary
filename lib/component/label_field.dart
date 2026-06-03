@@ -1,6 +1,5 @@
 import 'package:expense_diary/component/common/thousands_formatter.dart';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:get_it/get_it.dart';
 import 'package:expense_diary/const/currency_utils.dart';
@@ -11,12 +10,14 @@ class LabelField extends StatefulWidget {
   final bool isDetail;
   final bool isDate;
   final bool isExpense;
-  String? initValue;
+  final TextEditingController? controller;
+  final String? initValue;
 
   final FormFieldSetter<String> onSaved;
   final FormFieldValidator<String> validator;
 
-  LabelField({
+  const LabelField({
+    super.key,
     required this.label,
     required this.isDetail,
     required this.isDate,
@@ -24,6 +25,7 @@ class LabelField extends StatefulWidget {
     required this.onSaved,
     required this.validator,
     required this.initValue,
+    this.controller,
   });
 
   @override
@@ -31,31 +33,47 @@ class LabelField extends StatefulWidget {
 }
 
 class _LabelFieldState extends State<LabelField> {
-  TextEditingController _textController = TextEditingController();
+  late final TextEditingController _textController;
+  late final bool _ownsController;
 
   @override
   void initState() {
+    _ownsController = widget.controller == null;
+    _textController = widget.controller ?? TextEditingController();
+
     if (widget.initValue == null) {
       if (widget.isDate) {
         DateTime now = DateTime.now();
 
         String formattedDate =
             "${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}";
-        _textController.text = formattedDate;
+        if (_textController.text.isEmpty) {
+          _textController.text = formattedDate;
+        }
       }
     } else if (widget.initValue != null) {
-      if (widget.isDate) {
-        _textController.text = widget.initValue!.substring(0, 10);
-      } else if (widget.isExpense) {
-        final num = int.tryParse(widget.initValue!);
-        _textController.text =
-            num != null ? ThousandsFormatter.format(num) : widget.initValue!;
-      } else {
-        _textController.text = widget.initValue!;
+      if (_textController.text.isEmpty) {
+        if (widget.isDate) {
+          _textController.text = widget.initValue!.substring(0, 10);
+        } else if (widget.isExpense) {
+          final num = int.tryParse(widget.initValue!);
+          _textController.text =
+              num != null ? ThousandsFormatter.format(num) : widget.initValue!;
+        } else {
+          _textController.text = widget.initValue!;
+        }
       }
     }
 
     super.initState();
+  }
+
+  @override
+  void dispose() {
+    if (_ownsController) {
+      _textController.dispose();
+    }
+    super.dispose();
   }
 
   @override
@@ -81,8 +99,7 @@ class _LabelFieldState extends State<LabelField> {
                     widget.isExpense
                         ? TextInputType.number
                         : TextInputType.multiline,
-                inputFormatters:
-                    widget.isExpense ? [ThousandsFormatter()] : [],
+                inputFormatters: widget.isExpense ? [ThousandsFormatter()] : [],
                 decoration: InputDecoration(
                   suffixText:
                       widget.isExpense

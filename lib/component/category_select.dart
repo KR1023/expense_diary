@@ -8,12 +8,14 @@ import 'package:easy_localization/easy_localization.dart';
 class CategorySelect extends StatefulWidget {
   final CategoryData? selectedValue;
   final FormFieldSetter<CategoryData> onSavedCategory;
+  final ValueChanged<CategoryData?>? onChanged;
   final bool showIcon;
 
   const CategorySelect({
     super.key,
     this.selectedValue,
     required this.onSavedCategory,
+    this.onChanged,
     this.showIcon = true,
   });
 
@@ -79,6 +81,7 @@ class _CategorySelectState extends State<CategorySelect> {
                   setState(() {
                     _selectedValue = newCategory;
                   });
+                  widget.onChanged?.call(newCategory);
                 },
                 onSaved: widget.onSavedCategory,
               ),
@@ -101,6 +104,7 @@ class _CategorySelectState extends State<CategorySelect> {
                   setState(() {
                     _selectedValue = null;
                   });
+                  widget.onChanged?.call(null);
                 },
               ),
             ),

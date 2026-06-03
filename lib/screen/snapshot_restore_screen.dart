@@ -18,9 +18,11 @@ class SnapshotRestoreScreen extends StatefulWidget {
 
 class _SnapshotRestoreScreenState extends State<SnapshotRestoreScreen> {
   bool _loading = true;
+  bool _deleting = false;
   String? _restoringSnapshotId;
   String? _errorText;
   List<SnapshotMeta> _snapshots = const [];
+  final Set<String> _selectedSnapshotIds = {};
 
   SnapshotService get _snapshotService => GetIt.I<SnapshotService>();
 
@@ -40,7 +42,10 @@ class _SnapshotRestoreScreenState extends State<SnapshotRestoreScreen> {
       final items = await _snapshotService.listSnapshots(widget.user.uid);
       if (!mounted) return;
       setState(() {
-        _snapshots = items;
+        _snapshots = items.take(5).toList(growable: false);
+        _selectedSnapshotIds.removeWhere(
+          (id) => !_snapshots.any((item) => item.snapshotId == id),
+        );
       });
     } on FirebaseException catch (e) {
       if (!mounted) return;
@@ -59,6 +64,101 @@ class _SnapshotRestoreScreenState extends State<SnapshotRestoreScreen> {
         });
       }
     }
+  }
+
+  Future<void> _deleteSelectedSnapshots() async {
+    if (_selectedSnapshotIds.isEmpty || _deleting) return;
+
+    final count = _selectedSnapshotIds.length;
+    final confirmed = await _confirmDelete(
+      title: '선택한 스냅샷 삭제',
+      content: '선택한 스냅샷 $count개를 삭제합니다. 삭제 후에는 복원할 수 없습니다.',
+      actionLabel: '선택 삭제',
+    );
+    if (confirmed != true || !mounted) return;
+
+    final ids = _selectedSnapshotIds.toList(growable: false);
+    await _runDelete(() async {
+      for (final snapshotId in ids) {
+        await _snapshotService.deleteSnapshot(widget.user.uid, snapshotId);
+      }
+    }, '선택한 스냅샷을 삭제했습니다.');
+  }
+
+  Future<void> _deleteAllSnapshots() async {
+    if (_snapshots.isEmpty || _deleting) return;
+
+    final confirmed = await _confirmDelete(
+      title: '전체 스냅샷 삭제',
+      content: '저장된 스냅샷을 모두 삭제합니다. 삭제 후에는 복원할 수 없습니다.',
+      actionLabel: '전체 삭제',
+    );
+    if (confirmed != true || !mounted) return;
+
+    await _runDelete(
+      () => _snapshotService.deleteAllSnapshots(widget.user.uid),
+      '전체 스냅샷을 삭제했습니다.',
+    );
+  }
+
+  Future<void> _runDelete(
+    Future<void> Function() deleteAction,
+    String successMessage,
+  ) async {
+    setState(() {
+      _deleting = true;
+    });
+
+    try {
+      await deleteAction();
+      if (!mounted) return;
+      _selectedSnapshotIds.clear();
+      _showSnackBar(successMessage);
+      await _loadSnapshots();
+    } on FirebaseException catch (e) {
+      if (!mounted) return;
+      _showSnackBar(_firebaseMessage(e));
+    } catch (e, st) {
+      debugPrint('snapshot delete error: $e\n$st');
+      if (!mounted) return;
+      _showSnackBar('스냅샷 삭제에 실패했습니다. $e');
+    } finally {
+      if (mounted) {
+        setState(() {
+          _deleting = false;
+        });
+      }
+    }
+  }
+
+  Future<bool?> _confirmDelete({
+    required String title,
+    required String content,
+    required String actionLabel,
+  }) {
+    return showDialog<bool>(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          title: Text(title),
+          content: Text(content),
+          actions: [
+            OutlinedButton(
+              onPressed: () => Navigator.of(dialogContext).pop(false),
+              child: const Text('취소'),
+            ),
+            FilledButton(
+              style: FilledButton.styleFrom(
+                backgroundColor: AppColors.danger,
+                foregroundColor: Colors.white,
+              ),
+              onPressed: () => Navigator.of(dialogContext).pop(true),
+              child: Text(actionLabel),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   Future<void> _restore(SnapshotMeta meta) async {
@@ -103,6 +203,8 @@ class _SnapshotRestoreScreenState extends State<SnapshotRestoreScreen> {
   }
 
   Future<bool?> _confirmRestore(SnapshotMeta meta) {
+    final snapshotName =
+        meta.name.trim().isEmpty ? '이름 없는 스냅샷' : meta.name.trim();
     return showDialog<bool>(
       context: context,
       builder: (dialogContext) {
@@ -116,6 +218,7 @@ class _SnapshotRestoreScreenState extends State<SnapshotRestoreScreen> {
           ),
           content: Text(
             '선택한 스냅샷으로 복원하면 현재 로컬 데이터(지출/카테고리)가 모두 삭제되고 스냅샷 내용으로 덮어써집니다.\n\n'
+            '스냅샷 이름: $snapshotName\n'
             '스냅샷 시각: ${DateFormat('yyyy.MM.dd HH:mm').format(meta.createdAt.toLocal())}\n'
             '크기: ${meta.sizeBytes} bytes\n'
             '계속 진행할까요?',
@@ -154,6 +257,16 @@ class _SnapshotRestoreScreenState extends State<SnapshotRestoreScreen> {
     ).showSnackBar(SnackBar(content: Text(message)));
   }
 
+  void _toggleSnapshotSelection(String snapshotId, bool selected) {
+    setState(() {
+      if (selected) {
+        _selectedSnapshotIds.add(snapshotId);
+      } else {
+        _selectedSnapshotIds.remove(snapshotId);
+      }
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -177,15 +290,50 @@ class _SnapshotRestoreScreenState extends State<SnapshotRestoreScreen> {
                   ),
                 ),
                 IconButton(
-                  onPressed: _loading ? null : _loadSnapshots,
+                  onPressed: _loading || _deleting ? null : _loadSnapshots,
                   icon: const Icon(Icons.refresh_rounded),
                 ),
               ],
             ),
+            if (_snapshots.isNotEmpty)
+              Padding(
+                padding: const EdgeInsets.fromLTRB(12, 0, 12, 10),
+                child: Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: [
+                    OutlinedButton.icon(
+                      onPressed:
+                          _selectedSnapshotIds.isEmpty || _deleting
+                              ? null
+                              : _deleteSelectedSnapshots,
+                      icon:
+                          _deleting
+                              ? const SizedBox(
+                                width: 16,
+                                height: 16,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                ),
+                              )
+                              : const Icon(Icons.delete_outline_rounded),
+                      label: Text('선택 삭제 (${_selectedSnapshotIds.length})'),
+                    ),
+                    OutlinedButton.icon(
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: AppColors.danger,
+                      ),
+                      onPressed: _deleting ? null : _deleteAllSnapshots,
+                      icon: const Icon(Icons.delete_sweep_outlined),
+                      label: const Text('전체 삭제'),
+                    ),
+                  ],
+                ),
+              ),
             Padding(
               padding: const EdgeInsets.only(left: 12, bottom: 12),
               child: Text(
-                '모든 플랜에서 무제한 복원 가능합니다. 복원 시 현재 로컬 데이터는 전체 덮어쓰기됩니다.',
+                '최근 스냅샷은 최대 5개까지 보관됩니다. 복원 시 현재 로컬 데이터는 전체 덮어쓰기됩니다.',
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                   color: AppColors.mutedOf(context),
                 ),
@@ -266,50 +414,117 @@ class _SnapshotRestoreScreenState extends State<SnapshotRestoreScreen> {
       itemBuilder: (context, index) {
         final item = _snapshots[index];
         final isRestoring = _restoringSnapshotId == item.snapshotId;
+        final isSelected = _selectedSnapshotIds.contains(item.snapshotId);
         final createdAt = DateFormat(
           'yyyy.MM.dd HH:mm',
         ).format(item.createdAt.toLocal());
+        final snapshotName =
+            item.name.trim().isEmpty ? '이름 없는 스냅샷' : item.name.trim();
 
         return Card(
           margin: EdgeInsets.zero,
+          elevation: isSelected ? 2 : 0,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(18),
+            side: BorderSide(
+              color:
+                  isSelected
+                      ? AppColors.primary.withValues(alpha: 0.55)
+                      : Theme.of(context).dividerColor.withValues(alpha: 0.20),
+            ),
+          ),
           child: Padding(
-            padding: const EdgeInsets.all(12),
+            padding: const EdgeInsets.fromLTRB(12, 14, 12, 12),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Expanded(
-                      child: Text(
-                        createdAt,
-                        style: Theme.of(context).textTheme.titleMedium,
-                      ),
+                    Checkbox(
+                      value: isSelected,
+                      onChanged:
+                          _deleting || isRestoring
+                              ? null
+                              : (checked) => _toggleSnapshotSelection(
+                                item.snapshotId,
+                                checked ?? false,
+                              ),
                     ),
+                    const SizedBox(width: 4),
                     Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 4,
-                      ),
+                      width: 44,
+                      height: 44,
                       decoration: BoxDecoration(
                         color: AppColors.primary.withValues(alpha: 0.10),
-                        borderRadius: BorderRadius.circular(999),
+                        borderRadius: BorderRadius.circular(14),
                       ),
-                      child: Text('schema ${item.schemaVersion}'),
+                      child: Icon(
+                        Icons.cloud_done_rounded,
+                        color: AppColors.primary,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            snapshotName,
+                            style: Theme.of(context).textTheme.titleMedium
+                                ?.copyWith(fontWeight: FontWeight.w700),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            '백업 시간 $createdAt',
+                            style: Theme.of(context).textTheme.bodyMedium
+                                ?.copyWith(color: AppColors.mutedOf(context)),
+                          ),
+                        ],
+                      ),
                     ),
                   ],
                 ),
-                const SizedBox(height: 8),
-                Text('snapshotId: ${item.snapshotId}'),
-                Text('appVersion: ${item.appVersion}'),
-                Text('size: ${item.sizeBytes} bytes'),
-                Text(
-                  'hash: ${item.dataHash.length >= 12 ? item.dataHash.substring(0, 12) : item.dataHash}...',
+                const SizedBox(height: 14),
+                _SnapshotInfoRow(label: '이름', value: snapshotName),
+                _SnapshotInfoRow(label: '앱 버전', value: item.appVersion),
+                _SnapshotInfoRow(
+                  label: '크기',
+                  value: _formatBytes(item.sizeBytes),
+                ),
+                _SnapshotInfoRow(label: '스냅샷 ID', value: item.snapshotId),
+                const SizedBox(height: 14),
+                DecoratedBox(
+                  decoration: BoxDecoration(
+                    color: AppColors.accent.withValues(alpha: 0.10),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(10),
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.info_outline_rounded,
+                          size: 18,
+                          color: AppColors.accent,
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            '복원하면 현재 기기의 로컬 데이터가 이 스냅샷으로 교체됩니다.',
+                            style: Theme.of(context).textTheme.bodySmall,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
                 const SizedBox(height: 12),
                 SizedBox(
                   width: double.infinity,
                   child: FilledButton.icon(
-                    onPressed: isRestoring ? null : () => _restore(item),
+                    onPressed:
+                        isRestoring || _deleting ? null : () => _restore(item),
                     icon:
                         isRestoring
                             ? const SizedBox(
@@ -326,6 +541,51 @@ class _SnapshotRestoreScreenState extends State<SnapshotRestoreScreen> {
           ),
         );
       },
+    );
+  }
+}
+
+String _formatBytes(int bytes) {
+  if (bytes < 1024) return '$bytes bytes';
+  final kb = bytes / 1024;
+  if (kb < 1024) return '${kb.toStringAsFixed(1)} KB';
+  final mb = kb / 1024;
+  return '${mb.toStringAsFixed(1)} MB';
+}
+
+class _SnapshotInfoRow extends StatelessWidget {
+  const _SnapshotInfoRow({required this.label, required this.value});
+
+  final String label;
+  final String value;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 74,
+            child: Text(
+              label,
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: AppColors.mutedOf(context),
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+          Expanded(
+            child: SelectableText(
+              value,
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                fontWeight: label == '스냅샷 ID' ? FontWeight.w600 : null,
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

@@ -35,12 +35,13 @@
 - `progress.md`: Latest development handoff summary from Claude.
 
 ## Data Model (Drift)
-- Current local DB schema version: `2`.
+- Current local DB schema version: `3`.
 - `Expense`: id, categoryId (nullable), paymentMethodId (nullable), recurringExpenseId (nullable), recurringOccurrenceDate (nullable), expenseName, expense (int), expenseDate, expenseDetail (nullable)
-- `Category`: id, categoryName (unique)
+- `Category`: id, categoryName (unique), usePresetAmount, presetAmount (nullable), autoFillExpenseName
 - `PaymentMethods`: id, type (`cash` / `card` / `bank` / `mobilePay` / `other`), name, memo (nullable), sortOrder, isArchived, createdAt, updatedAt
 - `RecurringExpenses`: id, name, amount, categoryId (nullable), paymentMethodId (nullable), detail (nullable), frequency (`daily` / `weekly` / `monthly` / `yearly`), interval, startDate, endDate (nullable), nextRunDate, isActive, createdAt, updatedAt
 - `PaymentMethodExpense`: DTO for payment-method monthly aggregation.
+- Category presets are optional. When `usePresetAmount=true`, selecting the category in expense add/edit fills the amount from `presetAmount`. When `autoFillExpenseName=true`, selecting the category fills the expense name with the category name.
 - Payment methods are archived with `isArchived=true` instead of hard-deleted to preserve historic expense references.
 - Fixed expenses generate real `Expense` rows only when due (`nextRunDate <= today`), not for future dates in advance.
 - Fixed expense generation is capped at 100 rows per run and checks `recurringExpenseId + recurringOccurrenceDate` to avoid duplicates.
@@ -104,6 +105,10 @@ flutter build appbundle \
 ## Backup / Restore
 - Snapshot payload JSON is stored in Firebase Storage at `users/{uid}/snapshots/{snapshotId}.json`.
 - Firestore stores snapshot metadata plus `payloadStoragePath`; older inline-payload Firestore snapshots remain readable.
+- Snapshot metadata includes a user-facing `name`. Backup prompts for a name; an empty input defaults to a local `yyyy.MM.dd HH:mm` timestamp name.
+- Snapshot name input dialog owns its `TextEditingController` inside the dialog `State`; do not dispose it immediately after `showDialog` returns because the closing animation may still render the field.
+- Each user keeps at most 5 snapshots. After a new backup is uploaded, older snapshots beyond the newest 5 are deleted from both Firestore and Storage.
+- Snapshot restore screen displays only the newest 5 snapshots and supports selected deletion plus delete-all.
 - Snapshot payload includes expenses, categories, payment methods, and recurring expenses.
 - Restore order must preserve FK safety. Current restore clears dependent rows first and reinserts parent rows before dependent rows.
 - Snapshot parsing handles both Drift snake_case and app camelCase keys.

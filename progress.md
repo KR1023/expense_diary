@@ -406,6 +406,78 @@ App Store Review에서 다음 항목으로 리젝됨.
 
 ---
 
+### 15. 분류 기본값 옵션 추가
+
+**변경 내용**
+- 분류 테이블에 선택형 기본값 컬럼 추가 (스키마 버전 3)
+  - `usePresetAmount`
+  - `presetAmount`
+  - `autoFillExpenseName`
+- 분류 추가/수정 다이얼로그에 체크박스 옵션 추가
+  - 금액 설정: 체크 시 자동 입력할 금액 필수 입력
+  - 자동 이름 채우기: 체크 시 지출명에 분류명 자동 입력
+- 분류 목록에서 설정된 옵션을 칩 형태로 표시
+- 지출 추가/수정 화면에서 분류 선택 시 옵션에 따라 지출명/금액 자동 입력
+- `LabelField`에 외부 `TextEditingController` 지원 추가
+- 백업/복원 시 새 분류 필드 포함 및 이전 백업 하위 호환 유지
+
+**검증**
+- `dart run build_runner build --delete-conflicting-outputs`로 Drift generated code 갱신
+- 수정 범위 analyzer 통과:
+  `flutter analyze lib/model/category.dart lib/database/drift_database.dart lib/component/category_select.dart lib/component/label_field.dart lib/screen/category_screen.dart lib/screen/add_screen.dart lib/screen/detail_screen.dart lib/features/backup/data/snapshot_service.dart`
+- 전체 `flutter analyze`는 기존 `third_party/google_mobile_ads/test`의 mockito 의존성/생성 mock 오류로 실패함. 이번 수정 범위에서는 오류 없음.
+
+**관련 파일**
+- `lib/model/category.dart`
+- `lib/database/drift_database.dart`
+- `lib/database/drift_database.g.dart`
+- `lib/screen/category_screen.dart`
+- `lib/screen/add_screen.dart`
+- `lib/screen/detail_screen.dart`
+- `lib/component/category_select.dart`
+- `lib/component/label_field.dart`
+- `lib/features/backup/data/snapshot_service.dart`
+- `assets/locales/ko.json`
+- `assets/locales/en.json`
+
+---
+
+### 16. 스냅샷 목록/삭제/보관 정책 개선
+
+**변경 내용**
+- 스냅샷은 사용자별 최신 5개까지만 보관하도록 변경
+- 새 백업 업로드 후 스냅샷이 5개를 초과하면 가장 오래된 스냅샷부터 삭제
+- 스냅샷 삭제 시 Firestore metadata와 Firebase Storage payload를 함께 삭제
+- 스냅샷 복원 화면에서 표시 목록을 최대 5개로 제한
+- 스냅샷 복원 화면에 선택 삭제와 전체 삭제 기능 추가
+- 백업 시 스냅샷 이름을 입력할 수 있도록 변경
+- 스냅샷 이름을 입력하지 않으면 로컬 날짜/시간(`yyyy.MM.dd HH:mm`)으로 기본 이름 저장
+- 스냅샷 이름 입력 다이얼로그의 `TextEditingController` 생명주기를 별도 StatefulWidget 내부로 이동해 닫힘 애니메이션 중 dispose된 controller를 참조하던 오류 수정
+- 스냅샷 카드 UI 개선
+  - 사용자에게 필요한 스냅샷 이름, 백업 시간, 앱 버전, 크기, 스냅샷 ID만 표시
+  - 내부용 schema/hash 정보는 화면에서 제거
+
+**검증**
+- 수정 범위 analyzer 통과:
+  `flutter analyze lib/features/backup/data/firebase_snapshot_repository.dart lib/features/backup/data/snapshot_service.dart lib/screen/snapshot_restore_screen.dart`
+- 스냅샷 이름 변경 범위 analyzer 통과:
+  `flutter analyze lib/features/backup/domain/snapshot.dart lib/features/backup/data/snapshot_service.dart lib/features/backup/data/firebase_snapshot_repository.dart lib/screen/config_screen.dart lib/screen/snapshot_restore_screen.dart test/features/backup/domain/snapshot_test.dart`
+- `flutter test test/features/backup/domain/snapshot_test.dart` 통과
+- `flutter analyze lib/screen/config_screen.dart` 통과
+- Firestore 규칙은 `users/{uid}/...`에 본인 `read, write` 허용 상태라 Firestore 스냅샷 삭제 가능
+- Storage rules 파일은 repo에 추적되어 있지 않음. 실제 Storage payload 삭제 권한은 Firebase Console Storage Rules 확인 필요
+
+**관련 파일**
+- `lib/features/backup/domain/snapshot.dart`
+- `lib/features/backup/data/firebase_snapshot_repository.dart`
+- `lib/features/backup/data/snapshot_service.dart`
+- `lib/screen/config_screen.dart`
+- `lib/screen/snapshot_restore_screen.dart`
+- `test/features/backup/domain/snapshot_test.dart`
+- `AGENTS.md`
+
+---
+
 ## 문서
 
 | 파일 | 내용 |
