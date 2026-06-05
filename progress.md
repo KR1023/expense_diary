@@ -634,6 +634,29 @@ userEntitlements/{uid}
 
 ---
 
+### 22. 지출 탭 날짜별 목록/합계 불일치 수정
+
+**문제**
+- 지출 탭에서 특정 날짜의 목록은 3건만 보이는데 합계가 더 크게 표시되는 문제가 발생
+- 원인은 목록 조회가 `expenseDate == selectedDate` 정확 일치 조건을 사용하고, 합계 조회는 하루 범위 조건을 사용했기 때문
+- 복원/마이그레이션/기타 경로로 저장된 지출 날짜에 00:00:00이 아닌 시간값이 포함되면 목록에서는 누락되고 합계에는 포함될 수 있었음
+
+**변경 내용**
+- `watchExpense(selectedDate)`를 정확 일치 조회에서 날짜 범위 조회로 변경
+- 일별 목록과 일별 합계가 모두 `start <= expenseDate < nextDay` 기준을 사용하도록 정렬
+- 자정 경계값이 다음 날짜에 중복 포함되지 않도록 `isBetweenValues` 대신 half-open range 사용
+- 지출 목록 정렬 기준을 `expenseDate ASC`, `id ASC`로 명시
+
+**검증**
+- `flutter analyze lib/database/drift_database.dart lib/screen/home_screen.dart lib/component/expense_by_date.dart` 통과
+- `git diff --check` 통과
+
+**관련 파일**
+- `lib/database/drift_database.dart`
+- `AGENTS.md`
+
+---
+
 ## 문서
 
 | 파일 | 내용 |

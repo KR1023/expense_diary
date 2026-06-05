@@ -20,13 +20,28 @@ class LocalDatabase extends _$LocalDatabase {
   // ── Expense ──────────────────────────────────────────────────────────────
 
   Stream<List<Map<String, dynamic>>> watchExpense(DateTime selectedDate) {
-    final query = select(expenses).join([
-      leftOuterJoin(category, category.id.equalsExp(expenses.categoryId)),
-      leftOuterJoin(
-        paymentMethods,
-        paymentMethods.id.equalsExp(expenses.paymentMethodId),
-      ),
-    ])..where(expenses.expenseDate.equals(selectedDate));
+    final start = DateTime(
+      selectedDate.year,
+      selectedDate.month,
+      selectedDate.day,
+    );
+    final end = start.add(const Duration(days: 1));
+    final query =
+        select(expenses).join([
+            leftOuterJoin(category, category.id.equalsExp(expenses.categoryId)),
+            leftOuterJoin(
+              paymentMethods,
+              paymentMethods.id.equalsExp(expenses.paymentMethodId),
+            ),
+          ])
+          ..where(
+            expenses.expenseDate.isBiggerOrEqualValue(start) &
+                expenses.expenseDate.isSmallerThanValue(end),
+          )
+          ..orderBy([
+            OrderingTerm.asc(expenses.expenseDate),
+            OrderingTerm.asc(expenses.id),
+          ]);
 
     return query.watch().map((rows) {
       return rows.map((row) {
@@ -50,7 +65,10 @@ class LocalDatabase extends _$LocalDatabase {
     final query =
         selectOnly(expenses)
           ..addColumns([totalExpense])
-          ..where(expenses.expenseDate.isBetweenValues(start, end));
+          ..where(
+            expenses.expenseDate.isBiggerOrEqualValue(start) &
+                expenses.expenseDate.isSmallerThanValue(end),
+          );
     return query.watchSingle().map((row) => row.read(totalExpense) ?? 0);
   }
 

@@ -48,6 +48,7 @@
 - `PaymentMethodSelect` must tolerate archived selected values because historic expenses and fixed-expense rules can still reference archived payment methods. Include the archived selected value in the dropdown as a deleted/current value instead of assuming it exists in `watchPaymentMethods()`.
 - Fixed expenses generate real `Expense` rows only when due (`nextRunDate <= today`), not for future dates in advance.
 - Fixed expense generation is capped at 100 rows per run and checks `recurringExpenseId + recurringOccurrenceDate` to avoid duplicates.
+- Date-based expense list/total queries must use half-open day ranges (`start <= expenseDate < nextDay`) instead of exact `DateTime` equality, because restored or migrated rows may contain non-midnight time components.
 
 After changing table definitions or database logic, regenerate code:
 ```bash
