@@ -53,7 +53,10 @@
 - `PaymentMethodSelect`는 보관된 결제 수단이 선택값으로 들어오는 상황을 허용해야 합니다. 과거 지출이나 고정 지출 규칙이 보관된 결제 수단을 계속 참조할 수 있으므로, `watchPaymentMethods()` 결과에 없더라도 현재 선택값을 삭제된 항목으로 표시합니다.
 - 고정 지출은 실행일이 도래했을 때만 실제 `Expense` row를 생성합니다. 미래 데이터를 미리 대량 생성하지 않습니다.
 - 고정 지출 생성은 실행당 최대 100건이며, `recurringExpenseId + recurringOccurrenceDate` 조합으로 중복 생성을 방지합니다.
-- 날짜 기반 지출 목록/합계 쿼리는 정확한 `DateTime` equality를 사용하지 말고 `start <= expenseDate < nextDay` 형태의 half-open day range를 사용합니다. 복원/마이그레이션 데이터에는 자정이 아닌 시간값이 포함될 수 있습니다.
+- 날짜 기반 지출 목록/합계 쿼리는 정확한 `DateTime` equality를 사용하지 말고 half-open range를 사용합니다. 복원/마이그레이션 데이터에는 자정이 아닌 시간값이 포함될 수 있습니다.
+- 일자 기준 쿼리는 `start <= expenseDate < nextDay`, 월 기준 쿼리는 `monthStart <= expenseDate < nextMonthStart`, 주차 기준 쿼리는 `weekStart <= expenseDate < dayAfterWeekEnd`를 사용합니다.
+- `isBetweenValues(start, end)`는 end 값을 포함할 수 있어 월/일 경계 데이터가 중복 집계될 수 있으므로 날짜 합계 쿼리에는 사용하지 않습니다.
+- 달력 일자별 합계는 월 범위 지출을 조회한 뒤 `DateTime(year, month, day)` key로 누적 합산합니다. 같은 날짜에 시간이 다른 지출이 여러 건 있어도 덮어쓰지 말고 누적해야 합니다.
 
 테이블 정의나 DB 로직 변경 후에는 생성 코드를 갱신합니다.
 ```bash
@@ -176,6 +179,10 @@ flutter build appbundle \
 - 홈 선택 날짜가 오늘이면 “오늘 지출/오늘 합계”를 사용하고, 오늘이 아니면 `{yyyy.MM.dd} 지출/{yyyy.MM.dd} 합계`를 사용합니다.
 - 홈 탭에서 `AddScreen`을 열 때 현재 선택 날짜를 기본 지출 날짜로 전달합니다.
 - 지출 내역 탭은 달력 높이를 우선합니다. 달력 아래에는 월 합계/일자 합계를 합친 compact 카드가 있고, 일자 영역은 상세 드로어를 엽니다. 그 아래에 주차별/분류별 월간 요약 탭 카드가 있습니다. 분류별 합계는 Top-N이나 순위형 통계가 아니라 단순 리스트로 표시합니다.
+- 지출 내역 달력의 일자 하단에는 해당 일자의 합계 금액을 compact 형식으로 표시합니다. 지출 금액이 있는 날짜와 없는 날짜의 날짜 숫자 기준선은 같아야 합니다.
+- 월간 요약 탭은 `PageView` 기반으로 유지합니다. 탭 클릭 시 `animateToPage`, 좌우 스와이프 시 `onPageChanged`로 세그먼트 선택 상태를 동기화합니다.
+- 월간 요약 카드 내부에는 별도 리스트 스크롤을 만들지 않습니다. 주차별/분류별 항목 수만큼 카드 높이가 늘어나도록 유지합니다.
+- 월/일 합계 카드의 금액은 숫자와 통화 단위를 분리 렌더링해 단위 간격을 확보합니다. 라벨은 보조 정보이므로 금액보다 작고 가볍게 표시합니다.
 - 통계 화면 이름은 `지출 통계`이며 월 요약, 일평균, 전월 비교, 최대 지출일, 분류별 breakdown, 결제 수단별 breakdown/detail sheet를 포함합니다.
 
 ## 생성 파일

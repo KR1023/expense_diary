@@ -28,6 +28,8 @@ class AppTheme {
         primary: AppColors.primary,
         secondary: AppColors.secondary,
         surface: surface,
+        surfaceContainerHighest: surfaceAlt,
+        outline: outline,
         error: AppColors.danger,
       ),
       scaffoldBackgroundColor: canvas,

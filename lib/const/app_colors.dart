@@ -92,19 +92,89 @@ class AppColors {
   }
 
   static Color outlineOf(BuildContext context) {
-    return outlineFor(Theme.of(context).brightness);
+    return Theme.of(context).colorScheme.outline;
   }
 
   static Color surfaceOf(BuildContext context) {
-    return surfaceFor(Theme.of(context).brightness);
+    return Theme.of(context).colorScheme.surface;
   }
 
   static Color surfaceAltOf(BuildContext context) {
-    return surfaceAltFor(Theme.of(context).brightness);
+    return Theme.of(context).colorScheme.surfaceContainerHighest;
   }
 
   static Color canvasOf(BuildContext context) {
     return canvasFor(Theme.of(context).brightness);
+  }
+
+  // Solid background options (light, dark) — index 0 in this list = backgroundIndex 1
+  // Light: visible tinted pastels; Dark: very dark tinted
+  static const List<(Color, Color)> solidBackgrounds = [
+    (Color(0xFFEEF0FA), Color(0xFF111827)), // neutral
+    (Color(0xFFE8F0FF), Color(0xFF0D1B2A)), // blue
+    (Color(0xFFE4F0E6), Color(0xFF0A1A0E)), // green
+    (Color(0xFFFFF6DC), Color(0xFF1A1500)), // yellow
+    (Color(0xFFF9DCEA), Color(0xFF1A080A)), // pink
+    (Color(0xFFEFDEF8), Color(0xFF130A1F)), // purple
+    (Color(0xFFDAF4FA), Color(0xFF041414)), // teal
+    (Color(0xFFFFF0DB), Color(0xFF1A1008)), // orange
+  ];
+
+  // Card colors paired with each solid background.
+  // Light mode: ~30% lighter than background toward white — clearly brighter
+  // than the canvas but still visibly tinted.
+  // Dark mode: slightly lighter than the dark background (standard elevation).
+  static const List<(Color, Color)> solidCardColors = [
+    (Color(0xFFF3F5FC), Color(0xFF1E2840)), // neutral
+    (Color(0xFFEFF5FF), Color(0xFF163040)), // blue
+    (Color(0xFFECF5EE), Color(0xFF122616)), // green
+    (Color(0xFFFFF9E7), Color(0xFF241E08)), // yellow
+    (Color(0xFFFBE7F0), Color(0xFF241214)), // pink
+    (Color(0xFFF4E8FA), Color(0xFF1C1230)), // purple
+    (Color(0xFFE5F7FC), Color(0xFF081E22)), // teal
+    (Color(0xFFFFF5E6), Color(0xFF241810)), // orange
+  ];
+
+  // Solid outline colors for light mode — more visible against tinted backgrounds.
+  // Dark mode always uses the default outline (already visible on dark surfaces).
+  static const List<Color> solidOutlinesLight = [
+    Color(0xFFBEC4E0), // neutral
+    Color(0xFFB0C8FF), // blue
+    Color(0xFFB0D4B8), // green
+    Color(0xFFE8D898), // yellow
+    Color(0xFFE0ACCB), // pink
+    Color(0xFFD0AEE8), // purple
+    Color(0xFFA0D8E8), // teal
+    Color(0xFFE8C898), // orange
+  ];
+
+  static Color solidBackgroundOf(int index, BuildContext context) {
+    final (light, dark) = solidBackgrounds[index - 1];
+    return isDark(context) ? dark : light;
+  }
+
+  static Color solidCardColorOf(int index, BuildContext context) {
+    final (light, dark) = solidCardColors[index - 1];
+    return isDark(context) ? dark : light;
+  }
+
+  static Color solidOutlineOf(int index, BuildContext context) {
+    if (isDark(context)) return outlineFor(Brightness.dark);
+    return solidOutlinesLight[index - 1];
+  }
+
+  /// Returns the card color for the given background index.
+  /// index 0 (gradient) → default surface; index 1-8 → paired card color.
+  static Color cardColorOf(int backgroundIndex, BuildContext context) {
+    if (backgroundIndex == 0) return surfaceOf(context);
+    return solidCardColorOf(backgroundIndex, context);
+  }
+
+  /// Returns the outline/border color for the given background index.
+  /// index 0 (gradient) → default outline; index 1-8 → more visible tinted outline.
+  static Color outlineColorOf(int backgroundIndex, BuildContext context) {
+    if (backgroundIndex == 0) return outlineOf(context);
+    return solidOutlineOf(backgroundIndex, context);
   }
 
   static LinearGradient backgroundGradientOf(BuildContext context) {

@@ -54,7 +54,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                 children: [
                   _header(context),
                   const SizedBox(height: gap),
-                  SizedBox(height: calendarHeight, child: _calendarCard()),
+                  SizedBox(height: calendarHeight, child: _calendarCard(context)),
                   const SizedBox(height: gap),
                   SizedBox(
                     height: combinedSummaryHeight,
@@ -90,7 +90,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
     );
   }
 
-  Widget _calendarCard() {
+  Widget _calendarCard(BuildContext context) {
     return Container(
       padding: const EdgeInsets.fromLTRB(12, 10, 12, 12),
       decoration: BoxDecoration(

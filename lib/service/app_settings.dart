@@ -6,11 +6,21 @@ class AppSettings extends ChangeNotifier {
   static const defaultCurrency = 'KRW';
   static const supportedCurrencies = ['KRW', 'USD'];
 
-  AppSettings({required String currencyCode}) : _currencyCode = currencyCode;
+  static const backgroundIndexKey = 'background_index';
+  static const defaultBackgroundIndex = 0; // 0 = gradient
+  static const solidBackgroundCount = 8;
+
+  AppSettings({
+    required String currencyCode,
+    int backgroundIndex = defaultBackgroundIndex,
+  })  : _currencyCode = currencyCode,
+        _backgroundIndex = backgroundIndex;
 
   String _currencyCode;
+  int _backgroundIndex;
 
   String get currencyCode => _currencyCode;
+  int get backgroundIndex => _backgroundIndex;
 
   Future<void> setCurrencyCode(String currencyCode) async {
     if (!supportedCurrencies.contains(currencyCode)) return;
@@ -21,5 +31,16 @@ class AppSettings extends ChangeNotifier {
 
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(currencyPreferenceKey, currencyCode);
+  }
+
+  Future<void> setBackgroundIndex(int index) async {
+    if (index < 0 || index > solidBackgroundCount) return;
+    if (_backgroundIndex == index) return;
+
+    _backgroundIndex = index;
+    notifyListeners();
+
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt(backgroundIndexKey, index);
   }
 }

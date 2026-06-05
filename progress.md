@@ -696,6 +696,57 @@ userEntitlements/{uid}
 
 ---
 
+### 24. 앱 배경 변경 기능 추가
+
+**변경 내용**
+- `AppSettings`에 `backgroundIndex` 필드 추가 (SharedPreferences `background_index` 키로 영구 저장)
+  - `0`: 기존 그라디언트 배경 (기본값)
+  - `1~8`: 단색 배경 (라이트/다크 모드별 색상 쌍 자동 적용)
+- `AppColors.solidBackgrounds`: 단색 배경 8종 색상 쌍(라이트, 다크) 정의
+- `AppColors.solidBackgroundOf(index, context)`: 인덱스·테마에 맞는 색상 반환
+- `AppBackground` 위젯이 `AppSettings`를 `AnimatedBuilder`로 구독 → 설정 변경 즉시 반영
+  - 그라디언트 → 단색 전환 시 글로우 버블이 `AnimatedOpacity`로 부드럽게 사라짐
+  - `TweenAnimationBuilder`(컨텐츠 페이드인)를 트리의 고정 위치(index 2)에 유지 → 배경 전환 시 재애니메이션 없음
+- `BackgroundScreen` 신규 화면: 4열 그리드 스와치 UI
+  - 그라디언트 옵션(첫 번째) + 단색 8종
+  - 선택된 항목에 파란 테두리 + 체크 아이콘
+  - `AppBackground` 기반으로 선택 즉시 화면 배경 변경 (라이브 프리뷰 효과)
+- 설정 탭에 "배경" 항목 추가 (통화 카드 아래, 결제 수단 카드 위)
+
+- 각 단색 배경에 대응하는 카드 배경색 8종 쌍(`solidCardColors`) 추가
+- `AppBackground`에서 `Theme` 오버라이드로 `cardTheme.color`를 배경 인덱스에 맞게 변경 → 앱 내 모든 `Card` 위젯 색상이 자동 반영
+- `BackgroundScreen` 스와치에 미니 카드 미리보기 추가 (스와치 하단에 소형 카드 사각형 표시)
+- `AppColors.surfaceOf(context)` → `Theme.of(context).colorScheme.surface` 반환으로 변경
+- `AppColors.surfaceAltOf(context)` → `Theme.of(context).colorScheme.surfaceContainerHighest` 반환으로 변경
+- `app_theme.dart`에 `surfaceContainerHighest: surfaceAlt` 명시 고정 → 기본 테마에서 surfaceAlt 동작 유지
+- `AppBackground` Theme 오버라이드 확장: `colorScheme.surface/surfaceContainerHighest = cardColor`, `inputDecorationTheme.fillColor = cardColor`
+- 이를 통해 지출 카드(Card), 입력 박스(TextFormField), 셀렉트 박스(DropdownButtonFormField), 칩 배경 등 모든 surface 기반 UI 요소가 자동으로 배경 테마 적용
+- 팔레트 정제: 배경 → 더 선명한 파스텔(층위 인식 향상), 카드 → near-white 색조(배경 대비 명확한 elevation 효과)
+
+- `AppColors.outlineOf(context)` → `Theme.of(context).colorScheme.outline` 반환으로 변경
+- `app_theme.dart`에 `colorScheme.outline = outline` 명시 고정
+- `AppBackground` Theme 오버라이드 추가: `colorScheme.outline`, `cardTheme.shape(BorderSide)`, `inputDecorationTheme.enabledBorder/border` 를 배경에 맞는 진한 테두리색으로 교체
+- `solidOutlinesLight` 8종: 각 배경 테마의 채도에 맞는 더 진한 테두리색 (다크 모드는 기본 outline 유지)
+- `calendar_screen.dart`의 `_calendarCard()` 메서드에 `context` 인자 명시 전달 → LayoutBuilder 내부 컨텍스트(AppBackground Theme 오버라이드 적용) 사용
+
+**검증**
+- `flutter analyze lib/service/app_settings.dart lib/const/app_colors.dart lib/component/common/app_background.dart lib/screen/background_screen.dart lib/screen/config_screen.dart lib/main.dart lib/const/app_theme.dart lib/screen/calendar_screen.dart` 통과
+- `ko.json`, `en.json` JSON 유효성 확인
+
+**관련 파일**
+- `lib/service/app_settings.dart`
+- `lib/const/app_colors.dart`
+- `lib/const/app_theme.dart`
+- `lib/component/common/app_background.dart`
+- `lib/screen/background_screen.dart` (신규)
+- `lib/screen/config_screen.dart`
+- `lib/screen/calendar_screen.dart`
+- `lib/main.dart`
+- `assets/locales/ko.json`
+- `assets/locales/en.json`
+
+---
+
 ## 문서
 
 | 파일 | 내용 |

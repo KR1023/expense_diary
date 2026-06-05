@@ -87,6 +87,12 @@
       "option_ko": "한국어",
       "option_en": "영어"
     },
+    "background": {
+      "title": "배경",
+      "subtitle": "앱 배경 스타일을 변경합니다.",
+      "section_style": "배경 스타일",
+      "option_gradient": "기본"
+    },
     "reset": {
       "title": "모든 데이터 초기화",
       "subtitle": "복구할 수 없는 작업입니다.",

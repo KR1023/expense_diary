@@ -87,6 +87,12 @@
       "option_ko": "Korean",
       "option_en": "English"
     },
+    "background": {
+      "title": "Background",
+      "subtitle": "Change the app background style.",
+      "section_style": "Background Style",
+      "option_gradient": "Default"
+    },
     "reset": {
       "title": "Reset all data",
       "subtitle": "This action cannot be undone.",

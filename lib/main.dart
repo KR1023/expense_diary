@@ -36,6 +36,9 @@ void main() async {
   final userCurrency =
       prefs.getString(AppSettings.currencyPreferenceKey) ??
       AppSettings.defaultCurrency;
+  final backgroundIndex =
+      prefs.getInt(AppSettings.backgroundIndexKey) ??
+      AppSettings.defaultBackgroundIndex;
 
   final database = LocalDatabase();
   GetIt.I.registerSingleton<LocalDatabase>(database);
@@ -46,7 +49,10 @@ void main() async {
   GetIt.I.registerSingleton<FirestoreTransactionRepository>(
     FirestoreTransactionRepository(authRepository: authRepository),
   );
-  final appSettings = AppSettings(currencyCode: userCurrency);
+  final appSettings = AppSettings(
+    currencyCode: userCurrency,
+    backgroundIndex: backgroundIndex,
+  );
   GetIt.I.registerSingleton<AppSettings>(appSettings);
   GetIt.I.registerSingleton<SubscriptionService>(subscriptionService);
 
