@@ -657,6 +657,45 @@ userEntitlements/{uid}
 
 ---
 
+### 23. 지출 내역 달력/월간 요약 UI 및 합계 계산 정규화
+
+**변경 내용**
+- 지출 내역 탭의 달력 아래 영역을 월 합계/선택 일자 합계 통합 카드로 개편
+- 선택 일자 합계 카드에서 상세 버튼을 통해 해당 날짜 지출 상세 드로어를 열도록 유지
+- 월간 요약 카드를 추가하고 주차별 합계/분류별 합계를 탭으로 분리
+- 월간 요약 탭은 `PageView` 기반으로 변경하여 탭 클릭과 좌우 스와이프가 서로 동기화되도록 개선
+- 월간 요약 탭 스타일을 카드형 세그먼트 UI로 개선
+- 월간 요약 내부 리스트는 별도 내부 스크롤 없이 항목 수만큼 카드 높이가 늘어나도록 변경
+- 달력 일자 하단에 일별 합계 금액을 다시 표시하고, 날짜 숫자와 금액 간격 및 셀 기준선을 조정
+- 월/일 합계 카드의 패딩, 라벨, 금액 폰트 스타일을 조정
+- 금액 숫자와 통화 단위를 분리 렌더링하여 단위와 숫자 사이 간격을 확보
+- `AGENTS.md`를 한글로 정리하고, `progress.md`는 명시 요청 시에만 업데이트한다는 규칙을 추가
+- 앱 버전을 `2.5.0+18`로 갱신
+
+**합계 계산 정리**
+- 일자별 목록/일 합계/주차별 합계는 기존 half-open range 기준을 유지
+- 월 합계, 월 지출 건수, 결제 수단별 월 합계, 분류별 월 합계를 모두 `start <= expenseDate < nextMonthStart` 기준으로 통일
+- 달력 일자별 합계는 월 범위 지출을 조회한 뒤 Dart에서 `yyyy-MM-dd` 기준으로 누적 합산하여 같은 날짜 다건/시간값 포함 데이터를 안전하게 처리
+
+**검증**
+- `flutter analyze lib/component/expense_by_date.dart` 통과
+- `flutter analyze lib/component/calendar/expense_calendar.dart` 통과
+- `flutter analyze lib/component/expense_by_date.dart lib/screen/calendar_screen.dart` 통과
+- `flutter analyze lib/database/drift_database.dart lib/component/expense_by_date.dart lib/component/calendar/expense_calendar.dart lib/screen/calendar_screen.dart` 통과
+- `git diff --check` 통과
+
+**관련 파일**
+- `lib/component/calendar/expense_calendar.dart`
+- `lib/component/expense_by_date.dart`
+- `lib/database/drift_database.dart`
+- `lib/screen/calendar_screen.dart`
+- `assets/locales/ko.json`
+- `assets/locales/en.json`
+- `pubspec.yaml`
+- `AGENTS.md`
+
+---
+
 ## 문서
 
 | 파일 | 내용 |

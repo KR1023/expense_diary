@@ -38,62 +38,33 @@ class _CalendarScreenState extends State<CalendarScreen> {
         padding: EdgeInsets.fromLTRB(20, 12, 20, 0),
         child: LayoutBuilder(
           builder: (context, constraints) {
-            const headerBlockHeight = 64.0;
-            const gap = 10.0;
-            const minCalendarHeight = 272.0;
-            const summaryHeight = 80.0;
+            const gap = 8.0;
+            const combinedSummaryHeight = 132.0;
             const bottomPadding = 12.0;
-            final requiredMinHeight =
-                headerBlockHeight +
-                gap +
-                minCalendarHeight +
-                gap +
-                summaryHeight +
-                bottomPadding;
+            final calendarHeight =
+                constraints.maxHeight < 760
+                    ? 360.0
+                    : constraints.maxHeight < 840
+                    ? 390.0
+                    : 420.0;
 
-            if (constraints.maxHeight < requiredMinHeight) {
-              return SingleChildScrollView(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _header(context),
-                    const SizedBox(height: gap),
-                    SizedBox(height: minCalendarHeight, child: _calendarCard()),
-                    const SizedBox(height: gap),
-                    SizedBox(
-                      height: summaryHeight,
-                      child: ExpenseByDate(selectedDate: selectedDate),
-                    ),
-                    const SizedBox(height: bottomPadding),
-                  ],
-                ),
-              );
-            }
-
-            final availableCalendarHeight =
-                constraints.maxHeight -
-                headerBlockHeight -
-                summaryHeight -
-                (gap * 2) -
-                bottomPadding;
-            final calendarHeight = availableCalendarHeight.clamp(
-              minCalendarHeight,
-              380.0,
-            );
-
-            return Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _header(context),
-                const SizedBox(height: gap),
-                SizedBox(height: calendarHeight, child: _calendarCard()),
-                const SizedBox(height: gap),
-                SizedBox(
-                  height: summaryHeight,
-                  child: ExpenseByDate(selectedDate: selectedDate),
-                ),
-                const SizedBox(height: bottomPadding),
-              ],
+            return SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _header(context),
+                  const SizedBox(height: gap),
+                  SizedBox(height: calendarHeight, child: _calendarCard()),
+                  const SizedBox(height: gap),
+                  SizedBox(
+                    height: combinedSummaryHeight,
+                    child: ExpenseByDate(selectedDate: selectedDate),
+                  ),
+                  const SizedBox(height: gap),
+                  MonthlyExpenseSummaryCard(selectedDate: selectedDate),
+                  const SizedBox(height: bottomPadding),
+                ],
+              ),
             );
           },
         ),
@@ -121,7 +92,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
 
   Widget _calendarCard() {
     return Container(
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.fromLTRB(12, 10, 12, 12),
       decoration: BoxDecoration(
         color: AppColors.surfaceOf(context),
         borderRadius: BorderRadius.circular(18),

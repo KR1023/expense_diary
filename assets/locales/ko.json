@@ -22,9 +22,12 @@
     "subtitle": "일별, 주별, 분류별로 지출을 확인하세요",
     "expense_total": "지출 합계 : {amount}",
     "total": "합계 : {amount}",
+    "month_total_title": "{month} 합계",
+    "day_total_title": "{date} 합계",
     "detail_view": "상세 보기",
     "detail_title": "지출 내역 상세",
     "section_expenses": "일자 지출 내역",
+    "monthly_summary": "월간 요약",
     "section_weekly": "주차별 합계",
     "section_category": "분류별 합계"
   },

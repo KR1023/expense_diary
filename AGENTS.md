@@ -1,106 +1,111 @@
 # AGENTS.md
 
-## Project Summary
-- Flutter expense tracking app with Korean (primary) and English (secondary) locales.
-- State is persisted in SQLite via Drift; UI reads data using `StreamBuilder` streams.
-- Ads are integrated via a local `google_mobile_ads` package.
-- Android subscriptions are active through RevenueCat; iOS subscription purchase UI is temporarily disabled and shows a "coming soon" state.
-- The app now supports user-managed payment methods and recurring/fixed expenses.
+## 프로젝트 요약
+- 한국어를 기본, 영어를 보조 로케일로 사용하는 Flutter 지출 관리 앱입니다.
+- 상태는 Drift 기반 SQLite에 저장하며, UI는 주로 `StreamBuilder` 스트림으로 데이터를 구독합니다.
+- 광고는 `third_party/` 아래의 로컬 `google_mobile_ads` 패키지를 통해 연동합니다.
+- RevenueCat 구독은 Android에서 활성화되어 있고, iOS 구독 구매 UI는 임시 비활성화 상태이며 “준비 중”으로 표시합니다.
+- 사용자가 직접 관리하는 결제 수단과 고정 지출 기능을 지원합니다.
 
-## Tech Stack
+## 기술 스택
 - Flutter / Dart (`sdk: ^3.7.2`)
 - Drift ORM + SQLite (`drift`, `drift_flutter`, `drift_dev`)
-- Service locator: `get_it`
-- Localization: `flutter_localizations`, `intl`
+- 서비스 로케이터: `get_it`
+- 다국어: `flutter_localizations`, `intl`, `easy_localization`
 - Firebase: `firebase_core`, `firebase_auth`, `cloud_firestore`, `firebase_storage`
-- Subscriptions: RevenueCat via `purchases_flutter` (Android active, iOS temporarily disabled)
-- Authentication: email/password, Google sign-in, and Sign in with Apple on iOS/macOS.
+- 구독: RevenueCat `purchases_flutter` 사용. Android 활성, iOS 임시 비활성.
+- 인증: 이메일/비밀번호, Google 로그인, iOS/macOS의 Sign in with Apple.
 
-## Key Directories
-- `lib/main.dart`: App bootstrap, localization, theme, and `GetIt` registration.
-- `lib/database/`: Drift database (`drift_database.dart`) and generated code (`drift_database.g.dart`).
-- `lib/model/`: Drift table definitions and DTOs.
-- `lib/screen/`: App screens and navigation (`RootScreen` with bottom tabs).
-- `lib/core/subscription/`: RevenueCat subscription state and entitlement helpers.
-- `lib/core/recurring/`: Fixed expense schedule calculation and due-expense generation.
-- `lib/const/`: App constants including Firebase auth and RevenueCat dart-define config.
-- `lib/features/backup/`: Snapshot backup/restore domain and Firebase Firestore/Storage repository.
-- `lib/features/report/`: CSV/PDF report export services.
-- `lib/component/`: Reusable widgets (e.g., ads, stats).
-- `third_party/`: Local `google_mobile_ads` dependency.
-- `asset/`: App images, splash, and icons.
-- `docs/revenue_cat/`: RevenueCat console/code/Android/iOS setup notes.
-- `docs/deployment/`: Android/iOS deployment commands and checklists.
-- `docs/Structure/`: Local and cloud data storage structure notes.
-- `progress.md`: Latest development handoff summary from Claude.
+## 주요 디렉터리
+- `lib/main.dart`: 앱 부트스트랩, 다국어, 테마, `GetIt` 등록.
+- `lib/database/`: Drift DB (`drift_database.dart`)와 생성 코드 (`drift_database.g.dart`).
+- `lib/model/`: Drift 테이블 정의와 DTO.
+- `lib/screen/`: 앱 화면과 `RootScreen` 하단 탭 내비게이션.
+- `lib/core/subscription/`: RevenueCat 구독 상태와 권한 헬퍼.
+- `lib/core/recurring/`: 고정 지출 스케줄 계산과 due 지출 생성.
+- `lib/const/`: Firebase Auth, RevenueCat dart-define 등 앱 상수.
+- `lib/features/backup/`: 스냅샷 백업/복원 도메인과 Firebase Firestore/Storage 저장소.
+- `lib/features/report/`: CSV/PDF 리포트 내보내기 서비스.
+- `lib/component/`: 광고, 통계, 셀렉트 등 재사용 위젯.
+- `third_party/`: 로컬 `google_mobile_ads` 의존성.
+- `asset/`: 앱 이미지, 스플래시, 아이콘.
+- `docs/revenue_cat/`: RevenueCat 콘솔/코드/Android/iOS 설정 문서.
+- `docs/deployment/`: Android/iOS 배포 명령과 체크리스트.
+- `docs/Structure/`: 로컬/클라우드 데이터 저장 구조 문서.
+- `progress.md`: 작업 진행 요약. 사용자가 명시적으로 요청할 때만 업데이트합니다.
 
-## Data Model (Drift)
-- Current local DB schema version: `3`.
-- `Expense`: id, categoryId (nullable), paymentMethodId (nullable), recurringExpenseId (nullable), recurringOccurrenceDate (nullable), expenseName, expense (int), expenseDate, expenseDetail (nullable)
-- `Category`: id, categoryName (unique), usePresetAmount, presetAmount (nullable), autoFillExpenseName
-- `PaymentMethods`: id, type (`cash` / `card` / `bank` / `mobilePay` / `other`), name, memo (nullable), sortOrder, isArchived, createdAt, updatedAt
-- `RecurringExpenses`: id, name, amount, categoryId (nullable), paymentMethodId (nullable), detail (nullable), frequency (`daily` / `weekly` / `monthly` / `yearly`), interval, startDate, endDate (nullable), nextRunDate, isActive, createdAt, updatedAt
-- `PaymentMethodExpense`: DTO for payment-method monthly aggregation.
-- Category presets are optional. When `usePresetAmount=true`, selecting the category in expense add/edit fills the amount from `presetAmount`. When `autoFillExpenseName=true`, selecting the category fills the expense name with the category name.
-- Deleting a category unassigns related expenses by setting `Expense.categoryId` to null inside a transaction, then deletes the category. Expense rows are not deleted.
-- Payment methods are archived with `isArchived=true` instead of hard-deleted to preserve historic expense references.
-- Adding a payment method with the same active `type + name` is blocked. Adding the same `type + name` as an archived payment method prompts restore, reuses the original ID, and reconnects historic expenses/statistics.
-- `PaymentMethodSelect` must tolerate archived selected values because historic expenses and fixed-expense rules can still reference archived payment methods. Include the archived selected value in the dropdown as a deleted/current value instead of assuming it exists in `watchPaymentMethods()`.
-- Fixed expenses generate real `Expense` rows only when due (`nextRunDate <= today`), not for future dates in advance.
-- Fixed expense generation is capped at 100 rows per run and checks `recurringExpenseId + recurringOccurrenceDate` to avoid duplicates.
-- Date-based expense list/total queries must use half-open day ranges (`start <= expenseDate < nextDay`) instead of exact `DateTime` equality, because restored or migrated rows may contain non-midnight time components.
+## 작업 규칙
+- `AGENTS.md`는 한글로 작성하고 유지합니다.
+- `progress.md`는 사용자가 “progress.md 업데이트”를 명시적으로 요청할 때만 수정합니다.
+- 사용자가 요청하지 않은 문서 업데이트는 `AGENTS.md`처럼 현재 작업 규칙 유지에 필요한 경우로 제한합니다.
 
-After changing table definitions or database logic, regenerate code:
+## 데이터 모델 (Drift)
+- 현재 로컬 DB 스키마 버전: `3`.
+- `Expense`: id, categoryId(nullable), paymentMethodId(nullable), recurringExpenseId(nullable), recurringOccurrenceDate(nullable), expenseName, expense(int), expenseDate, expenseDetail(nullable).
+- `Category`: id, categoryName(unique), usePresetAmount, presetAmount(nullable), autoFillExpenseName.
+- `PaymentMethods`: id, type(`cash` / `card` / `bank` / `mobilePay` / `other`), name, memo(nullable), sortOrder, isArchived, createdAt, updatedAt.
+- `RecurringExpenses`: id, name, amount, categoryId(nullable), paymentMethodId(nullable), detail(nullable), frequency(`daily` / `weekly` / `monthly` / `yearly`), interval, startDate, endDate(nullable), nextRunDate, isActive, createdAt, updatedAt.
+- `PaymentMethodExpense`: 결제 수단별 월 집계 DTO.
+- 분류 기본값은 선택 사항입니다. `usePresetAmount=true`이면 지출 추가/수정에서 해당 분류 선택 시 `presetAmount`가 금액에 자동 입력됩니다. `autoFillExpenseName=true`이면 지출명이 분류명으로 자동 입력됩니다.
+- 분류 삭제 시 관련 지출은 transaction 안에서 `Expense.categoryId`를 `null`로 바꾼 뒤 분류를 삭제합니다. 지출 row는 삭제하지 않습니다.
+- 결제 수단은 실제 삭제하지 않고 `isArchived=true`로 보관하여 과거 지출 참조를 유지합니다.
+- 활성 결제 수단 중 같은 `type + name` 추가/수정은 차단합니다. 같은 `type + name`의 보관된 결제 수단을 다시 추가하면 복원 확인 후 원래 ID를 재사용해 과거 지출/통계와 다시 연결합니다.
+- `PaymentMethodSelect`는 보관된 결제 수단이 선택값으로 들어오는 상황을 허용해야 합니다. 과거 지출이나 고정 지출 규칙이 보관된 결제 수단을 계속 참조할 수 있으므로, `watchPaymentMethods()` 결과에 없더라도 현재 선택값을 삭제된 항목으로 표시합니다.
+- 고정 지출은 실행일이 도래했을 때만 실제 `Expense` row를 생성합니다. 미래 데이터를 미리 대량 생성하지 않습니다.
+- 고정 지출 생성은 실행당 최대 100건이며, `recurringExpenseId + recurringOccurrenceDate` 조합으로 중복 생성을 방지합니다.
+- 날짜 기반 지출 목록/합계 쿼리는 정확한 `DateTime` equality를 사용하지 말고 `start <= expenseDate < nextDay` 형태의 half-open day range를 사용합니다. 복원/마이그레이션 데이터에는 자정이 아닌 시간값이 포함될 수 있습니다.
+
+테이블 정의나 DB 로직 변경 후에는 생성 코드를 갱신합니다.
 ```bash
 dart run build_runner build --delete-conflicting-outputs
 ```
 
-## Common Commands
+## 자주 쓰는 명령
 ```bash
-# Dependencies
+# 의존성 설치
 flutter pub get
 
-# Run
+# 실행
 flutter run
 
-# Tests
+# 테스트
 flutter test
 
-# Lint
+# 정적 분석
 flutter analyze
 
-# Codegen (Drift)
+# Drift 코드 생성
 dart run build_runner build --delete-conflicting-outputs
 
-# Assets (icons/splash)
+# 아이콘/스플래시 생성
 dart run flutter_launcher_icons
 dart run flutter_native_splash:create
 ```
 
-## RevenueCat / Subscription Status
-- RevenueCat is re-integrated for Android. iOS is currently disabled in `SubscriptionService._configure()` and behaves as Free until App Store subscription setup is ready.
-- Firebase UID is linked to RevenueCat app user ID in `lib/main.dart` via `loginUser()` / `logoutUser()`.
-- Account-level manual entitlements are supported through Firestore `userEntitlements/{uid}`. Missing documents default to role `normal` with no manual entitlements.
-- Manual entitlement fields: `role` (`normal`, `cloud`, `report`, `special`, `admin`), `manualCloud`, `manualReport`, `manualAdsRemoved`. The app also accepts alias booleans `cloud`, `report`, `adsRemoved`.
-- Final entitlement checks combine RevenueCat and manual entitlements. `report`, `special`, and `admin` include Cloud access; `special` and `admin` unlock all paid features.
-- Firestore rules allow users to read only their own `userEntitlements/{uid}` document and deny all client writes. Modify manual entitlements via Firebase Console/Admin SDK only.
-- Plans:
-  - Free: ads shown, backup limited to once per KST week, restore limited to once per KST day, active fixed expenses limited to 10, payment methods limited to 5.
-  - Cloud: ads removed, unlimited backup/restore, unlimited fixed expenses, unlimited payment methods.
-  - Report: includes Cloud and unlocks statistics/CSV/PDF export.
-- iOS subscription/paywall screens currently show "준비 중"; do not enable iOS purchase flow until App Store subscription setup is ready.
-- User-cancelled purchases are treated as a normal cancellation path and should not expose raw RevenueCat/API errors.
-- Runtime config is read from `--dart-define` in `lib/const/revenuecat_config.dart`:
+## RevenueCat / 구독 상태
+- RevenueCat은 Android에 재통합되어 있습니다. iOS는 `SubscriptionService._configure()`에서 현재 비활성화되어 있으며, App Store 구독 설정이 준비될 때까지 Free처럼 동작합니다.
+- Firebase UID는 `lib/main.dart`에서 `loginUser()` / `logoutUser()`를 통해 RevenueCat app user ID와 연결합니다.
+- Firestore `userEntitlements/{uid}` 문서로 계정별 수동 권한을 지원합니다. 문서가 없으면 role은 `normal`, 수동 권한은 없음으로 처리합니다.
+- 수동 권한 필드: `role`(`normal`, `cloud`, `report`, `special`, `admin`), `manualCloud`, `manualReport`, `manualAdsRemoved`. 호환 alias boolean으로 `cloud`, `report`, `adsRemoved`도 허용합니다.
+- 최종 권한은 RevenueCat 권한과 수동 권한을 OR로 합산합니다. `report`, `special`, `admin` role은 Cloud 권한을 포함하며, `special`, `admin`은 전체 유료 기능을 해제합니다.
+- Firestore Rules는 사용자가 본인의 `userEntitlements/{uid}` 문서만 읽을 수 있게 하고, 클라이언트 write는 전부 차단합니다. 수동 권한 변경은 Firebase Console 또는 Admin SDK로만 수행합니다.
+- 플랜 기준:
+  - Free: 광고 표시, 백업 KST 기준 주 1회, 복원 KST 기준 일 1회, 활성 고정 지출 10개 제한, 결제 수단 5개 제한.
+  - Cloud: 광고 제거, 백업/복원 무제한, 고정 지출 무제한, 결제 수단 무제한.
+  - Report: Cloud 포함, 통계/CSV/PDF 내보내기 해제.
+- iOS 구독/페이월 화면은 현재 “준비 중”을 표시합니다. App Store 구독 설정이 완료되기 전까지 iOS 구매 플로우를 활성화하지 않습니다.
+- 사용자가 구매를 취소한 경우 정상 취소 흐름으로 처리하고 RevenueCat/API 원문 오류를 사용자에게 노출하지 않습니다.
+- 런타임 설정은 `lib/const/revenuecat_config.dart`에서 `--dart-define`으로 읽습니다.
   - `RC_ANDROID_PUBLIC_SDK_KEY`
   - `RC_IOS_PUBLIC_SDK_KEY`
   - `RC_TEST_STORE_KEY` (test store override)
-  - `RC_FORCE_ENTITLED` (UI/dev testing only; never include in release)
+  - `RC_FORCE_ENTITLED` (UI/dev 테스트용. release에 포함 금지)
   - `RC_ENTITLEMENT_CLOUD`, `RC_ENTITLEMENT_REPORT`
   - `RC_OFFERING_CLOUD`, `RC_OFFERING_REPORT`
-- Default entitlement IDs are `cloud`, `report`.
-- Default offering/package IDs are `cloud_monthly`, `report_monthly`.
+- 기본 entitlement ID는 `cloud`, `report`입니다.
+- 기본 offering/package ID는 `cloud_monthly`, `report_monthly`입니다.
 
-Android release build example:
+Android release build 예시:
 ```bash
 flutter build appbundle \
   --dart-define=RC_ANDROID_PUBLIC_SDK_KEY=goog_xxx \
@@ -110,73 +115,74 @@ flutter build appbundle \
   --dart-define=RC_OFFERING_REPORT=report_monthly
 ```
 
-## Backup / Restore
-- Snapshot payload JSON is stored in Firebase Storage at `users/{uid}/snapshots/{snapshotId}.json`.
-- Firestore stores snapshot metadata plus `payloadStoragePath`; older inline-payload Firestore snapshots remain readable.
-- Snapshot metadata includes a user-facing `name`. Backup prompts for a name; an empty input defaults to a local `yyyy.MM.dd HH:mm` timestamp name.
-- Snapshot name input dialog owns its `TextEditingController` inside the dialog `State`; do not dispose it immediately after `showDialog` returns because the closing animation may still render the field.
-- Each user keeps at most 5 snapshots. After a new backup is uploaded, older snapshots beyond the newest 5 are deleted from both Firestore and Storage.
-- Snapshot restore screen displays only the newest 5 snapshots and supports selected deletion plus delete-all.
-- Snapshot payload includes expenses, categories, payment methods, and recurring expenses.
-- Restore order must preserve FK safety. Current restore clears dependent rows first and reinserts parent rows before dependent rows.
-- Snapshot parsing handles both Drift snake_case and app camelCase keys.
-- Legacy snapshots without payment/recurring keys must remain restorable by treating missing lists as empty.
-- Backup metadata is stored under `users/{uid}/meta/backupQuota`.
-- Local backup/restore limit keys live in `lib/features/backup/data/backup_metadata_keys.dart`.
-- Firestore rules are tracked in `firestore.rules`. If Storage rules are changed, make sure Firebase deployment config includes them before release.
+## 백업 / 복원
+- 스냅샷 payload JSON은 Firebase Storage의 `users/{uid}/snapshots/{snapshotId}.json`에 저장합니다.
+- Firestore에는 스냅샷 메타데이터와 `payloadStoragePath`를 저장합니다. 예전 inline-payload Firestore 스냅샷도 계속 읽을 수 있어야 합니다.
+- 스냅샷 메타데이터에는 사용자 표시용 `name`이 포함됩니다. 백업 시 이름을 입력받고, 비워두면 로컬 `yyyy.MM.dd HH:mm` 타임스탬프 이름을 기본값으로 사용합니다.
+- 스냅샷 이름 입력 다이얼로그의 `TextEditingController`는 다이얼로그 내부 `State`가 소유합니다. `showDialog` 반환 직후 즉시 dispose하면 닫힘 애니메이션 중 필드가 렌더링될 수 있어 오류가 납니다.
+- 사용자별 스냅샷은 최대 5개 유지합니다. 새 백업 업로드 후 최신 5개를 초과하는 오래된 스냅샷은 Firestore와 Storage에서 모두 삭제합니다.
+- 스냅샷 복원 화면은 최신 5개만 표시하고 선택 삭제와 전체 삭제를 지원합니다.
+- 스냅샷 payload에는 지출, 분류, 결제 수단, 고정 지출이 포함됩니다.
+- 복원 순서는 FK 안전성을 지켜야 합니다. 현재는 dependent row를 먼저 지우고 parent row를 먼저 다시 삽입한 뒤 dependent row를 삽입합니다.
+- 스냅샷 파싱은 Drift snake_case와 앱 camelCase key를 모두 처리합니다.
+- 결제 수단/고정 지출 key가 없는 legacy 스냅샷은 빈 리스트로 처리하여 복원 가능해야 합니다.
+- 백업 메타데이터는 `users/{uid}/meta/backupQuota`에 저장합니다.
+- 로컬 백업/복원 제한 key는 `lib/features/backup/data/backup_metadata_keys.dart`에 있습니다.
+- Firestore Rules는 `firestore.rules`에서 관리합니다. Storage Rules를 변경하면 release 전에 Firebase 배포 설정에 포함되어 있는지 확인합니다.
 
-## Authentication / Account Deletion
-- Login options:
-  - Email/password is available on all platforms.
-  - Google sign-in is available from the login screen.
-  - Sign in with Apple is shown only on iOS/macOS and uses Firebase Auth `AppleAuthProvider`.
-- iOS App Store Guideline 4.8 compliance depends on keeping Sign in with Apple visible wherever Google sign-in is available on iOS.
-- iOS Sign in with Apple requires:
-  - Apple Developer App ID `com.ysh.expenseDiary` has the Sign in with Apple capability enabled.
-  - `ios/Runner/Runner.entitlements` includes `com.apple.developer.applesignin`.
-  - Xcode `Runner > Signing & Capabilities` shows Sign in with Apple.
-  - Firebase Authentication Apple provider is enabled.
-- Account deletion is exposed in Settings when a user is signed in.
-- Deletion flow first shows a data deletion notice, then a final confirmation.
-- Account deletion removes cloud account data only:
-  - Firebase Authentication current user.
-  - Firestore `users/{uid}/snapshots`, `users/{uid}/transactions`, `users/{uid}/meta`, and `users/{uid}`.
+## 인증 / 계정 삭제
+- 로그인 옵션:
+  - 이메일/비밀번호는 모든 플랫폼에서 사용 가능합니다.
+  - Google 로그인은 로그인 화면에서 사용 가능합니다.
+  - Sign in with Apple은 iOS/macOS에서만 표시하며 Firebase Auth `AppleAuthProvider`를 사용합니다.
+- iOS App Store Guideline 4.8 대응을 위해 iOS에서 Google 로그인을 제공하는 곳에는 Sign in with Apple도 함께 표시해야 합니다.
+- iOS Sign in with Apple 요구사항:
+  - Apple Developer App ID `com.ysh.expenseDiary`에 Sign in with Apple capability 활성화.
+  - `ios/Runner/Runner.entitlements`에 `com.apple.developer.applesignin` 포함.
+  - Xcode `Runner > Signing & Capabilities`에 Sign in with Apple 표시.
+  - Firebase Authentication Apple provider 활성화.
+- 계정 삭제는 로그인한 사용자에게 설정 화면에서 제공됩니다.
+- 삭제 플로우는 데이터 삭제 안내를 먼저 표시하고, 최종 확인을 한 번 더 받습니다.
+- 계정 삭제는 클라우드 계정 데이터만 제거합니다.
+  - Firebase Authentication 현재 사용자.
+  - Firestore `users/{uid}/snapshots`, `users/{uid}/transactions`, `users/{uid}/meta`, `users/{uid}`.
   - Firebase Storage `users/{uid}/snapshots/*`.
-- Local SQLite expense data is intentionally not deleted by account deletion. Use Settings → 모든 데이터 초기화 for local data reset.
-- Firebase may throw `requires-recent-login`; in that case the app asks the user to sign in again before retrying deletion.
+- 로컬 SQLite 지출 데이터는 계정 삭제 시 의도적으로 삭제하지 않습니다. 로컬 데이터 초기화는 설정의 “모든 데이터 초기화”를 사용합니다.
+- Firebase가 `requires-recent-login`을 던지면 다시 로그인 후 삭제를 재시도하도록 안내합니다.
 
-## AdMob / Ads
-- Ads use the local `google_mobile_ads` package under `third_party/`.
-- Ad unit IDs are configured in `lib/const/admob_config.dart`.
-- Defaults:
+## AdMob / 광고
+- 광고는 `third_party/` 아래의 로컬 `google_mobile_ads` 패키지를 사용합니다.
+- 광고 단위 ID는 `lib/const/admob_config.dart`에서 설정합니다.
+- 기본값:
   - Android banner: `ca-app-pub-5444803558030319/2084179141`
   - iOS banner: `ca-app-pub-5444803558030319/5504549409`
-- Override with `--dart-define=ADMOB_ANDROID_BANNER_ID=...` and `--dart-define=ADMOB_IOS_BANNER_ID=...`.
-- `BannerAdWidget` hides ads when `SubscriptionService.isAdsRemoved` is true; Cloud and Report entitlements remove ads.
+- `--dart-define=ADMOB_ANDROID_BANNER_ID=...`, `--dart-define=ADMOB_IOS_BANNER_ID=...`로 override할 수 있습니다.
+- `BannerAdWidget`은 `SubscriptionService.isAdsRemoved`가 true이면 광고를 숨깁니다. Cloud와 Report 권한은 광고를 제거합니다.
 
-## Fixed Expenses / Payment Methods
-- Payment methods are managed from Settings → 결제 수단 관리.
-- Expense add/edit screens include `PaymentMethodSelect`; expense cards show payment-method badges.
-- Expense add/edit category and payment-method selectors support quick-add actions. Payment-method quick-add must enforce the same Free-plan limit of 5 methods unless Cloud/Report entitlement is active.
-- Fixed expenses are managed in the `고정 지출` tab.
-- `RecurringExpenseService.generateDueExpenses()` runs on app start, fixed-expense tab entry, and after fixed-expense form save.
-- `RecurringSchedule` handles daily/weekly/monthly/yearly recurrence and clamps invalid month-end dates to the last valid day.
-- Deleting a fixed expense rule currently hard-deletes the rule; already generated expense rows remain.
+## 고정 지출 / 결제 수단
+- 결제 수단은 설정 > 결제 수단 관리에서 관리합니다.
+- 지출 추가/수정 화면에는 `PaymentMethodSelect`가 포함되고, 지출 카드에는 결제 수단 배지가 표시됩니다.
+- 지출 추가/수정의 분류/결제 수단 셀렉트는 즉시 추가 액션을 지원합니다. 결제 수단 즉시 추가도 Cloud/Report 권한이 없으면 Free 플랜의 5개 제한을 동일하게 적용해야 합니다.
+- 고정 지출은 `고정 지출` 탭에서 관리합니다.
+- `RecurringExpenseService.generateDueExpenses()`는 앱 시작, 고정 지출 탭 진입, 고정 지출 폼 저장 후 실행됩니다.
+- `RecurringSchedule`은 daily/weekly/monthly/yearly 반복과 월말 보정을 처리합니다. 유효하지 않은 월말 날짜는 해당 월의 마지막 유효일로 clamp합니다.
+- 고정 지출 규칙 삭제는 현재 rule을 hard-delete합니다. 이미 생성된 지출 row는 유지됩니다.
 
-## App Flow
-- `RootScreen` manages 6 tabs (지출 / 지출 내역 / 분류 / 고정 지출 / 통계 / 설정) using `IndexedStack`.
-- Each tab with a FAB must use a unique `heroTag` to avoid `IndexedStack` hero collisions.
-- UI queries the DB directly with `StreamBuilder` for reactive updates.
-- The expense home tab is date-selectable. Header calendar opens `showDatePicker`, Today jumps to the current local date, and horizontal swipes move one day at a time with slide/fade animation.
-- When the selected home date is today, labels use "오늘 지출/오늘 합계"; otherwise they use `{yyyy.MM.dd} 지출/{yyyy.MM.dd} 합계`.
-- Opening `AddScreen` from the home tab passes the currently selected date as the default expense date.
-- Statistics screen is named `지출 통계` and includes monthly summary, day average, previous-month comparison, max spending day, category breakdown, and payment-method breakdown/detail sheet.
+## 앱 흐름
+- `RootScreen`은 `IndexedStack`으로 6개 탭을 관리합니다: 지출 / 지출 내역 / 분류 / 고정 지출 / 통계 / 설정.
+- FAB가 있는 각 탭은 `IndexedStack` hero 충돌을 피하기 위해 고유 `heroTag`를 사용해야 합니다.
+- UI는 DB를 직접 `StreamBuilder`로 구독하여 반응형으로 갱신합니다.
+- 지출 홈 탭은 날짜 선택이 가능합니다. 헤더의 달력 버튼은 `showDatePicker`를 열고, 오늘 버튼은 현재 로컬 날짜로 이동합니다. 좌우 스와이프는 하루 단위로 날짜를 이동하며 slide/fade 애니메이션을 사용합니다.
+- 홈 선택 날짜가 오늘이면 “오늘 지출/오늘 합계”를 사용하고, 오늘이 아니면 `{yyyy.MM.dd} 지출/{yyyy.MM.dd} 합계`를 사용합니다.
+- 홈 탭에서 `AddScreen`을 열 때 현재 선택 날짜를 기본 지출 날짜로 전달합니다.
+- 지출 내역 탭은 달력 높이를 우선합니다. 달력 아래에는 월 합계/일자 합계를 합친 compact 카드가 있고, 일자 영역은 상세 드로어를 엽니다. 그 아래에 주차별/분류별 월간 요약 탭 카드가 있습니다. 분류별 합계는 Top-N이나 순위형 통계가 아니라 단순 리스트로 표시합니다.
+- 통계 화면 이름은 `지출 통계`이며 월 요약, 일평균, 전월 비교, 최대 지출일, 분류별 breakdown, 결제 수단별 breakdown/detail sheet를 포함합니다.
 
-## Generated Files
-- `lib/database/drift_database.g.dart` is generated. Do not edit manually.
-- Flutter plugin registrants such as `macos/Flutter/GeneratedPluginRegistrant.swift` are generated. Avoid manual edits unless generated output changed after `flutter pub get`.
+## 생성 파일
+- `lib/database/drift_database.g.dart`는 생성 파일입니다. 직접 수정하지 않습니다.
+- `macos/Flutter/GeneratedPluginRegistrant.swift` 같은 Flutter plugin registrant도 생성 파일입니다. `flutter pub get` 이후 생성 결과가 바뀐 경우가 아니면 직접 수정하지 않습니다.
 
 ## 커밋과 푸시
-- "커밋/푸시" 를 입력하면 현재까지 진행한 사항을 커밋하고 푸시합니다.
+- 사용자가 “커밋/푸시”를 입력하면 현재까지 진행한 사항을 커밋하고 푸시합니다.
 - 기본 브랜치는 `main`입니다.
 - 푸시는 `origin main`과 `github main` 양쪽에 수행합니다.

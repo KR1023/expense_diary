@@ -29,15 +29,15 @@ class _ExpenseCalendarState extends State<ExpenseCalendar> {
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        final compactMode = constraints.maxHeight < 340;
+        final compactMode = constraints.maxHeight < 360;
         final daysOfWeekHeight = compactMode ? 20.0 : 24.0;
         // Reserve space for header + weekdays while keeping date cells readable.
-        const safeHeaderReserve = 112.0;
+        const safeHeaderReserve = 106.0;
         final calculatedRowHeight =
             (constraints.maxHeight - safeHeaderReserve) / 6;
         final rowHeight =
-            (calculatedRowHeight - 1).clamp(32.0, 60.0).floorToDouble();
-        final showAmount = rowHeight >= 27;
+            (calculatedRowHeight - 1).clamp(38.0, 62.0).floorToDouble();
+        final showAmount = rowHeight >= 34;
 
         return TableCalendar(
           focusedDay: widget.selectedDate,
@@ -161,7 +161,7 @@ class _ExpenseCalendarState extends State<ExpenseCalendar> {
             ? null
             : CurrencyUtils.formatCompactAmount(amount, widget.currencyCode);
 
-    final dayFontSize = (rowHeight * 0.48).clamp(15.0, 21.0);
+    final dayFontSize = (rowHeight * 0.42).clamp(15.0, 20.0);
     final dayTextStyle = Theme.of(context).textTheme.bodyMedium?.copyWith(
       fontSize: dayFontSize,
       fontWeight: isSelected || isToday ? FontWeight.w700 : FontWeight.w500,
@@ -173,51 +173,73 @@ class _ExpenseCalendarState extends State<ExpenseCalendar> {
               : AppColors.inkOf(context),
     );
 
-    final dayCircleSize = (rowHeight * 0.68).clamp(28.0, 36.0);
-    final amountFontSize = (rowHeight * 0.25).clamp(10.5, 13.0);
+    final dayCircleSize = (rowHeight * 0.62).clamp(28.0, 36.0);
+    final amountFontSize = (rowHeight * 0.2).clamp(9.0, 10.5);
     final dayText = Text('${day.day}', style: dayTextStyle);
 
+    final dateWidget =
+        (isSelected || isToday)
+            ? Container(
+              width: dayCircleSize,
+              height: dayCircleSize,
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                color:
+                    isSelected
+                        ? AppColors.primary
+                        : AppColors.primary.withValues(alpha: 0.15),
+                shape: BoxShape.circle,
+              ),
+              child: FittedBox(child: dayText),
+            )
+            : SizedBox(height: dayCircleSize, child: Center(child: dayText));
+
     return SizedBox.expand(
-      child: Stack(
-        alignment: Alignment.center,
-        children: [
-          Align(
-            alignment: Alignment.topCenter,
-            child:
-                (isSelected || isToday)
-                    ? Container(
-                      width: dayCircleSize,
-                      height: dayCircleSize,
-                      alignment: Alignment.center,
-                      decoration: BoxDecoration(
-                        color:
-                            isSelected
-                                ? AppColors.primary
-                                : AppColors.primary.withValues(alpha: 0.15),
-                        shape: BoxShape.circle,
-                      ),
-                      child: FittedBox(child: dayText),
-                    )
-                    : dayText,
-          ),
-          if (showAmount && amountText != null)
-            Align(
-              alignment: Alignment.bottomCenter,
-              child: Padding(
-                padding: EdgeInsets.only(bottom: compactMode ? 0 : 1),
-                child: Text(
-                  amountText,
-                  maxLines: 1,
-                  overflow: TextOverflow.fade,
-                  softWrap: false,
-                  style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                    color: isSelected ? AppColors.primary : muted,
-                    fontSize: amountFontSize,
+      child: Align(
+        alignment: Alignment.topCenter,
+        child: Padding(
+          padding: EdgeInsets.only(top: compactMode ? 2 : 4),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              dateWidget,
+              if (showAmount && amountText != null) ...[
+                SizedBox(height: compactMode ? 0 : 1),
+                Container(
+                  constraints: const BoxConstraints(maxWidth: 52),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 5,
+                    vertical: 1.5,
+                  ),
+                  decoration: BoxDecoration(
+                    color:
+                        isSelected
+                            ? Colors.white.withValues(alpha: 0.92)
+                            : AppColors.surfaceAltOf(
+                              context,
+                            ).withValues(alpha: 0.72),
+                    borderRadius: BorderRadius.circular(999),
+                  ),
+                  child: Text(
+                    amountText,
+                    maxLines: 1,
+                    textAlign: TextAlign.center,
+                    overflow: TextOverflow.ellipsis,
+                    softWrap: false,
+                    style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                      color: isSelected ? AppColors.primary : muted,
+                      fontSize: amountFontSize,
+                      fontWeight: FontWeight.w700,
+                      height: 1.05,
+                    ),
                   ),
                 ),
-              ),
-            ),
-        ],
+              ],
+            ],
+          ),
+        ),
       ),
     );
   }

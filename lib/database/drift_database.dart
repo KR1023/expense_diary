@@ -79,38 +79,48 @@ class LocalDatabase extends _$LocalDatabase {
     final query =
         selectOnly(expenses)
           ..addColumns([totalExpense])
-          ..where(expenses.expenseDate.isBetweenValues(start, end));
+          ..where(
+            expenses.expenseDate.isBiggerOrEqualValue(start) &
+                expenses.expenseDate.isSmallerThanValue(end),
+          );
     return query.watchSingle().map((row) => row.read(totalExpense) ?? 0);
   }
 
   Stream<Map<DateTime, int>> watchDailyExpenseTotals(DateTime selectedDate) {
     final start = DateTime(selectedDate.year, selectedDate.month, 1);
     final end = DateTime(selectedDate.year, selectedDate.month + 1, 1);
-    final totalExpense = expenses.expense.sum();
-    final query =
-        selectOnly(expenses)
-          ..addColumns([expenses.expenseDate, totalExpense])
-          ..where(expenses.expenseDate.isBetweenValues(start, end))
-          ..groupBy([expenses.expenseDate]);
+    final query = select(expenses)..where(
+      (t) =>
+          t.expenseDate.isBiggerOrEqualValue(start) &
+          t.expenseDate.isSmallerThanValue(end),
+    );
 
     return query.watch().map((rows) {
       final result = <DateTime, int>{};
-      for (final row in rows) {
-        final date = row.read<DateTime>(expenses.expenseDate);
-        if (date == null) continue;
+      for (final expense in rows) {
+        final date = expense.expenseDate;
         final dayKey = DateTime(date.year, date.month, date.day);
-        result[dayKey] = row.read(totalExpense) ?? 0;
+        result[dayKey] = (result[dayKey] ?? 0) + expense.expense;
       }
       return result;
     });
   }
 
   Stream<int> selectWeekExpense(DateTime startDate, DateTime endDate) {
+    final start = DateTime(startDate.year, startDate.month, startDate.day);
+    final end = DateTime(
+      endDate.year,
+      endDate.month,
+      endDate.day,
+    ).add(const Duration(days: 1));
     final totalExpense = expenses.expense.sum();
     final query =
         selectOnly(expenses)
           ..addColumns([totalExpense])
-          ..where(expenses.expenseDate.isBetweenValues(startDate, endDate));
+          ..where(
+            expenses.expenseDate.isBiggerOrEqualValue(start) &
+                expenses.expenseDate.isSmallerThanValue(end),
+          );
     return query.watchSingle().map((row) => row.read(totalExpense) ?? 0);
   }
 
@@ -121,7 +131,10 @@ class LocalDatabase extends _$LocalDatabase {
     final query =
         selectOnly(expenses)
           ..addColumns([count])
-          ..where(expenses.expenseDate.isBetweenValues(start, end));
+          ..where(
+            expenses.expenseDate.isBiggerOrEqualValue(start) &
+                expenses.expenseDate.isSmallerThanValue(end),
+          );
     return query.watchSingle().map((row) => row.read(count) ?? 0);
   }
 
@@ -143,7 +156,10 @@ class LocalDatabase extends _$LocalDatabase {
             expenses.expense.sum(),
             expenses.paymentMethodId,
           ])
-          ..where(expenses.expenseDate.isBetweenValues(start, end))
+          ..where(
+            expenses.expenseDate.isBiggerOrEqualValue(start) &
+                expenses.expenseDate.isSmallerThanValue(end),
+          )
           ..groupBy([expenses.paymentMethodId]);
 
     return query.watch().map((rows) {
@@ -169,7 +185,8 @@ class LocalDatabase extends _$LocalDatabase {
             leftOuterJoin(category, category.id.equalsExp(expenses.categoryId)),
           ])
           ..where(
-            expenses.expenseDate.isBetweenValues(start, end) &
+            expenses.expenseDate.isBiggerOrEqualValue(start) &
+                expenses.expenseDate.isSmallerThanValue(end) &
                 (paymentMethodId != null
                     ? expenses.paymentMethodId.equals(paymentMethodId)
                     : expenses.paymentMethodId.isNull()),
@@ -198,7 +215,10 @@ class LocalDatabase extends _$LocalDatabase {
             leftOuterJoin(category, category.id.equalsExp(expenses.categoryId)),
           ])
           ..addColumns([category.categoryName, expenses.expense.sum()])
-          ..where(expenses.expenseDate.isBetweenValues(start, end))
+          ..where(
+            expenses.expenseDate.isBiggerOrEqualValue(start) &
+                expenses.expenseDate.isSmallerThanValue(end),
+          )
           ..groupBy([expenses.categoryId]);
 
     return query.watch().map((rows) {
