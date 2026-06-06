@@ -236,4 +236,13 @@ class AppColors {
     final (light, dark) = solidHeroGradients[backgroundIndex - 1];
     return isDarkMode ? dark : light;
   }
+
+  /// Returns the theme accent color for the given background index.
+  /// Used for nav bar indicator, selected icon, etc.
+  static Color accentColorForBackground(int backgroundIndex, BuildContext context) {
+    if (backgroundIndex == 0) return primary;
+    final isDarkMode = isDark(context);
+    final (light, dark) = solidHeroGradients[backgroundIndex - 1];
+    return isDarkMode ? dark.colors.first : light.colors.first;
+  }
 }
