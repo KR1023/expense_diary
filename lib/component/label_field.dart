@@ -1,4 +1,5 @@
 import 'package:expense_diary/component/common/thousands_formatter.dart';
+import 'package:expense_diary/const/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:get_it/get_it.dart';
@@ -126,11 +127,9 @@ class _LabelFieldState extends State<LabelField> {
   }
 
   Future<void> _expenseDate(BuildContext context) async {
-    final DateTime? pickedDate = await showDatePicker(
+    final DateTime? pickedDate = await AppTheme.showDatePickerDialog(
       context: context,
-      firstDate: DateTime(2000),
-      lastDate: DateTime(2100),
-      locale: context.locale,
+      initialDate: DateTime.tryParse(_textController.text) ?? DateTime.now(),
     );
 
     if (pickedDate != null) {

@@ -1,4 +1,5 @@
 import 'package:expense_diary/component/banner_ad_widget.dart';
+import 'package:expense_diary/const/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:expense_diary/component/expense_card.dart';
 import 'package:expense_diary/screen/add_screen.dart';
@@ -68,12 +69,9 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _pickDate() async {
-    final pickedDate = await showDatePicker(
+    final pickedDate = await AppTheme.showDatePickerDialog(
       context: context,
       initialDate: _selectedDate,
-      firstDate: DateTime(2000),
-      lastDate: DateTime(2100),
-      locale: context.locale,
     );
 
     if (pickedDate == null || !mounted) return;

@@ -1,4 +1,5 @@
 import 'package:drift/drift.dart' hide Column;
+import 'package:expense_diary/const/app_theme.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:expense_diary/component/category_select.dart';
 import 'package:expense_diary/component/common/thousands_formatter.dart';
@@ -451,11 +452,9 @@ class _DateField extends StatelessWidget {
     return InkWell(
       borderRadius: BorderRadius.circular(16),
       onTap: () async {
-        final picked = await showDatePicker(
+        final picked = await AppTheme.showDatePickerDialog(
           context: context,
           initialDate: value ?? DateTime.now(),
-          firstDate: DateTime(2000),
-          lastDate: DateTime(2100),
         );
         if (picked != null) onPicked(picked);
       },

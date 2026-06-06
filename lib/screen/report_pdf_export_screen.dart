@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:expense_diary/const/app_theme.dart';
 
 import 'package:easy_localization/easy_localization.dart';
 import 'package:expense_diary/component/common/app_background.dart';
@@ -331,10 +332,8 @@ class _MonthPicker extends StatelessWidget {
           child: InkWell(
             borderRadius: BorderRadius.circular(12),
             onTap: () async {
-              final picked = await showDatePicker(
+              final picked = await AppTheme.showDatePickerDialog(
                 context: context,
-                firstDate: DateTime(2000),
-                lastDate: DateTime(2100),
                 initialDate: month,
               );
               if (picked == null) return;
@@ -400,10 +399,8 @@ class _DatePickerTile extends StatelessWidget {
     return InkWell(
       borderRadius: BorderRadius.circular(12),
       onTap: () async {
-        final picked = await showDatePicker(
+        final picked = await AppTheme.showDatePickerDialog(
           context: context,
-          firstDate: DateTime(2000),
-          lastDate: DateTime(2100),
           initialDate: date,
         );
         if (picked == null) return;

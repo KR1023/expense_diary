@@ -1,4 +1,5 @@
 import 'package:easy_localization/easy_localization.dart';
+import 'package:expense_diary/const/app_theme.dart';
 import 'package:expense_diary/component/common/app_background.dart';
 import 'package:expense_diary/const/app_colors.dart';
 import 'package:expense_diary/const/currency_utils.dart';
@@ -42,10 +43,8 @@ class _CloudTransactionScreenState extends State<CloudTransactionScreen> {
   }
 
   Future<void> _pickDate() async {
-    final picked = await showDatePicker(
+    final picked = await AppTheme.showDatePickerDialog(
       context: context,
-      firstDate: DateTime(2000),
-      lastDate: DateTime(2100),
       initialDate: _selectedSpentAt,
     );
     if (picked == null || !mounted) return;
