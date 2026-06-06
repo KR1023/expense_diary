@@ -207,33 +207,17 @@ class _ExpenseCalendarState extends State<ExpenseCalendar> {
               dateWidget,
               if (showAmount && amountText != null) ...[
                 SizedBox(height: compactMode ? 0 : 1),
-                Container(
-                  constraints: const BoxConstraints(maxWidth: 52),
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 5,
-                    vertical: 1.5,
-                  ),
-                  decoration: BoxDecoration(
-                    color:
-                        isSelected
-                            ? Colors.white.withValues(alpha: 0.92)
-                            : AppColors.surfaceAltOf(
-                              context,
-                            ).withValues(alpha: 0.72),
-                    borderRadius: BorderRadius.circular(999),
-                  ),
-                  child: Text(
-                    amountText,
-                    maxLines: 1,
-                    textAlign: TextAlign.center,
-                    overflow: TextOverflow.ellipsis,
-                    softWrap: false,
-                    style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                      color: isSelected ? AppColors.primary : muted,
-                      fontSize: amountFontSize,
-                      fontWeight: FontWeight.w700,
-                      height: 1.05,
-                    ),
+                Text(
+                  amountText,
+                  maxLines: 1,
+                  textAlign: TextAlign.center,
+                  overflow: TextOverflow.ellipsis,
+                  softWrap: false,
+                  style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                    color: isSelected ? AppColors.primary : muted,
+                    fontSize: amountFontSize,
+                    fontWeight: FontWeight.w700,
+                    height: 1.05,
                   ),
                 ),
               ],

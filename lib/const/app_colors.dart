@@ -181,7 +181,59 @@ class AppColors {
     return isDark(context) ? darkBackgroundGradient : backgroundGradient;
   }
 
+  // Hero gradients paired with each solid background (light, dark).
+  // index 0 in this list = backgroundIndex 1
+  static const List<(LinearGradient, LinearGradient)> solidHeroGradients = [
+    // neutral — same as default blue/teal
+    (
+      LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight, colors: [Color(0xFF2563EB), Color(0xFF22C1C3)]),
+      LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight, colors: [Color(0xFF1D4ED8), Color(0xFF0F766E)]),
+    ),
+    // blue — same as default
+    (
+      LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight, colors: [Color(0xFF2563EB), Color(0xFF22C1C3)]),
+      LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight, colors: [Color(0xFF1D4ED8), Color(0xFF0F766E)]),
+    ),
+    // green
+    (
+      LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight, colors: [Color(0xFF16A34A), Color(0xFF059669)]),
+      LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight, colors: [Color(0xFF15803D), Color(0xFF047857)]),
+    ),
+    // yellow
+    (
+      LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight, colors: [Color(0xFFD97706), Color(0xFFB45309)]),
+      LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight, colors: [Color(0xFF92400E), Color(0xFF78350F)]),
+    ),
+    // pink
+    (
+      LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight, colors: [Color(0xFFDB2777), Color(0xFFBE185D)]),
+      LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight, colors: [Color(0xFF9D174D), Color(0xFF881337)]),
+    ),
+    // purple
+    (
+      LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight, colors: [Color(0xFF7C3AED), Color(0xFF6D28D9)]),
+      LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight, colors: [Color(0xFF5B21B6), Color(0xFF4C1D95)]),
+    ),
+    // teal
+    (
+      LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight, colors: [Color(0xFF0891B2), Color(0xFF0D9488)]),
+      LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight, colors: [Color(0xFF0E7490), Color(0xFF134E4A)]),
+    ),
+    // orange
+    (
+      LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight, colors: [Color(0xFFEA580C), Color(0xFFD97706)]),
+      LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight, colors: [Color(0xFF9A3412), Color(0xFF7C2D12)]),
+    ),
+  ];
+
   static LinearGradient heroGradientOf(BuildContext context) {
     return isDark(context) ? darkHeroGradient : heroGradient;
+  }
+
+  static LinearGradient heroGradientForBackground(int backgroundIndex, BuildContext context) {
+    if (backgroundIndex == 0) return heroGradientOf(context);
+    final isDarkMode = isDark(context);
+    final (light, dark) = solidHeroGradients[backgroundIndex - 1];
+    return isDarkMode ? dark : light;
   }
 }

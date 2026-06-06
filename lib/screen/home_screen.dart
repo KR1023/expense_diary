@@ -200,78 +200,86 @@ class _HomeScreenState extends State<HomeScreen> {
           builder: (context, totalSnapshot) {
             final currencyCode = GetIt.I<AppSettings>().currencyCode;
             final total = totalSnapshot.data ?? 0;
-            return Container(
-              width: double.infinity,
-              padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
-              decoration: BoxDecoration(
-                gradient: AppColors.heroGradientOf(context),
-                borderRadius: BorderRadius.circular(20),
-                boxShadow: [
-                  BoxShadow(
-                    color: AppColors.primary.withValues(alpha: 0.25),
-                    blurRadius: 18,
-                    offset: const Offset(0, 12),
+            return AnimatedBuilder(
+              animation: GetIt.I<AppSettings>(),
+              builder: (context, _) {
+                final bgIndex = GetIt.I<AppSettings>().backgroundIndex;
+                final heroGradient = AppColors.heroGradientForBackground(bgIndex, context);
+                final shadowColor = heroGradient.colors.first.withValues(alpha: 0.28);
+                return Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
+                  decoration: BoxDecoration(
+                    gradient: heroGradient,
+                    borderRadius: BorderRadius.circular(20),
+                    boxShadow: [
+                      BoxShadow(
+                        color: shadowColor,
+                        blurRadius: 18,
+                        offset: const Offset(0, 12),
+                      ),
+                    ],
                   ),
-                ],
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          _totalLabelText,
-                          style: Theme.of(context).textTheme.labelLarge
-                              ?.copyWith(color: Colors.white70),
-                        ),
-                        const SizedBox(height: 6),
-                        Text(
-                          CurrencyUtils.formatAmount(total, currencyCode),
-                          style: Theme.of(context).textTheme.displaySmall
-                              ?.copyWith(color: Colors.white),
-                        ),
-                      ],
-                    ),
-                  ),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 8,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.18),
-                      borderRadius: BorderRadius.circular(999),
-                    ),
-                    child: Row(
-                      children: [
-                        const Icon(
-                          Icons.receipt_long,
-                          color: Colors.white,
-                          size: 18,
-                        ),
-                        const SizedBox(width: 6),
-                        StreamBuilder<List<Map<String, dynamic>>>(
-                          stream: GetIt.I<LocalDatabase>().watchExpense(
-                            _selectedDate,
-                          ),
-                          builder: (context, countSnapshot) {
-                            final count = countSnapshot.data?.length ?? 0;
-                            return Text(
-                              'home.count_label'.tr(
-                                namedArgs: {'count': '$count'},
-                              ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              _totalLabelText,
                               style: Theme.of(context).textTheme.labelLarge
+                                  ?.copyWith(color: Colors.white70),
+                            ),
+                            const SizedBox(height: 6),
+                            Text(
+                              CurrencyUtils.formatAmount(total, currencyCode),
+                              style: Theme.of(context).textTheme.displaySmall
                                   ?.copyWith(color: Colors.white),
-                            );
-                          },
+                            ),
+                          ],
                         ),
-                      ],
-                    ),
+                      ),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 8,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.18),
+                          borderRadius: BorderRadius.circular(999),
+                        ),
+                        child: Row(
+                          children: [
+                            const Icon(
+                              Icons.receipt_long,
+                              color: Colors.white,
+                              size: 18,
+                            ),
+                            const SizedBox(width: 6),
+                            StreamBuilder<List<Map<String, dynamic>>>(
+                              stream: GetIt.I<LocalDatabase>().watchExpense(
+                                _selectedDate,
+                              ),
+                              builder: (context, countSnapshot) {
+                                final count = countSnapshot.data?.length ?? 0;
+                                return Text(
+                                  'home.count_label'.tr(
+                                    namedArgs: {'count': '$count'},
+                                  ),
+                                  style: Theme.of(context).textTheme.labelLarge
+                                      ?.copyWith(color: Colors.white),
+                                );
+                              },
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
                   ),
-                ],
-              ),
+                );
+              },
             );
           },
         ),

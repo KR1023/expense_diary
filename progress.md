@@ -747,6 +747,34 @@ userEntitlements/{uid}
 
 ---
 
+### 25. 배경 테마 연동 확장 — 홈 히어로 카드 & 달력 금액 배지
+
+**변경 내용**
+
+- **홈 지출 합계 카드(히어로 카드) 테마 연동**
+  - `AppColors.solidHeroGradients`: 배경 테마 8종별 히어로 그라디언트 쌍(라이트/다크) 추가
+    - 중립/파랑: 기존 파랑→민트 유지
+    - 초록: 그린→에메랄드 / 노랑: 앰버→갈색 / 핑크: 핑크→로즈
+    - 보라: 바이올렛→퍼플 / 청록: 사이언→틸 / 오렌지: 오렌지→앰버
+  - `AppColors.heroGradientForBackground(int backgroundIndex, BuildContext context)` 추가
+  - 히어로 카드 `Container`를 `AnimatedBuilder(animation: AppSettings)` 로 래핑
+    - `AppSettings.backgroundIndex` 변경 즉시 그라디언트 업데이트
+    - 그림자(boxShadow) 색상도 그라디언트 첫 색에서 파생 (`alpha: 0.28`)
+
+- **달력 일자별 금액 배지 배경 제거**
+  - `CalendarScreen` 달력 셀 금액 표시에서 배경 `Container`를 제거
+  - 선택 일자 포함 모든 금액 텍스트를 배경 없이 렌더링 → 달력 카드 배경색에 자연스럽게 어우러짐
+
+**검증**
+- `flutter analyze lib/const/app_colors.dart lib/screen/home_screen.dart lib/component/calendar/expense_calendar.dart` 통과
+
+**관련 파일**
+- `lib/const/app_colors.dart`
+- `lib/screen/home_screen.dart`
+- `lib/component/calendar/expense_calendar.dart`
+
+---
+
 ## 문서
 
 | 파일 | 내용 |
