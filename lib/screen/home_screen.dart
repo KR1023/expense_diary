@@ -1,4 +1,5 @@
 import 'package:expense_diary/component/banner_ad_widget.dart';
+import 'package:expense_diary/component/common/gradient_fab.dart';
 import 'package:expense_diary/const/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:expense_diary/component/expense_card.dart';
@@ -94,7 +95,7 @@ class _HomeScreenState extends State<HomeScreen> {
     return Scaffold(
       backgroundColor: Colors.transparent,
       floatingActionButton: floatingActionButton(context),
-      floatingActionButtonLocation: FloatingActionButtonLocation.miniEndFloat,
+      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
       body: AppBackground(
         padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
         child: GestureDetector(
@@ -124,19 +125,27 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  FloatingActionButton floatingActionButton(BuildContext context) {
-    return FloatingActionButton.extended(
-      heroTag: 'home_fab',
-      onPressed: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => AddScreen(initialDate: _selectedDate),
-          ),
+  Widget floatingActionButton(BuildContext context) {
+    return AnimatedBuilder(
+      animation: GetIt.I<AppSettings>(),
+      builder: (context, _) {
+        final bgIndex = GetIt.I<AppSettings>().backgroundIndex;
+        final gradient = AppColors.heroGradientForBackground(bgIndex, context);
+        return GradientFab(
+          heroTag: 'home_fab',
+          gradient: gradient,
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => AddScreen(initialDate: _selectedDate),
+              ),
+            );
+          },
+          icon: const Icon(Icons.add_rounded),
+          label: 'common.add'.tr(),
         );
       },
-      icon: const Icon(Icons.add),
-      label: Text('common.add'.tr()),
     );
   }
 

@@ -1,14 +1,15 @@
 import 'package:drift/drift.dart' hide Column;
 import 'package:easy_localization/easy_localization.dart';
+import 'package:expense_diary/component/common/gradient_fab.dart';
 import 'package:expense_diary/component/common/toast.dart';
 import 'package:expense_diary/component/common/app_background.dart';
 import 'package:expense_diary/const/app_colors.dart';
+import 'package:expense_diary/service/app_settings.dart';
 import 'package:expense_diary/core/recurring/recurring_expense_service.dart';
 import 'package:expense_diary/database/drift_database.dart';
 import 'package:expense_diary/screen/recurring_expense_form_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
-import 'package:intl/intl.dart';
 
 class RecurringExpenseScreen extends StatefulWidget {
   const RecurringExpenseScreen({super.key});
@@ -94,16 +95,25 @@ class _RecurringExpenseScreenState extends State<RecurringExpenseScreen> {
           ],
         ),
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        heroTag: 'recurring_expense_fab',
-        onPressed: () => Navigator.of(context).push(
-          MaterialPageRoute(
-            builder: (_) => const RecurringExpenseFormScreen(),
-          ),
-        ),
-        icon: const Icon(Icons.add),
-        label: Text('common.add'.tr()),
+      floatingActionButton: AnimatedBuilder(
+        animation: GetIt.I<AppSettings>(),
+        builder: (context, _) {
+          final bgIndex = GetIt.I<AppSettings>().backgroundIndex;
+          final gradient = AppColors.heroGradientForBackground(bgIndex, context);
+          return GradientFab(
+            heroTag: 'recurring_expense_fab',
+            gradient: gradient,
+            onPressed: () => Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (_) => const RecurringExpenseFormScreen(),
+              ),
+            ),
+            icon: const Icon(Icons.add_rounded),
+            label: 'common.add'.tr(),
+          );
+        },
       ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
     );
   }
 }

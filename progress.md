@@ -775,6 +775,129 @@ userEntitlements/{uid}
 
 ---
 
+### 26. 날짜 선택 팝업 커스텀 다이얼로그로 교체 & 하단 내비게이션 바 테마 연동 (`c36e03f`, `55c1126`)
+
+**변경 내용**
+
+- **하단 내비게이션 바 테마 연동** (`c36e03f`)
+  - `root_screen.dart`의 `NavigationBar`를 `AnimatedBuilder(AppSettings)`로 래핑
+  - 배경 인덱스에 따라 `cardColorOf`, `outlineColorOf`, `accentColorForBackground`를 적용
+  - 탭 상단 커스텀 `Divider` 추가 (배경 테마색 `outline`)
+  - 선택된 탭 indicator pill 배경 제거 (`indicatorColor: Colors.transparent`)
+  - `AppColors.accentColorForBackground(bgIndex, context)` 추가 — 테마별 대표색 반환
+
+- **날짜 선택 팝업 전면 교체** (`55c1126`)
+  - Flutter `DatePickerDialog`의 헤더 내 `Flexible` spacer(70px) 제거 불가 → `CalendarDatePicker`를 직접 사용하는 커스텀 `Dialog`로 대체
+  - `AppTheme.showDatePickerDialog()` 정적 메서드 추가, `_AppDatePickerContent` 위젯 구현
+  - 헤더 배경색이 선택된 배경 테마에 맞게 반응 (`AnimatedBuilder + accentColorForBackground`)
+  - `Dialog(clipBehavior: Clip.antiAlias)` 적용 → 헤더 색이 모서리 밖으로 튀어나오는 문제 수정
+  - 달력 셀 스타일(`datePickerTheme`)은 그대로 유지: 선택일 primary 원형, 오늘 테두리 등
+  - 모든 날짜 선택 호출 9곳을 `AppTheme.showDatePickerDialog`로 교체
+    - `home_screen.dart`, `label_field.dart`, `recurring_expense_form_screen.dart`
+    - `report_statistics_screen.dart`, `cloud_transaction_screen.dart`
+    - `report_csv_export_screen.dart`(2곳), `report_pdf_export_screen.dart`(2곳)
+
+**검증**
+- `flutter analyze`(앱 코드 범위) 통과
+
+**관련 파일**
+- `lib/const/app_theme.dart`
+- `lib/const/app_colors.dart`
+- `lib/screen/root_screen.dart`
+- `lib/screen/home_screen.dart`
+- `lib/component/label_field.dart`
+- `lib/screen/recurring_expense_form_screen.dart`
+- `lib/screen/report_statistics_screen.dart`
+- `lib/screen/cloud_transaction_screen.dart`
+- `lib/screen/report_csv_export_screen.dart`
+- `lib/screen/report_pdf_export_screen.dart`
+
+---
+
+### 27. FAB 그라디언트 알약 스타일로 개선 & 위치 통일
+
+**변경 내용**
+
+- `GradientFab` 컴포넌트 신규 추가 (`lib/component/common/gradient_fab.dart`)
+  - `FloatingActionButton.extended` 대신 `Hero` + `Container(gradient)` + `ClipRRect` + `Material(InkWell)` 구조로 그라디언트 배경 구현
+  - 알약(pill) 형태: `borderRadius: 28` (Extended FAB 표준 높이 56dp의 절반)
+  - 그라디언트 첫 번째 색 기반 컬러 그림자(`blurRadius: 16, offset: Offset(0, 6)`)
+  - 흰색 ripple(`splashColor: Colors.white24`) 적용
+
+- **지출 탭** (`home_screen.dart`)
+  - `FloatingActionButton.extended` → `GradientFab`으로 교체
+  - 그라디언트: 히어로 카드와 동일한 `heroGradientForBackground(bgIndex, context)` 사용 → 테마 색에 따라 반응
+  - FAB 위치 `miniEndFloat` → `endFloat`으로 변경 (고정 지출 탭과 통일)
+
+- **고정 지출 탭** (`recurring_expense_screen.dart`)
+  - `FloatingActionButton.extended` → `GradientFab`으로 교체
+  - `floatingActionButtonLocation: FloatingActionButtonLocation.endFloat` 명시 추가
+
+**검증**
+- `flutter analyze`(3개 파일) 통과
+
+**관련 파일**
+- `lib/component/common/gradient_fab.dart` (신규)
+- `lib/screen/home_screen.dart`
+- `lib/screen/recurring_expense_screen.dart`
+
+---
+
+### 28. 분류 추가/수정 다이얼로그 테마 연동 & 스타일 개선
+
+**변경 내용**
+
+- `AlertDialog` → 커스텀 `Dialog`로 교체
+  - `AnimatedBuilder(AppSettings)`로 `Dialog` 전체 래핑 — 배경색·헤더·구분선·버튼이 테마 변경 시 함께 반응
+  - `Dialog(backgroundColor: AppColors.cardColorOf(bgIndex))` — 배경 테마 카드색으로 변경
+  - 상단 그라디언트 헤더 (`heroGradientForBackground`) + `clipBehavior: Clip.antiAlias`
+  - 아이콘(추가: `label_outline` / 수정: `edit_outlined`) + 흰색 반투명 아이콘 배경
+  - 구분선·취소 버튼 테두리: `outlineColorOf(bgIndex)` 적용
+  - 확인 버튼: `accentColorForBackground(bgIndex)` 색상 적용
+
+- `_showInputDialog` + `_showUpdateDialog` → `_showCategoryDialog(context, {existing})` 통합
+  - 코드 중복 제거, `isEditing` 플래그로 생성/수정 분기
+  - 클래스 필드 `_errorText` 제거 — 다이얼로그 로컬 상태(`nameErrorText`)로 이동
+
+- `_DialogOptionCard` 테마 색상 반응
+  - `AnimatedBuilder(AppSettings)` 내에서 `accentColorForBackground(bgIndex)` 사용
+  - 미체크 배경: `outlineColorOf(bgIndex).withValues(alpha: 0.18)` — 다이얼로그 배경과 자연스럽게 구분
+  - 미체크 아이콘 배경: `outlineColorOf(bgIndex).withValues(alpha: 0.28)` 적용
+  - 체크 시 테두리·아이콘·텍스트·배경 틴트가 배경 테마 accent 색으로 변경
+  - `Checkbox(activeColor: accentColor)` 추가 — 체크박스 색상도 테마에 맞게 변경
+
+**검증**
+- `flutter analyze`(category_screen.dart) 통과
+
+**관련 파일**
+- `lib/screen/category_screen.dart`
+
+---
+
+### 29. 결제 수단 추가/수정 바텀 시트 테마 연동
+
+**변경 내용**
+
+- `showModalBottomSheet(backgroundColor: Colors.transparent)` + `_PaymentMethodForm` 내부에서 배경 직접 관리
+- `AnimatedBuilder(AppSettings)` 로 전체 바텀 시트 래핑 — 배경색·헤더·칩·버튼이 테마 변경 시 즉시 반응
+- 그라디언트 헤더 추가 (`heroGradientForBackground`) + 드래그 핸들(흰색 반투명 바)
+- 제목 아이콘: 추가 `add_rounded` / 수정 `edit_outlined` (흰색)
+- 본문 배경: `cardColorOf(bgIndex)` 적용
+- `FilterChip` 스타일링
+  - 미선택: `outlineColorOf(bgIndex).withValues(alpha: 0.15)` 배경 + `outlineColorOf` 테두리
+  - 선택: `accentColorForBackground(bgIndex)` 테두리·텍스트·체크마크 + 연한 accent 배경
+- 저장 버튼: `accentColorForBackground(bgIndex)` 색상
+- 추가 버튼(관리 화면 하단): `accentColorForBackground(bgIndex)` 색상으로 업데이트
+- `_TypeIcon`: `AnimatedBuilder` 추가 — 아이콘·배경 틴트가 accent 색으로 반응
+
+**검증**
+- `flutter analyze`(payment_method_screen.dart) 통과
+
+**관련 파일**
+- `lib/screen/payment_method_screen.dart`
+
+---
+
 ## 문서
 
 | 파일 | 내용 |

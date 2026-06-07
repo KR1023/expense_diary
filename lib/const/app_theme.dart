@@ -152,7 +152,6 @@ class AppTheme {
         elevation: 0,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(22),
-          side: BorderSide(color: outline),
         ),
         titleTextStyle: textTheme.titleMedium,
         contentTextStyle: textTheme.bodyMedium?.copyWith(color: ink),

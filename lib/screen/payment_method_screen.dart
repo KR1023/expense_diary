@@ -4,6 +4,7 @@ import 'package:expense_diary/const/app_colors.dart';
 import 'package:expense_diary/core/subscription/subscription_service.dart';
 import 'package:expense_diary/database/drift_database.dart';
 import 'package:expense_diary/screen/subscription_screen.dart';
+import 'package:expense_diary/service/app_settings.dart';
 import 'package:flutter/material.dart';
 import 'package:drift/drift.dart' hide Column;
 import 'package:get_it/get_it.dart';
@@ -81,13 +82,24 @@ class PaymentMethodScreen extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 12),
-            SizedBox(
-              width: double.infinity,
-              child: FilledButton.icon(
-                onPressed: () => _showForm(context, null),
-                icon: const Icon(Icons.add),
-                label: Text('payment_method.add_title'.tr()),
-              ),
+            AnimatedBuilder(
+              animation: GetIt.I<AppSettings>(),
+              builder: (context, _) {
+                final bgIndex = GetIt.I<AppSettings>().backgroundIndex;
+                final accentColor =
+                    AppColors.accentColorForBackground(bgIndex, context);
+                return SizedBox(
+                  width: double.infinity,
+                  child: FilledButton.icon(
+                    style: FilledButton.styleFrom(
+                      backgroundColor: accentColor,
+                    ),
+                    onPressed: () => _showForm(context, null),
+                    icon: const Icon(Icons.add),
+                    label: Text('payment_method.add_title'.tr()),
+                  ),
+                );
+              },
             ),
           ],
         ),
@@ -100,6 +112,7 @@ class PaymentMethodScreen extends StatelessWidget {
       context: context,
       isScrollControlled: true,
       useSafeArea: true,
+      backgroundColor: Colors.transparent,
       builder: (_) => _PaymentMethodForm(existing: existing),
     );
   }
@@ -154,6 +167,7 @@ class _PaymentMethodTile extends StatelessWidget {
       context: context,
       isScrollControlled: true,
       useSafeArea: true,
+      backgroundColor: Colors.transparent,
       builder: (_) => _PaymentMethodForm(existing: existing),
     );
   }
@@ -200,14 +214,21 @@ class _TypeIcon extends StatelessWidget {
       'mobilePay' => Icons.phone_android_rounded,
       _ => Icons.payment_rounded,
     };
-    return Container(
-      width: 36,
-      height: 36,
-      decoration: BoxDecoration(
-        color: AppColors.primary.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(10),
-      ),
-      child: Icon(icon, size: 20, color: AppColors.primary),
+    return AnimatedBuilder(
+      animation: GetIt.I<AppSettings>(),
+      builder: (context, _) {
+        final bgIndex = GetIt.I<AppSettings>().backgroundIndex;
+        final accentColor = AppColors.accentColorForBackground(bgIndex, context);
+        return Container(
+          width: 36,
+          height: 36,
+          decoration: BoxDecoration(
+            color: accentColor.withValues(alpha: 0.1),
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Icon(icon, size: 20, color: accentColor),
+        );
+      },
     );
   }
 }
@@ -246,75 +267,157 @@ class _PaymentMethodFormState extends State<_PaymentMethodForm> {
   @override
   Widget build(BuildContext context) {
     final isEdit = widget.existing != null;
-    return Padding(
-      padding: EdgeInsets.fromLTRB(
-        20,
-        20,
-        20,
-        MediaQuery.of(context).viewInsets.bottom + 24,
-      ),
-      child: Form(
-        key: _formKey,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              isEdit
-                  ? 'payment_method.edit_title'.tr()
-                  : 'payment_method.add_title'.tr(),
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
-            const SizedBox(height: 16),
-            Text(
-              'payment_method.type_label'.tr(),
-              style: Theme.of(context).textTheme.labelSmall,
-            ),
-            const SizedBox(height: 8),
-            Wrap(
-              spacing: 8,
-              children:
-                  _types.map((t) {
-                    final selected = _type == t;
-                    return FilterChip(
-                      label: Text('payment_method.type.$t'.tr()),
-                      selected: selected,
-                      onSelected: (_) => setState(() => _type = t),
-                    );
-                  }).toList(),
-            ),
-            const SizedBox(height: 16),
-            TextFormField(
-              controller: _nameCtrl,
-              decoration: InputDecoration(
-                labelText: 'payment_method.name_label'.tr(),
-                hintText: 'payment_method.name_hint'.tr(),
+
+    return AnimatedBuilder(
+      animation: GetIt.I<AppSettings>(),
+      builder: (context, _) {
+        final bgIndex = GetIt.I<AppSettings>().backgroundIndex;
+        final bgColor = AppColors.cardColorOf(bgIndex, context);
+        final gradient = AppColors.heroGradientForBackground(bgIndex, context);
+        final accentColor = AppColors.accentColorForBackground(bgIndex, context);
+        final outlineColor = AppColors.outlineColorOf(bgIndex, context);
+        final bottomPadding = MediaQuery.of(context).viewInsets.bottom;
+
+        return Container(
+          decoration: BoxDecoration(
+            color: bgColor,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Gradient header
+              Container(
+                decoration: BoxDecoration(
+                  gradient: gradient,
+                  borderRadius:
+                      const BorderRadius.vertical(top: Radius.circular(24)),
+                ),
+                child: Column(
+                  children: [
+                    Center(
+                      child: Container(
+                        margin: const EdgeInsets.only(top: 12, bottom: 8),
+                        width: 36,
+                        height: 4,
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.4),
+                          borderRadius: BorderRadius.circular(2),
+                        ),
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(20, 0, 20, 16),
+                      child: Row(
+                        children: [
+                          Icon(
+                            isEdit ? Icons.edit_outlined : Icons.add_rounded,
+                            color: Colors.white,
+                            size: 20,
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            isEdit
+                                ? 'payment_method.edit_title'.tr()
+                                : 'payment_method.add_title'.tr(),
+                            style: Theme.of(context)
+                                .textTheme
+                                .titleMedium
+                                ?.copyWith(color: Colors.white),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
               ),
-              validator:
-                  (v) =>
-                      (v == null || v.isEmpty)
-                          ? 'payment_method.name_required'.tr()
-                          : null,
-            ),
-            const SizedBox(height: 12),
-            TextFormField(
-              controller: _memoCtrl,
-              decoration: InputDecoration(
-                labelText: 'payment_method.memo_label'.tr(),
-                hintText: 'payment_method.memo_hint'.tr(),
+              // Form content
+              Padding(
+                padding: EdgeInsets.fromLTRB(20, 16, 20, bottomPadding + 24),
+                child: Form(
+                  key: _formKey,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'payment_method.type_label'.tr(),
+                        style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                          color: AppColors.mutedOf(context),
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 4,
+                        children: _types.map((t) {
+                          final selected = _type == t;
+                          return FilterChip(
+                            label: Text('payment_method.type.$t'.tr()),
+                            selected: selected,
+                            onSelected: (_) => setState(() => _type = t),
+                            backgroundColor:
+                                outlineColor.withValues(alpha: 0.15),
+                            selectedColor:
+                                accentColor.withValues(alpha: 0.12),
+                            checkmarkColor: accentColor,
+                            side: BorderSide(
+                              color: selected ? accentColor : outlineColor,
+                              width: selected ? 1.4 : 1.0,
+                            ),
+                            labelStyle: Theme.of(
+                              context,
+                            ).textTheme.labelLarge?.copyWith(
+                              color: selected
+                                  ? accentColor
+                                  : AppColors.inkOf(context),
+                              fontWeight: selected
+                                  ? FontWeight.w700
+                                  : FontWeight.w500,
+                            ),
+                          );
+                        }).toList(),
+                      ),
+                      const SizedBox(height: 16),
+                      TextFormField(
+                        controller: _nameCtrl,
+                        decoration: InputDecoration(
+                          labelText: 'payment_method.name_label'.tr(),
+                          hintText: 'payment_method.name_hint'.tr(),
+                        ),
+                        validator: (v) =>
+                            (v == null || v.isEmpty)
+                                ? 'payment_method.name_required'.tr()
+                                : null,
+                      ),
+                      const SizedBox(height: 12),
+                      TextFormField(
+                        controller: _memoCtrl,
+                        decoration: InputDecoration(
+                          labelText: 'payment_method.memo_label'.tr(),
+                          hintText: 'payment_method.memo_hint'.tr(),
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+                      SizedBox(
+                        width: double.infinity,
+                        child: FilledButton(
+                          style: FilledButton.styleFrom(
+                            backgroundColor: accentColor,
+                          ),
+                          onPressed: _save,
+                          child: Text('common.save'.tr()),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               ),
-            ),
-            const SizedBox(height: 20),
-            SizedBox(
-              width: double.infinity,
-              child: FilledButton(
-                onPressed: _save,
-                child: Text('common.save'.tr()),
-              ),
-            ),
-          ],
-        ),
-      ),
+            ],
+          ),
+        );
+      },
     );
   }
 
@@ -337,7 +440,6 @@ class _PaymentMethodFormState extends State<_PaymentMethodForm> {
         return;
       }
 
-      // 무료 플랜 한도 체크
       final isSubscribed = GetIt.I<SubscriptionService>().isCloudEntitled;
       if (!isSubscribed && methods.length >= 5) {
         if (mounted) _showLimitDialog();
@@ -402,66 +504,63 @@ class _PaymentMethodFormState extends State<_PaymentMethodForm> {
   Future<bool?> _confirmRestore() {
     return showDialog<bool>(
       context: context,
-      builder:
-          (ctx) => AlertDialog(
-            title: Text('payment_method.restore_title'.tr()),
-            content: Text('payment_method.restore_message'.tr()),
-            actions: [
-              OutlinedButton(
-                onPressed: () => Navigator.of(ctx).pop(false),
-                child: Text('common.cancel'.tr()),
-              ),
-              FilledButton(
-                onPressed: () => Navigator.of(ctx).pop(true),
-                child: Text('payment_method.restore_action'.tr()),
-              ),
-            ],
+      builder: (ctx) => AlertDialog(
+        title: Text('payment_method.restore_title'.tr()),
+        content: Text('payment_method.restore_message'.tr()),
+        actions: [
+          OutlinedButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: Text('common.cancel'.tr()),
           ),
+          FilledButton(
+            onPressed: () => Navigator.of(ctx).pop(true),
+            child: Text('payment_method.restore_action'.tr()),
+          ),
+        ],
+      ),
     );
   }
 
   void _showInfoDialog(String message) {
     showDialog<void>(
       context: context,
-      builder:
-          (ctx) => AlertDialog(
-            title: Text('payment_method.add_title'.tr()),
-            content: Text(message),
-            actions: [
-              FilledButton(
-                onPressed: () => Navigator.of(ctx).pop(),
-                child: Text('common.confirm'.tr()),
-              ),
-            ],
+      builder: (ctx) => AlertDialog(
+        title: Text('payment_method.add_title'.tr()),
+        content: Text(message),
+        actions: [
+          FilledButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: Text('common.confirm'.tr()),
           ),
+        ],
+      ),
     );
   }
 
   void _showLimitDialog() {
     showDialog<void>(
       context: context,
-      builder:
-          (ctx) => AlertDialog(
-            title: Text('subscription.limit_payment_title'.tr()),
-            content: Text('subscription.limit_payment_msg'.tr()),
-            actions: [
-              OutlinedButton(
-                onPressed: () => Navigator.of(ctx).pop(),
-                child: Text('common.cancel'.tr()),
-              ),
-              FilledButton(
-                onPressed: () {
-                  Navigator.of(ctx).pop();
-                  Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (_) => const SubscriptionScreen(),
-                    ),
-                  );
-                },
-                child: Text('subscription.upgrade_plan'.tr()),
-              ),
-            ],
+      builder: (ctx) => AlertDialog(
+        title: Text('subscription.limit_payment_title'.tr()),
+        content: Text('subscription.limit_payment_msg'.tr()),
+        actions: [
+          OutlinedButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: Text('common.cancel'.tr()),
           ),
+          FilledButton(
+            onPressed: () {
+              Navigator.of(ctx).pop();
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (_) => const SubscriptionScreen(),
+                ),
+              );
+            },
+            child: Text('subscription.upgrade_plan'.tr()),
+          ),
+        ],
+      ),
     );
   }
 }

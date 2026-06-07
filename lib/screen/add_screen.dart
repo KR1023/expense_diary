@@ -9,7 +9,6 @@ import 'package:expense_diary/database/drift_database.dart';
 import 'package:expense_diary/component/category_select.dart';
 import 'package:expense_diary/component/payment_method_select.dart';
 import 'package:expense_diary/component/common/app_background.dart';
-import 'package:expense_diary/const/app_colors.dart';
 import 'package:easy_localization/easy_localization.dart';
 
 class AddScreen extends StatefulWidget {
@@ -149,26 +148,6 @@ class _AddScreenState extends State<AddScreen> {
                               detail = val!;
                             },
                             validator: (String? val) => null,
-                          ),
-                          const SizedBox(height: 20),
-                          Container(
-                            width: double.infinity,
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 14,
-                              vertical: 12,
-                            ),
-                            decoration: BoxDecoration(
-                              color: AppColors.surfaceAltOf(context),
-                              borderRadius: BorderRadius.circular(12),
-                              border: Border.all(
-                                color: AppColors.outlineOf(context),
-                              ),
-                            ),
-                            child: Text(
-                              'expense.add_hint'.tr(),
-                              style: Theme.of(context).textTheme.bodySmall
-                                  ?.copyWith(color: AppColors.mutedOf(context)),
-                            ),
                           ),
                         ],
                       ),
