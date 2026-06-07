@@ -4,6 +4,7 @@ import 'package:expense_diary/core/subscription/subscription_service.dart';
 import 'package:expense_diary/const/app_colors.dart';
 import 'package:expense_diary/database/drift_database.dart';
 import 'package:expense_diary/screen/subscription_screen.dart';
+import 'package:expense_diary/service/app_settings.dart';
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -162,28 +163,128 @@ class _PaymentMethodSelectState extends State<PaymentMethodSelect> {
   void _showLimitDialog() {
     showDialog<void>(
       context: context,
-      builder:
-          (ctx) => AlertDialog(
-            title: Text('subscription.limit_payment_title'.tr()),
-            content: Text('subscription.limit_payment_msg'.tr()),
-            actions: [
-              OutlinedButton(
-                onPressed: () => Navigator.of(ctx).pop(),
-                child: Text('common.cancel'.tr()),
-              ),
-              FilledButton(
-                onPressed: () {
-                  Navigator.of(ctx).pop();
-                  Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (_) => const SubscriptionScreen(),
+      builder: (ctx) {
+        return AnimatedBuilder(
+          animation: GetIt.I<AppSettings>(),
+          builder: (context, _) {
+            final bgIndex = GetIt.I<AppSettings>().backgroundIndex;
+            final cardColor = AppColors.cardColorOf(bgIndex, context);
+            final gradient =
+                AppColors.heroGradientForBackground(bgIndex, context);
+            final accentColor =
+                AppColors.accentColorForBackground(bgIndex, context);
+            final outlineColor = AppColors.outlineColorOf(bgIndex, context);
+
+            return Dialog(
+              backgroundColor: cardColor,
+              clipBehavior: Clip.antiAlias,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  _DialogHeader(
+                    gradient: gradient,
+                    icon: Icons.workspace_premium_outlined,
+                    title: 'subscription.limit_payment_title'.tr(),
+                    onClose: () => Navigator.of(ctx).pop(),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
+                    child: Text(
+                      'subscription.limit_payment_msg'.tr(),
+                      style: Theme.of(context).textTheme.bodyMedium,
                     ),
-                  );
-                },
-                child: Text('subscription.upgrade_plan'.tr()),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: OutlinedButton(
+                            style: OutlinedButton.styleFrom(
+                              side: BorderSide(color: outlineColor),
+                            ),
+                            onPressed: () => Navigator.of(ctx).pop(),
+                            child: Text('common.cancel'.tr()),
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: FilledButton(
+                            style: FilledButton.styleFrom(
+                              backgroundColor: accentColor,
+                            ),
+                            onPressed: () {
+                              Navigator.of(ctx).pop();
+                              Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (_) => const SubscriptionScreen(),
+                                ),
+                              );
+                            },
+                            child: Text('subscription.upgrade_plan'.tr()),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
               ),
-            ],
-          ),
+            );
+          },
+        );
+      },
+    );
+  }
+}
+
+class _DialogHeader extends StatelessWidget {
+  final LinearGradient gradient;
+  final IconData icon;
+  final String title;
+  final VoidCallback onClose;
+
+  const _DialogHeader({
+    required this.gradient,
+    required this.icon,
+    required this.title,
+    required this.onClose,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(gradient: gradient),
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(16, 14, 8, 14),
+        child: Row(
+          children: [
+            Container(
+              width: 34,
+              height: 34,
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.2),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Icon(icon, size: 18, color: Colors.white),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                title,
+                style: Theme.of(context)
+                    .textTheme
+                    .titleMedium
+                    ?.copyWith(color: Colors.white),
+              ),
+            ),
+            IconButton(
+              onPressed: onClose,
+              icon: const Icon(Icons.close_rounded, color: Colors.white),
+              visualDensity: VisualDensity.compact,
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
@@ -198,7 +299,8 @@ class _QuickPaymentMethodDialog extends StatefulWidget {
       _QuickPaymentMethodDialogState();
 }
 
-class _QuickPaymentMethodDialogState extends State<_QuickPaymentMethodDialog> {
+class _QuickPaymentMethodDialogState
+    extends State<_QuickPaymentMethodDialog> {
   static const List<String> _types = [
     'cash',
     'card',
@@ -283,105 +385,267 @@ class _QuickPaymentMethodDialogState extends State<_QuickPaymentMethodDialog> {
   Future<bool?> _confirmRestore() {
     return showDialog<bool>(
       context: context,
-      builder:
-          (ctx) => AlertDialog(
-            title: Text('payment_method.restore_title'.tr()),
-            content: Text('payment_method.restore_message'.tr()),
-            actions: [
-              OutlinedButton(
-                onPressed: () => Navigator.of(ctx).pop(false),
-                child: Text('common.cancel'.tr()),
+      builder: (ctx) {
+        return AnimatedBuilder(
+          animation: GetIt.I<AppSettings>(),
+          builder: (context, _) {
+            final bgIndex = GetIt.I<AppSettings>().backgroundIndex;
+            final cardColor = AppColors.cardColorOf(bgIndex, context);
+            final gradient =
+                AppColors.heroGradientForBackground(bgIndex, context);
+            final accentColor =
+                AppColors.accentColorForBackground(bgIndex, context);
+            final outlineColor = AppColors.outlineColorOf(bgIndex, context);
+
+            return Dialog(
+              backgroundColor: cardColor,
+              clipBehavior: Clip.antiAlias,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  _DialogHeader(
+                    gradient: gradient,
+                    icon: Icons.restore_rounded,
+                    title: 'payment_method.restore_title'.tr(),
+                    onClose: () => Navigator.of(ctx).pop(false),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
+                    child: Text(
+                      'payment_method.restore_message'.tr(),
+                      style: Theme.of(context).textTheme.bodyMedium,
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: OutlinedButton(
+                            style: OutlinedButton.styleFrom(
+                              side: BorderSide(color: outlineColor),
+                            ),
+                            onPressed: () => Navigator.of(ctx).pop(false),
+                            child: Text('common.cancel'.tr()),
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: FilledButton(
+                            style: FilledButton.styleFrom(
+                              backgroundColor: accentColor,
+                            ),
+                            onPressed: () => Navigator.of(ctx).pop(true),
+                            child: Text(
+                              'payment_method.restore_action'.tr(),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
               ),
-              FilledButton(
-                onPressed: () => Navigator.of(ctx).pop(true),
-                child: Text('payment_method.restore_action'.tr()),
-              ),
-            ],
-          ),
+            );
+          },
+        );
+      },
     );
   }
 
   void _showInfoDialog(String message) {
     showDialog<void>(
       context: context,
-      builder:
-          (ctx) => AlertDialog(
-            title: Text('payment_method.add_title'.tr()),
-            content: Text(message),
-            actions: [
-              FilledButton(
-                onPressed: () => Navigator.of(ctx).pop(),
-                child: Text('common.confirm'.tr()),
+      builder: (ctx) {
+        return AnimatedBuilder(
+          animation: GetIt.I<AppSettings>(),
+          builder: (context, _) {
+            final bgIndex = GetIt.I<AppSettings>().backgroundIndex;
+            final cardColor = AppColors.cardColorOf(bgIndex, context);
+            final gradient =
+                AppColors.heroGradientForBackground(bgIndex, context);
+            final accentColor =
+                AppColors.accentColorForBackground(bgIndex, context);
+
+            return Dialog(
+              backgroundColor: cardColor,
+              clipBehavior: Clip.antiAlias,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  _DialogHeader(
+                    gradient: gradient,
+                    icon: Icons.info_outline_rounded,
+                    title: 'payment_method.add_title'.tr(),
+                    onClose: () => Navigator.of(ctx).pop(),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
+                    child: Text(
+                      message,
+                      style: Theme.of(context).textTheme.bodyMedium,
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
+                    child: SizedBox(
+                      width: double.infinity,
+                      child: FilledButton(
+                        style: FilledButton.styleFrom(
+                          backgroundColor: accentColor,
+                        ),
+                        onPressed: () => Navigator.of(ctx).pop(),
+                        child: Text('common.confirm'.tr()),
+                      ),
+                    ),
+                  ),
+                ],
               ),
-            ],
-          ),
+            );
+          },
+        );
+      },
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    return AlertDialog(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-      title: Text('payment_method.add_title'.tr()),
-      content: Form(
-        key: _formKey,
-        child: SingleChildScrollView(
+    return AnimatedBuilder(
+      animation: GetIt.I<AppSettings>(),
+      builder: (context, _) {
+        final bgIndex = GetIt.I<AppSettings>().backgroundIndex;
+        final cardColor = AppColors.cardColorOf(bgIndex, context);
+        final gradient = AppColors.heroGradientForBackground(bgIndex, context);
+        final accentColor = AppColors.accentColorForBackground(bgIndex, context);
+        final outlineColor = AppColors.outlineColorOf(bgIndex, context);
+
+        return Dialog(
+          backgroundColor: cardColor,
+          clipBehavior: Clip.antiAlias,
           child: Column(
             mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                'payment_method.type_label'.tr(),
-                style: Theme.of(context).textTheme.labelSmall,
+              // Gradient header
+              _DialogHeader(
+                gradient: gradient,
+                icon: Icons.credit_card_outlined,
+                title: 'payment_method.add_title'.tr(),
+                onClose: () => Navigator.of(context).pop(),
               ),
-              const SizedBox(height: 8),
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children:
-                    _types.map((type) {
-                      return FilterChip(
-                        label: Text('payment_method.type.$type'.tr()),
-                        selected: _type == type,
-                        onSelected: (_) => setState(() => _type = type),
-                      );
-                    }).toList(),
-              ),
-              const SizedBox(height: 16),
-              TextFormField(
-                controller: _nameController,
-                autofocus: true,
-                decoration: InputDecoration(
-                  labelText: 'payment_method.name_label'.tr(),
-                  hintText: 'payment_method.name_hint'.tr(),
-                  prefixIcon: const Icon(Icons.payment_rounded),
+              // Content
+              Flexible(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
+                  child: Form(
+                    key: _formKey,
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'payment_method.type_label'.tr(),
+                          style: Theme.of(context).textTheme.labelSmall,
+                        ),
+                        const SizedBox(height: 8),
+                        Wrap(
+                          spacing: 8,
+                          runSpacing: 8,
+                          children:
+                              _types.map((type) {
+                                final selected = _type == type;
+                                return FilterChip(
+                                  label: Text(
+                                    'payment_method.type.$type'.tr(),
+                                  ),
+                                  selected: selected,
+                                  backgroundColor: outlineColor.withValues(
+                                    alpha: 0.15,
+                                  ),
+                                  selectedColor: accentColor.withValues(
+                                    alpha: 0.12,
+                                  ),
+                                  checkmarkColor: accentColor,
+                                  side: BorderSide(
+                                    color:
+                                        selected ? accentColor : outlineColor,
+                                    width: selected ? 1.4 : 1.0,
+                                  ),
+                                  labelStyle: TextStyle(
+                                    color: selected ? accentColor : null,
+                                    fontWeight:
+                                        selected ? FontWeight.w600 : null,
+                                  ),
+                                  onSelected: (_) =>
+                                      setState(() => _type = type),
+                                );
+                              }).toList(),
+                        ),
+                        const SizedBox(height: 16),
+                        TextFormField(
+                          controller: _nameController,
+                          autofocus: true,
+                          decoration: InputDecoration(
+                            labelText: 'payment_method.name_label'.tr(),
+                            hintText: 'payment_method.name_hint'.tr(),
+                            prefixIcon: Icon(
+                              Icons.payment_rounded,
+                              color: accentColor,
+                            ),
+                          ),
+                          validator:
+                              (value) =>
+                                  value == null || value.trim().isEmpty
+                                      ? 'payment_method.name_required'.tr()
+                                      : null,
+                        ),
+                        const SizedBox(height: 12),
+                        TextFormField(
+                          controller: _memoController,
+                          decoration: InputDecoration(
+                            labelText: 'payment_method.memo_label'.tr(),
+                            hintText: 'payment_method.memo_hint'.tr(),
+                            prefixIcon: Icon(
+                              Icons.notes_rounded,
+                              color: accentColor,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
-                validator:
-                    (value) =>
-                        value == null || value.trim().isEmpty
-                            ? 'payment_method.name_required'.tr()
-                            : null,
               ),
-              const SizedBox(height: 12),
-              TextFormField(
-                controller: _memoController,
-                decoration: InputDecoration(
-                  labelText: 'payment_method.memo_label'.tr(),
-                  hintText: 'payment_method.memo_hint'.tr(),
-                  prefixIcon: const Icon(Icons.notes_rounded),
+              // Actions
+              Padding(
+                padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton(
+                        style: OutlinedButton.styleFrom(
+                          side: BorderSide(color: outlineColor),
+                        ),
+                        onPressed: () => Navigator.of(context).pop(),
+                        child: Text('common.cancel'.tr()),
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: FilledButton(
+                        style: FilledButton.styleFrom(
+                          backgroundColor: accentColor,
+                        ),
+                        onPressed: _save,
+                        child: Text('common.save'.tr()),
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ],
           ),
-        ),
-      ),
-      actions: [
-        OutlinedButton(
-          onPressed: () => Navigator.of(context).pop(),
-          child: Text('common.cancel'.tr()),
-        ),
-        FilledButton(onPressed: _save, child: Text('common.save'.tr())),
-      ],
+        );
+      },
     );
   }
 }

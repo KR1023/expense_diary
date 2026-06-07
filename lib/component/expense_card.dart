@@ -1,6 +1,5 @@
 import 'package:expense_diary/database/drift_database.dart';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'package:get_it/get_it.dart';
 import 'package:expense_diary/screen/detail_screen.dart';
 import 'package:expense_diary/const/app_colors.dart';
@@ -111,7 +110,7 @@ class ExpenseCard extends StatelessWidget {
                         Icon(
                           Icons.repeat_rounded,
                           size: 12,
-                          color: AppColors.primary.withValues(alpha: 0.7),
+                          color: AppColors.mutedOf(context),
                         ),
                         const SizedBox(width: 3),
                       ],
@@ -120,7 +119,7 @@ class ExpenseCard extends StatelessWidget {
                         overflow: TextOverflow.ellipsis,
                         maxLines: 1,
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: Colors.grey.shade600,
+                          color: AppColors.mutedOf(context),
                         ),
                       ),
                     ],

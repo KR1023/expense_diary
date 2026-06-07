@@ -898,6 +898,78 @@ userEntitlements/{uid}
 
 ---
 
+### 30. 전체 UI 색상 테마 연동 — 하드코딩 accent 색 제거
+
+**변경 내용**
+
+- **다이얼로그 테두리 제거** (`app_theme.dart`)
+  - `dialogTheme.shape`의 `BorderSide` 제거 → 앱 전역 다이얼로그 외곽선 없애기
+
+- **지출 추가 화면 힌트 텍스트 제거** (`add_screen.dart`)
+  - 하단 "저장 후에는 홈에서 바로 확인할 수 있어요" 컨테이너 삭제
+
+- **`expense_card.dart`** 색상 개선
+  - 반복 지출 아이콘 (`AppColors.primary.withValues(alpha: 0.7)`) → `AppColors.mutedOf(context)`
+  - 날짜 텍스트 (`Colors.grey.shade600`) → `AppColors.mutedOf(context)`
+  - 불필요한 `intl` import 제거
+
+- **`select_field.dart`** 전체 테마 연동
+  - `AnimatedBuilder(GetIt.I<AppSettings>())` 적용
+  - 프리픽스 아이콘, 포커스 테두리, 옵션 아이콘 배경·색상, 선택 레이블 색상, 체크 배지 배경·색상 모두 `AppColors.accentColorForBackground(bgIndex)` 사용
+  - `_SelectOptionContent`에 `accentColor` 파라미터 추가 (정적 `AppColors.primary` 의존 제거)
+
+- **`expense_by_date.dart`** 전체 테마 연동
+  - `_ExpenseByDateState.build()` → `AnimatedBuilder(AppSettings)` 적용
+  - 월간 합계 타일 accent 색상 → `accentColorForBackground(bgIndex)`
+  - 상세 버튼 foreground 색상 → `accentColorForBackground(bgIndex)`
+  - `_showDetailModal` → `AnimatedBuilder` 적용, `Colors.transparent` 배경 + `cardColorOf` 내부 컨테이너 + 그라디언트 헤더 (`heroGradientForBackground`)
+  - `MonthlyExpenseSummaryCard` → `AnimatedBuilder` 적용, 세그먼트 컨테이너 배경 `accentColor.withValues(alpha: 0.06/0.10)`, 테두리 accent 색
+  - `_SummarySegmentButton` → `accentColor` 파라미터로 선택 상태 색상 적용 (정적 `AppColors.primary` 완전 제거)
+
+**검증**
+- `flutter analyze lib/component/expense_by_date.dart lib/component/expense_card.dart lib/component/common/select_field.dart` 통과 (info 1건은 pre-existing)
+
+**관련 파일**
+- `lib/const/app_theme.dart`
+- `lib/screen/add_screen.dart`
+- `lib/component/expense_card.dart`
+- `lib/component/common/select_field.dart`
+- `lib/component/expense_by_date.dart`
+
+---
+
+### 31. 분류/결제 수단 즉시 추가 다이얼로그 테마 연동
+
+**변경 내용**
+
+- **`category_select.dart` — `_QuickCategoryDialog`**
+  - `AlertDialog` → `Dialog(backgroundColor: cardColorOf, clipBehavior: Clip.antiAlias)`로 교체
+  - 그라디언트 헤더 (`heroGradientForBackground`) + 분류 아이콘 + 닫기 버튼
+  - `CheckboxListTile(activeColor: accentColor)` — 체크박스 색상 테마 반응
+  - 프리픽스 아이콘 색상 → `accentColorForBackground(bgIndex)`
+  - 취소 버튼 테두리 → `outlineColorOf(bgIndex)`, 확인 버튼 → `accentColor`
+
+- **`payment_method_select.dart` — `_QuickPaymentMethodDialog`**
+  - `AlertDialog` → 동일한 테마 `Dialog` 패턴으로 교체
+  - 그라디언트 헤더 + 결제 수단 아이콘
+  - `FilterChip`: `payment_method_screen.dart`와 동일한 accent 색 스타일 적용
+  - 프리픽스 아이콘(이름·메모 필드) → `accentColor`
+  - `_DialogHeader` 공용 위젯 추출 — 헤더 코드 중복 제거
+
+- **`payment_method_select.dart` — 보조 다이얼로그**
+  - `_showLimitDialog` (구독 한도 초과 안내) → 테마 `Dialog`
+  - `_confirmRestore` (삭제된 결제 수단 복원 확인) → 테마 `Dialog`
+  - `_showInfoDialog` (중복 오류 안내) → 테마 `Dialog`
+
+**검증**
+- `flutter analyze lib/component/category_select.dart lib/component/payment_method_select.dart` 통과
+
+**관련 파일**
+- `lib/component/category_select.dart`
+- `lib/component/payment_method_select.dart`
+
+---
+
 ## 문서
 
 | 파일 | 내용 |

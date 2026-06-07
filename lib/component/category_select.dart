@@ -3,6 +3,7 @@ import 'package:expense_diary/component/common/thousands_formatter.dart';
 import 'package:drift/drift.dart' hide Column;
 import 'package:expense_diary/const/app_colors.dart';
 import 'package:expense_diary/database/drift_database.dart';
+import 'package:expense_diary/service/app_settings.dart';
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -233,73 +234,161 @@ class _QuickCategoryDialogState extends State<_QuickCategoryDialog> {
 
   @override
   Widget build(BuildContext context) {
-    return AlertDialog(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-      title: Text('category.input_title'.tr()),
-      content: SingleChildScrollView(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            TextField(
-              controller: _nameController,
-              autofocus: true,
-              decoration: InputDecoration(
-                hintText: 'category.input_hint'.tr(),
-                errorText: _nameErrorText,
-                prefixIcon: const Icon(Icons.sell_outlined),
+    return AnimatedBuilder(
+      animation: GetIt.I<AppSettings>(),
+      builder: (context, _) {
+        final bgIndex = GetIt.I<AppSettings>().backgroundIndex;
+        final cardColor = AppColors.cardColorOf(bgIndex, context);
+        final gradient = AppColors.heroGradientForBackground(bgIndex, context);
+        final accentColor = AppColors.accentColorForBackground(bgIndex, context);
+        final outlineColor = AppColors.outlineColorOf(bgIndex, context);
+
+        return Dialog(
+          backgroundColor: cardColor,
+          clipBehavior: Clip.antiAlias,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Gradient header
+              Container(
+                decoration: BoxDecoration(gradient: gradient),
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 14, 8, 14),
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 34,
+                        height: 34,
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.2),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: const Icon(
+                          Icons.sell_outlined,
+                          size: 18,
+                          color: Colors.white,
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Text(
+                          'category.input_title'.tr(),
+                          style: Theme.of(context).textTheme.titleMedium
+                              ?.copyWith(color: Colors.white),
+                        ),
+                      ),
+                      IconButton(
+                        onPressed: () => Navigator.of(context).pop(),
+                        icon: const Icon(
+                          Icons.close_rounded,
+                          color: Colors.white,
+                        ),
+                        visualDensity: VisualDensity.compact,
+                      ),
+                    ],
+                  ),
+                ),
               ),
-            ),
-            const SizedBox(height: 14),
-            CheckboxListTile(
-              contentPadding: EdgeInsets.zero,
-              value: _usePresetAmount,
-              title: Text('category.preset_amount_option'.tr()),
-              subtitle: Text('category.preset_amount_help'.tr()),
-              onChanged: (value) {
-                setState(() {
-                  _usePresetAmount = value ?? false;
-                  if (!_usePresetAmount) {
-                    _amountController.clear();
-                    _amountErrorText = null;
-                  }
-                });
-              },
-            ),
-            if (_usePresetAmount) ...[
-              const SizedBox(height: 8),
-              TextField(
-                controller: _amountController,
-                keyboardType: TextInputType.number,
-                inputFormatters: [ThousandsFormatter()],
-                decoration: InputDecoration(
-                  hintText: 'category.preset_amount_hint'.tr(),
-                  errorText: _amountErrorText,
-                  prefixIcon: const Icon(Icons.payments_outlined),
+              // Content
+              Flexible(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      TextField(
+                        controller: _nameController,
+                        autofocus: true,
+                        decoration: InputDecoration(
+                          hintText: 'category.input_hint'.tr(),
+                          errorText: _nameErrorText,
+                          prefixIcon: Icon(
+                            Icons.sell_outlined,
+                            color: accentColor,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 14),
+                      CheckboxListTile(
+                        contentPadding: EdgeInsets.zero,
+                        value: _usePresetAmount,
+                        activeColor: accentColor,
+                        title: Text('category.preset_amount_option'.tr()),
+                        subtitle: Text('category.preset_amount_help'.tr()),
+                        onChanged: (value) {
+                          setState(() {
+                            _usePresetAmount = value ?? false;
+                            if (!_usePresetAmount) {
+                              _amountController.clear();
+                              _amountErrorText = null;
+                            }
+                          });
+                        },
+                      ),
+                      if (_usePresetAmount) ...[
+                        const SizedBox(height: 8),
+                        TextField(
+                          controller: _amountController,
+                          keyboardType: TextInputType.number,
+                          inputFormatters: [ThousandsFormatter()],
+                          decoration: InputDecoration(
+                            hintText: 'category.preset_amount_hint'.tr(),
+                            errorText: _amountErrorText,
+                            prefixIcon: Icon(
+                              Icons.payments_outlined,
+                              color: accentColor,
+                            ),
+                          ),
+                        ),
+                      ],
+                      CheckboxListTile(
+                        contentPadding: EdgeInsets.zero,
+                        value: _autoFillExpenseName,
+                        activeColor: accentColor,
+                        title: Text('category.auto_name_option'.tr()),
+                        subtitle: Text('category.auto_name_help'.tr()),
+                        onChanged: (value) {
+                          setState(() {
+                            _autoFillExpenseName = value ?? false;
+                          });
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              // Actions
+              Padding(
+                padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton(
+                        style: OutlinedButton.styleFrom(
+                          side: BorderSide(color: outlineColor),
+                        ),
+                        onPressed: () => Navigator.of(context).pop(),
+                        child: Text('common.cancel'.tr()),
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: FilledButton(
+                        style: FilledButton.styleFrom(
+                          backgroundColor: accentColor,
+                        ),
+                        onPressed: _save,
+                        child: Text('common.confirm'.tr()),
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ],
-            CheckboxListTile(
-              contentPadding: EdgeInsets.zero,
-              value: _autoFillExpenseName,
-              title: Text('category.auto_name_option'.tr()),
-              subtitle: Text('category.auto_name_help'.tr()),
-              onChanged: (value) {
-                setState(() {
-                  _autoFillExpenseName = value ?? false;
-                });
-              },
-            ),
-          ],
-        ),
-      ),
-      actions: [
-        OutlinedButton(
-          onPressed: () => Navigator.of(context).pop(),
-          child: Text('common.cancel'.tr()),
-        ),
-        FilledButton(onPressed: _save, child: Text('common.confirm'.tr())),
-      ],
+          ),
+        );
+      },
     );
   }
 }

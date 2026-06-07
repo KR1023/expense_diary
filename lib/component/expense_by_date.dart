@@ -30,102 +30,107 @@ class _ExpenseByDateState extends State<ExpenseByDate> {
     final dayLabel = dateFormat.format(widget.selectedDate);
     final currencyCode = GetIt.I<AppSettings>().currencyCode;
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
-      child: Container(
-        width: double.infinity,
-        padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          color: AppColors.surfaceOf(context),
-          borderRadius: BorderRadius.circular(18),
-          border: Border.all(color: AppColors.outlineOf(context)),
-        ),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Expanded(
-              child: StreamBuilder<int>(
-                stream: GetIt.I<LocalDatabase>().selectMonthExpense(
-                  widget.selectedDate,
+    return AnimatedBuilder(
+      animation: GetIt.I<AppSettings>(),
+      builder: (context, _) {
+        final bgIndex = GetIt.I<AppSettings>().backgroundIndex;
+        final accentColor = AppColors.accentColorForBackground(bgIndex, context);
+
+        return Padding(
+          padding: const EdgeInsets.symmetric(vertical: 4),
+          child: Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: AppColors.surfaceOf(context),
+              borderRadius: BorderRadius.circular(18),
+              border: Border.all(color: AppColors.outlineOf(context)),
+            ),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Expanded(
+                  child: StreamBuilder<int>(
+                    stream: GetIt.I<LocalDatabase>().selectMonthExpense(
+                      widget.selectedDate,
+                    ),
+                    builder: (context, snapshot) {
+                      return _SummaryMetricTile(
+                        icon: Icons.calendar_month_rounded,
+                        label: 'calendar.month_total_title'.tr(
+                          namedArgs: {'month': monthLabel},
+                        ),
+                        amount: CurrencyUtils.formatAmount(
+                          snapshot.data ?? 0,
+                          currencyCode,
+                        ),
+                        accentColor: accentColor,
+                        backgroundColor: accentColor.withValues(alpha: 0.08),
+                      );
+                    },
+                  ),
                 ),
-                builder: (context, snapshot) {
-                  return _SummaryMetricTile(
-                    icon: Icons.calendar_month_rounded,
-                    label: 'calendar.month_total_title'.tr(
-                      namedArgs: {'month': monthLabel},
-                    ),
-                    amount: CurrencyUtils.formatAmount(
-                      snapshot.data ?? 0,
-                      currencyCode,
-                    ),
-                    accentColor: AppColors.primary,
-                    backgroundColor: AppColors.primary.withValues(alpha: 0.08),
-                  );
-                },
-              ),
-            ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Stack(
-                children: [
-                  Positioned.fill(
-                    child: StreamBuilder<List<Map<String, dynamic>>>(
-                      stream: GetIt.I<LocalDatabase>().watchExpense(_queryDate),
-                      builder: (context, snapshot) {
-                        int totalExpense = 0;
-
-                        final data = snapshot.data;
-                        if (data != null && data.isNotEmpty) {
-                          for (var e in data) {
-                            final expense = e['expenses'] as Expense;
-                            totalExpense += expense.expense;
-                          }
-                        }
-
-                        return _SummaryMetricTile(
-                          icon: Icons.today_rounded,
-                          label: 'calendar.day_total_title'.tr(
-                            namedArgs: {'date': dayLabel},
-                          ),
-                          amount: CurrencyUtils.formatAmount(
-                            totalExpense,
-                            currencyCode,
-                          ),
-                          accentColor: AppColors.secondary,
-                          backgroundColor: AppColors.secondary.withValues(
-                            alpha: 0.08,
-                          ),
-                        );
-                      },
-                    ),
-                  ),
-                  Positioned(
-                    top: 7,
-                    right: 7,
-                    child: IconButton.filled(
-                      onPressed: () {
-                        _showDetailModal(context);
-                      },
-                      tooltip: 'calendar.detail_view'.tr(),
-                      style: IconButton.styleFrom(
-                        backgroundColor: AppColors.surfaceOf(context),
-                        foregroundColor: AppColors.primary,
-                        elevation: 0,
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Stack(
+                    children: [
+                      Positioned.fill(
+                        child: StreamBuilder<List<Map<String, dynamic>>>(
+                          stream: GetIt.I<LocalDatabase>()
+                              .watchExpense(_queryDate),
+                          builder: (context, snapshot) {
+                            int totalExpense = 0;
+                            final data = snapshot.data;
+                            if (data != null && data.isNotEmpty) {
+                              for (var e in data) {
+                                final expense = e['expenses'] as Expense;
+                                totalExpense += expense.expense;
+                              }
+                            }
+                            return _SummaryMetricTile(
+                              icon: Icons.today_rounded,
+                              label: 'calendar.day_total_title'.tr(
+                                namedArgs: {'date': dayLabel},
+                              ),
+                              amount: CurrencyUtils.formatAmount(
+                                totalExpense,
+                                currencyCode,
+                              ),
+                              accentColor: AppColors.secondary,
+                              backgroundColor: AppColors.secondary.withValues(
+                                alpha: 0.08,
+                              ),
+                            );
+                          },
+                        ),
                       ),
-                      constraints: const BoxConstraints.tightFor(
-                        width: 32,
-                        height: 32,
+                      Positioned(
+                        top: 7,
+                        right: 7,
+                        child: IconButton.filled(
+                          onPressed: () => _showDetailModal(context),
+                          tooltip: 'calendar.detail_view'.tr(),
+                          style: IconButton.styleFrom(
+                            backgroundColor: AppColors.surfaceOf(context),
+                            foregroundColor: accentColor,
+                            elevation: 0,
+                          ),
+                          constraints: const BoxConstraints.tightFor(
+                            width: 32,
+                            height: 32,
+                          ),
+                          padding: EdgeInsets.zero,
+                          icon: const Icon(Icons.list_alt_rounded, size: 18),
+                        ),
                       ),
-                      padding: EdgeInsets.zero,
-                      icon: const Icon(Icons.list_alt_rounded, size: 18),
-                    ),
+                    ],
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
-          ],
-        ),
-      ),
+          ),
+        );
+      },
     );
   }
 
@@ -136,129 +141,158 @@ class _ExpenseByDateState extends State<ExpenseByDate> {
       useSafeArea: true,
       backgroundColor: Colors.transparent,
       builder: (context) {
-        return FractionallySizedBox(
-          heightFactor: 0.88,
-          child: Container(
-            margin: const EdgeInsets.only(top: 8),
-            decoration: BoxDecoration(
-              color: AppColors.surfaceOf(context),
-              borderRadius: const BorderRadius.vertical(
-                top: Radius.circular(28),
-              ),
-              border: Border.all(color: AppColors.outlineOf(context)),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.12),
-                  blurRadius: 18,
-                  offset: const Offset(0, -4),
+        return AnimatedBuilder(
+          animation: GetIt.I<AppSettings>(),
+          builder: (context, _) {
+            final bgIndex = GetIt.I<AppSettings>().backgroundIndex;
+            final bgColor = AppColors.cardColorOf(bgIndex, context);
+            final gradient =
+                AppColors.heroGradientForBackground(bgIndex, context);
+
+            return FractionallySizedBox(
+              heightFactor: 0.88,
+              child: Container(
+                decoration: BoxDecoration(
+                  color: bgColor,
+                  borderRadius: const BorderRadius.vertical(
+                    top: Radius.circular(24),
+                  ),
                 ),
-              ],
-            ),
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
-              child: Column(
-                children: [
-                  Container(
-                    width: 44,
-                    height: 5,
-                    decoration: BoxDecoration(
-                      color: AppColors.outlineOf(context),
-                      borderRadius: BorderRadius.circular(999),
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  Container(
-                    padding: const EdgeInsets.fromLTRB(14, 12, 8, 12),
-                    decoration: BoxDecoration(
-                      color: AppColors.surfaceAltOf(context),
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    child: Row(
-                      children: [
-                        Container(
-                          width: 34,
-                          height: 34,
-                          decoration: BoxDecoration(
-                            color: AppColors.primary.withValues(alpha: 0.14),
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          child: Icon(
-                            Icons.calendar_month_outlined,
-                            size: 20,
-                            color: AppColors.primary,
-                          ),
+                child: Column(
+                  children: [
+                    // Gradient header
+                    Container(
+                      decoration: BoxDecoration(
+                        gradient: gradient,
+                        borderRadius: const BorderRadius.vertical(
+                          top: Radius.circular(24),
                         ),
-                        const SizedBox(width: 10),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'calendar.detail_title'.tr(),
-                                style: Theme.of(context).textTheme.titleMedium,
+                      ),
+                      child: Column(
+                        children: [
+                          Center(
+                            child: Container(
+                              margin: const EdgeInsets.only(top: 12, bottom: 8),
+                              width: 36,
+                              height: 4,
+                              decoration: BoxDecoration(
+                                color: Colors.white.withValues(alpha: 0.4),
+                                borderRadius: BorderRadius.circular(2),
                               ),
-                              const SizedBox(height: 2),
-                              Text(
-                                dateFormat.format(widget.selectedDate),
-                                style: Theme.of(
-                                  context,
-                                ).textTheme.bodySmall?.copyWith(
-                                  color: AppColors.mutedOf(context),
-                                ),
-                              ),
-                            ],
+                            ),
                           ),
-                        ),
-                        IconButton(
-                          onPressed: () => Navigator.of(context).pop(),
-                          icon: const Icon(Icons.close_rounded),
-                          visualDensity: VisualDensity.compact,
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  Expanded(
-                    child: ListView(
-                      children: [
-                        Text(
-                          'calendar.section_expenses'.tr(),
-                          style: Theme.of(context).textTheme.titleSmall,
-                        ),
-                        const SizedBox(height: 8),
-                        StreamBuilder<List<Map<String, dynamic>>>(
-                          stream: GetIt.I<LocalDatabase>().watchExpense(
-                            _queryDate,
-                          ),
-                          builder: (context, snapshot) {
-                            if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                              return Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 14,
-                                  vertical: 18,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: AppColors.surfaceAltOf(context),
-                                  borderRadius: BorderRadius.circular(14),
-                                ),
-                                child: Text(
-                                  'home.empty'.tr(),
-                                  textAlign: TextAlign.center,
-                                  style: Theme.of(
-                                    context,
-                                  ).textTheme.bodyMedium?.copyWith(
-                                    color: AppColors.mutedOf(context),
+                          Padding(
+                            padding: const EdgeInsets.fromLTRB(16, 0, 8, 14),
+                            child: Row(
+                              children: [
+                                Container(
+                                  width: 34,
+                                  height: 34,
+                                  decoration: BoxDecoration(
+                                    color:
+                                        Colors.white.withValues(alpha: 0.2),
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                  child: const Icon(
+                                    Icons.calendar_month_outlined,
+                                    size: 20,
+                                    color: Colors.white,
                                   ),
                                 ),
-                              );
-                            }
-
-                            return Column(
-                              children:
-                                  snapshot.data!.map((row) {
+                                const SizedBox(width: 10),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        'calendar.detail_title'.tr(),
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .titleMedium
+                                            ?.copyWith(color: Colors.white),
+                                      ),
+                                      Text(
+                                        dateFormat
+                                            .format(widget.selectedDate),
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .bodySmall
+                                            ?.copyWith(
+                                              color: Colors.white
+                                                  .withValues(alpha: 0.75),
+                                            ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                IconButton(
+                                  onPressed: () =>
+                                      Navigator.of(context).pop(),
+                                  icon: const Icon(
+                                    Icons.close_rounded,
+                                    color: Colors.white,
+                                  ),
+                                  visualDensity: VisualDensity.compact,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    // Body
+                    Expanded(
+                      child: Padding(
+                        padding:
+                            const EdgeInsets.fromLTRB(16, 12, 16, 12),
+                        child: ListView(
+                          children: [
+                            Text(
+                              'calendar.section_expenses'.tr(),
+                              style:
+                                  Theme.of(context).textTheme.titleSmall,
+                            ),
+                            const SizedBox(height: 8),
+                            StreamBuilder<List<Map<String, dynamic>>>(
+                              stream: GetIt.I<LocalDatabase>()
+                                  .watchExpense(_queryDate),
+                              builder: (context, snapshot) {
+                                if (!snapshot.hasData ||
+                                    snapshot.data!.isEmpty) {
+                                  return Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 14,
+                                      vertical: 18,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: AppColors.outlineColorOf(
+                                        bgIndex,
+                                        context,
+                                      ).withValues(alpha: 0.18),
+                                      borderRadius:
+                                          BorderRadius.circular(14),
+                                    ),
+                                    child: Text(
+                                      'home.empty'.tr(),
+                                      textAlign: TextAlign.center,
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .bodyMedium
+                                          ?.copyWith(
+                                            color: AppColors.mutedOf(
+                                              context,
+                                            ),
+                                          ),
+                                    ),
+                                  );
+                                }
+                                return Column(
+                                  children: snapshot.data!.map((row) {
                                     final expense = row['expenses'];
                                     final category = row['category'];
-                                    final paymentMethod = row['paymentMethod'];
+                                    final paymentMethod =
+                                        row['paymentMethod'];
                                     return Padding(
                                       padding: const EdgeInsets.only(
                                         bottom: 12,
@@ -273,20 +307,23 @@ class _ExpenseByDateState extends State<ExpenseByDate> {
                                         expenseDetail:
                                             expense.expenseDetail ?? '',
                                         isRecurring:
-                                            expense.recurringExpenseId != null,
+                                            expense.recurringExpenseId !=
+                                                null,
                                       ),
                                     );
                                   }).toList(),
-                            );
-                          },
+                                );
+                              },
+                            ),
+                          ],
                         ),
-                      ],
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
-          ),
+            );
+          },
         );
       },
     );
@@ -358,16 +395,14 @@ class _SummaryAmountText extends StatelessWidget {
   Widget build(BuildContext context) {
     final isUsd = amount.startsWith(r'$');
     final hasWon = amount.endsWith('원');
-    final unit =
-        isUsd
-            ? r'$'
-            : hasWon
+    final unit = isUsd
+        ? r'$'
+        : hasWon
             ? '원'
             : '';
-    final value =
-        isUsd
-            ? amount.substring(1)
-            : hasWon
+    final value = isUsd
+        ? amount.substring(1)
+        : hasWon
             ? amount.substring(0, amount.length - 1)
             : amount;
     final amountStyle = Theme.of(context).textTheme.titleMedium?.copyWith(
@@ -384,43 +419,30 @@ class _SummaryAmountText extends StatelessWidget {
     );
 
     if (unit.isEmpty) {
-      return Text(
-        value,
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
-        style: amountStyle,
-      );
+      return Text(value, maxLines: 1, overflow: TextOverflow.ellipsis,
+          style: amountStyle);
     }
 
     return Row(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.end,
-      children:
-          isUsd
-              ? [
-                Text(unit, style: unitStyle),
-                const SizedBox(width: 4),
-                Flexible(
-                  child: Text(
-                    value,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: amountStyle,
-                  ),
-                ),
-              ]
-              : [
-                Flexible(
-                  child: Text(
-                    value,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: amountStyle,
-                  ),
-                ),
-                const SizedBox(width: 4),
-                Text(unit, style: unitStyle),
-              ],
+      children: isUsd
+          ? [
+              Text(unit, style: unitStyle),
+              const SizedBox(width: 4),
+              Flexible(
+                child: Text(value, maxLines: 1,
+                    overflow: TextOverflow.ellipsis, style: amountStyle),
+              ),
+            ]
+          : [
+              Flexible(
+                child: Text(value, maxLines: 1,
+                    overflow: TextOverflow.ellipsis, style: amountStyle),
+              ),
+              const SizedBox(width: 4),
+              Text(unit, style: unitStyle),
+            ],
     );
   }
 }
@@ -435,7 +457,8 @@ class MonthlyExpenseSummaryCard extends StatefulWidget {
       _MonthlyExpenseSummaryCardState();
 }
 
-class _MonthlyExpenseSummaryCardState extends State<MonthlyExpenseSummaryCard> {
+class _MonthlyExpenseSummaryCardState
+    extends State<MonthlyExpenseSummaryCard> {
   late final PageController _summaryPageController;
   int _summaryPage = 0;
   final List<double> _summaryPageHeights = [0, 0];
@@ -466,79 +489,93 @@ class _MonthlyExpenseSummaryCardState extends State<MonthlyExpenseSummaryCard> {
     );
     final weeklyRanges = _buildWeeklyRanges(monthStart, monthEnd);
 
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: AppColors.surfaceOf(context),
-        border: Border.all(color: AppColors.outlineOf(context)),
-        borderRadius: BorderRadius.circular(18),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'calendar.monthly_summary'.tr(),
-            style: Theme.of(context).textTheme.titleSmall,
+    return AnimatedBuilder(
+      animation: GetIt.I<AppSettings>(),
+      builder: (context, _) {
+        final bgIndex = GetIt.I<AppSettings>().backgroundIndex;
+        final accentColor =
+            AppColors.accentColorForBackground(bgIndex, context);
+
+        return Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            color: AppColors.surfaceOf(context),
+            border: Border.all(color: AppColors.outlineOf(context)),
+            borderRadius: BorderRadius.circular(18),
           ),
-          const SizedBox(height: 10),
-          Container(
-            padding: const EdgeInsets.all(5),
-            decoration: BoxDecoration(
-              color: AppColors.primary.withValues(alpha: 0.06),
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(
-                color: AppColors.primary.withValues(alpha: 0.10),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'calendar.monthly_summary'.tr(),
+                style: Theme.of(context).textTheme.titleSmall,
               ),
-            ),
-            child: Row(
-              children: [
-                Expanded(
-                  child: _SummarySegmentButton(
-                    icon: Icons.view_week_rounded,
-                    label: 'calendar.section_weekly'.tr(),
-                    selected: _summaryPage == 0,
-                    onTap: () => _animateSummaryPage(0),
+              const SizedBox(height: 10),
+              Container(
+                padding: const EdgeInsets.all(5),
+                decoration: BoxDecoration(
+                  color: accentColor.withValues(alpha: 0.06),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(
+                    color: accentColor.withValues(alpha: 0.10),
                   ),
                 ),
-                Expanded(
-                  child: _SummarySegmentButton(
-                    icon: Icons.category_rounded,
-                    label: 'calendar.section_category'.tr(),
-                    selected: _summaryPage == 1,
-                    onTap: () => _animateSummaryPage(1),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 12),
-          AnimatedSize(
-            duration: const Duration(milliseconds: 220),
-            curve: Curves.easeOutCubic,
-            alignment: Alignment.topCenter,
-            child: SizedBox(
-              height: _currentSummaryHeight,
-              child: PageView(
-                controller: _summaryPageController,
-                onPageChanged: _setSummaryPage,
-                children: [
-                  _MeasuredSummaryPage(
-                    onChange: (height) => _setSummaryPageHeight(0, height),
-                    child: _WeeklySummaryPage(weeklyRanges: weeklyRanges),
-                  ),
-                  _MeasuredSummaryPage(
-                    onChange: (height) => _setSummaryPageHeight(1, height),
-                    child: _CategorySummaryPage(
-                      selectedDate: widget.selectedDate,
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: _SummarySegmentButton(
+                        icon: Icons.view_week_rounded,
+                        label: 'calendar.section_weekly'.tr(),
+                        selected: _summaryPage == 0,
+                        accentColor: accentColor,
+                        onTap: () => _animateSummaryPage(0),
+                      ),
                     ),
-                  ),
-                ],
+                    Expanded(
+                      child: _SummarySegmentButton(
+                        icon: Icons.category_rounded,
+                        label: 'calendar.section_category'.tr(),
+                        selected: _summaryPage == 1,
+                        accentColor: accentColor,
+                        onTap: () => _animateSummaryPage(1),
+                      ),
+                    ),
+                  ],
+                ),
               ),
-            ),
+              const SizedBox(height: 12),
+              AnimatedSize(
+                duration: const Duration(milliseconds: 220),
+                curve: Curves.easeOutCubic,
+                alignment: Alignment.topCenter,
+                child: SizedBox(
+                  height: _currentSummaryHeight,
+                  child: PageView(
+                    controller: _summaryPageController,
+                    onPageChanged: _setSummaryPage,
+                    children: [
+                      _MeasuredSummaryPage(
+                        onChange: (height) =>
+                            _setSummaryPageHeight(0, height),
+                        child: _WeeklySummaryPage(
+                            weeklyRanges: weeklyRanges),
+                      ),
+                      _MeasuredSummaryPage(
+                        onChange: (height) =>
+                            _setSummaryPageHeight(1, height),
+                        child: _CategorySummaryPage(
+                          selectedDate: widget.selectedDate,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 
@@ -601,10 +638,8 @@ class _MeasuredSummaryPageState extends State<_MeasuredSummaryPage> {
   void _notifySize() {
     final context = _key.currentContext;
     if (context == null) return;
-
     final size = context.size;
     if (size == null || (_height - size.height).abs() < 0.5) return;
-
     _height = size.height;
     widget.onChange(size.height);
   }
@@ -679,19 +714,21 @@ class _SummarySegmentButton extends StatelessWidget {
   final IconData icon;
   final String label;
   final bool selected;
+  final Color accentColor;
   final VoidCallback onTap;
 
   const _SummarySegmentButton({
     required this.icon,
     required this.label,
     required this.selected,
+    required this.accentColor,
     required this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
     final foreground =
-        selected ? AppColors.primary : AppColors.mutedOf(context);
+        selected ? accentColor : AppColors.mutedOf(context);
 
     return AnimatedContainer(
       duration: const Duration(milliseconds: 180),
@@ -700,21 +737,19 @@ class _SummarySegmentButton extends StatelessWidget {
         color: selected ? AppColors.surfaceOf(context) : Colors.transparent,
         borderRadius: BorderRadius.circular(13),
         border: Border.all(
-          color:
-              selected
-                  ? AppColors.primary.withValues(alpha: 0.18)
-                  : Colors.transparent,
+          color: selected
+              ? accentColor.withValues(alpha: 0.18)
+              : Colors.transparent,
         ),
-        boxShadow:
-            selected
-                ? [
-                  BoxShadow(
-                    color: AppColors.primary.withValues(alpha: 0.12),
-                    blurRadius: 12,
-                    offset: const Offset(0, 5),
-                  ),
-                ]
-                : null,
+        boxShadow: selected
+            ? [
+                BoxShadow(
+                  color: accentColor.withValues(alpha: 0.12),
+                  blurRadius: 12,
+                  offset: const Offset(0, 5),
+                ),
+              ]
+            : null,
       ),
       child: Material(
         color: Colors.transparent,
@@ -736,12 +771,9 @@ class _SummarySegmentButton extends StatelessWidget {
                   width: 24,
                   height: 24,
                   decoration: BoxDecoration(
-                    color:
-                        selected
-                            ? AppColors.primary.withValues(alpha: 0.12)
-                            : AppColors.surfaceOf(
-                              context,
-                            ).withValues(alpha: 0.65),
+                    color: selected
+                        ? accentColor.withValues(alpha: 0.12)
+                        : AppColors.surfaceOf(context).withValues(alpha: 0.65),
                     borderRadius: BorderRadius.circular(9),
                   ),
                   child: Icon(icon, size: 14, color: foreground),
@@ -754,11 +786,11 @@ class _SummarySegmentButton extends StatelessWidget {
                     overflow: TextOverflow.ellipsis,
                     textAlign: TextAlign.center,
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color:
-                          selected
-                              ? AppColors.inkOf(context)
-                              : AppColors.mutedOf(context),
-                      fontWeight: selected ? FontWeight.w800 : FontWeight.w600,
+                      color: selected
+                          ? AppColors.inkOf(context)
+                          : AppColors.mutedOf(context),
+                      fontWeight:
+                          selected ? FontWeight.w800 : FontWeight.w600,
                       letterSpacing: -0.2,
                     ),
                   ),
@@ -780,21 +812,21 @@ class _WeeklySummaryPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Column(
-      children:
-          weeklyRanges.asMap().entries.map((entry) {
-            final weekIndex = entry.key + 1;
-            final start = entry.value.$1;
-            final end = entry.value.$2;
-            return Padding(
-              padding: EdgeInsets.only(
-                bottom: entry.key == weeklyRanges.length - 1 ? 0 : 8,
-              ),
-              child: _SummaryRow(
-                label: 'week.label'.tr(namedArgs: {'week': '$weekIndex'}),
-                stream: GetIt.I<LocalDatabase>().selectWeekExpense(start, end),
-              ),
-            );
-          }).toList(),
+      children: weeklyRanges.asMap().entries.map((entry) {
+        final weekIndex = entry.key + 1;
+        final start = entry.value.$1;
+        final end = entry.value.$2;
+        return Padding(
+          padding: EdgeInsets.only(
+            bottom: entry.key == weeklyRanges.length - 1 ? 0 : 8,
+          ),
+          child: _SummaryRow(
+            label: 'week.label'.tr(namedArgs: {'week': '$weekIndex'}),
+            stream:
+                GetIt.I<LocalDatabase>().selectWeekExpense(start, end),
+          ),
+        );
+      }).toList(),
     );
   }
 }
@@ -831,20 +863,18 @@ class _CategorySummaryPage extends StatelessWidget {
 
         final items = snapshot.data!;
         return Column(
-          children:
-              items.asMap().entries.map((entry) {
-                final data = entry.value;
-                final category =
-                    data.category.isNotEmpty
-                        ? data.category
-                        : 'common.unclassified'.tr();
-                return Padding(
-                  padding: EdgeInsets.only(
-                    bottom: entry.key == items.length - 1 ? 0 : 8,
-                  ),
-                  child: _FixedSummaryRow(label: category, amount: data.total),
-                );
-              }).toList(),
+          children: items.asMap().entries.map((entry) {
+            final data = entry.value;
+            final category = data.category.isNotEmpty
+                ? data.category
+                : 'common.unclassified'.tr();
+            return Padding(
+              padding: EdgeInsets.only(
+                bottom: entry.key == items.length - 1 ? 0 : 8,
+              ),
+              child: _FixedSummaryRow(label: category, amount: data.total),
+            );
+          }).toList(),
         );
       },
     );
