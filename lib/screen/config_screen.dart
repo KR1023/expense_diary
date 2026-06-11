@@ -33,6 +33,7 @@ class _ConfigScreenState extends State<ConfigScreen> {
   bool _followSystemLocale = true;
   String _selectedLanguage = 'en';
   String _selectedCurrency = AppSettings.defaultCurrency;
+  String _selectedThemeMode = AppSettings.defaultThemeModeName;
   bool _isBackingUp = false;
   DateTime? _lastBackupAt;
   String? _lastBackupWeekKey;
@@ -43,6 +44,7 @@ class _ConfigScreenState extends State<ConfigScreen> {
   void initState() {
     super.initState();
     _selectedCurrency = GetIt.I<AppSettings>().currencyCode;
+    _selectedThemeMode = GetIt.I<AppSettings>().themeModeName;
     _loadLocaleSettings();
     _loadRestoreMetadata();
     final authRepository = GetIt.I<AuthRepository>();
@@ -207,6 +209,14 @@ class _ConfigScreenState extends State<ConfigScreen> {
     if (!mounted) return;
     setState(() {
       _selectedCurrency = currencyCode;
+    });
+  }
+
+  Future<void> _setThemeMode(String themeModeName) async {
+    await GetIt.I<AppSettings>().setThemeModeName(themeModeName);
+    if (!mounted) return;
+    setState(() {
+      _selectedThemeMode = themeModeName;
     });
   }
 
@@ -547,6 +557,48 @@ class _ConfigScreenState extends State<ConfigScreen> {
                     const SizedBox(height: 12),
                     Card(
                       margin: EdgeInsets.zero,
+                      child: Column(
+                        children: [
+                          ListTile(
+                            leading: Icon(
+                              Icons.dark_mode_outlined,
+                              color: AppColors.primary,
+                            ),
+                            title: Text('settings.theme.title'.tr()),
+                            subtitle: Text('settings.theme.subtitle'.tr()),
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+                            child: SelectField<String>(
+                              label: 'settings.theme.select'.tr(),
+                              icon: Icons.brightness_6_rounded,
+                              value: _selectedThemeMode,
+                              options: [
+                                SelectOption(
+                                  value: 'system',
+                                  label: 'settings.theme.option_system'.tr(),
+                                ),
+                                SelectOption(
+                                  value: 'light',
+                                  label: 'settings.theme.option_light'.tr(),
+                                ),
+                                SelectOption(
+                                  value: 'dark',
+                                  label: 'settings.theme.option_dark'.tr(),
+                                ),
+                              ],
+                              onChanged: (value) {
+                                if (value == null) return;
+                                _setThemeMode(value);
+                              },
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    Card(
+                      margin: EdgeInsets.zero,
                       child: ListTile(
                         leading: Icon(
                           Icons.credit_card_outlined,
@@ -574,11 +626,12 @@ class _ConfigScreenState extends State<ConfigScreen> {
                         title: Text('settings.background.title'.tr()),
                         subtitle: Text('settings.background.subtitle'.tr()),
                         trailing: const Icon(Icons.chevron_right),
-                        onTap: () => Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (_) => const BackgroundScreen(),
-                          ),
-                        ),
+                        onTap:
+                            () => Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (_) => const BackgroundScreen(),
+                              ),
+                            ),
                       ),
                     ),
                     const SizedBox(height: 12),

@@ -970,6 +970,37 @@ userEntitlements/{uid}
 
 ---
 
+### 32. 설정 탭 테마 모드 수동 설정
+
+**배경**
+- 기존 앱 테마는 `ThemeMode.system`으로 고정되어 있어 사용자가 앱 내에서 라이트/다크 모드를 직접 고정할 수 없었음.
+
+**변경 내용**
+- 설정 탭의 `결제 수단 관리` 위에 `화면 테마` 선택 카드를 추가
+- 선택 옵션:
+  - 시스템 설정 따름
+  - 라이트 모드
+  - 다크 모드
+- `AppSettings`에 `themeModeName`과 `themeMode` getter 추가
+- `MaterialApp.themeMode`가 `AppSettings.themeMode`를 사용하도록 변경
+- 선택 값은 `SharedPreferences`의 `theme_mode`에 저장
+- 앱 재시작 없이 테마 변경이 즉시 반영되도록 `AppSettings.notifyListeners()`와 기존 `AnimatedBuilder` 구조를 재사용
+- 클라우드 백업/복원 설정 payload에 `themeMode`를 포함해 복원 시 테마 설정도 함께 복구
+- 한/영 번역 추가
+
+**검증**
+- `flutter analyze lib/service/app_settings.dart lib/main.dart lib/screen/config_screen.dart lib/features/backup/data/snapshot_service.dart` 통과
+
+**관련 파일**
+- `lib/service/app_settings.dart`
+- `lib/main.dart`
+- `lib/screen/config_screen.dart`
+- `lib/features/backup/data/snapshot_service.dart`
+- `assets/locales/ko.json`
+- `assets/locales/en.json`
+
+---
+
 ## 문서
 
 | 파일 | 내용 |

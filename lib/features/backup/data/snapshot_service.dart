@@ -62,6 +62,9 @@ class SnapshotService {
       'userCurrency':
           prefs.getString(AppSettings.currencyPreferenceKey) ??
           AppSettings.defaultCurrency,
+      'themeMode':
+          prefs.getString(AppSettings.themeModePreferenceKey) ??
+          AppSettings.defaultThemeModeName,
     };
 
     final payload = SnapshotPayload(
@@ -312,6 +315,16 @@ class SnapshotService {
         await appSettings.setCurrencyCode(userCurrency);
       } else {
         await prefs.setString(AppSettings.currencyPreferenceKey, userCurrency);
+      }
+    }
+
+    final themeMode = settings['themeMode'];
+    if (themeMode is String && themeMode.isNotEmpty) {
+      final appSettings = _appSettings;
+      if (appSettings != null) {
+        await appSettings.setThemeModeName(themeMode);
+      } else {
+        await prefs.setString(AppSettings.themeModePreferenceKey, themeMode);
       }
     }
   }

@@ -153,6 +153,14 @@
           "unknown": "백업 실패 ({code})"
         }
       }
+    },
+    "theme": {
+      "title": "화면 테마",
+      "subtitle": "앱의 라이트/다크 테마 적용 방식을 설정합니다.",
+      "select": "테마 선택",
+      "option_system": "시스템 설정 따름",
+      "option_light": "라이트 모드",
+      "option_dark": "다크 모드"
     }
   },
   "cloud_tx": {

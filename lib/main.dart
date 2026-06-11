@@ -36,6 +36,9 @@ void main() async {
   final userCurrency =
       prefs.getString(AppSettings.currencyPreferenceKey) ??
       AppSettings.defaultCurrency;
+  final themeModeName =
+      prefs.getString(AppSettings.themeModePreferenceKey) ??
+      AppSettings.defaultThemeModeName;
   final backgroundIndex =
       prefs.getInt(AppSettings.backgroundIndexKey) ??
       AppSettings.defaultBackgroundIndex;
@@ -51,6 +54,7 @@ void main() async {
   );
   final appSettings = AppSettings(
     currencyCode: userCurrency,
+    themeModeName: themeModeName,
     backgroundIndex: backgroundIndex,
   );
   GetIt.I.registerSingleton<AppSettings>(appSettings);
@@ -108,7 +112,7 @@ class ExpenseDiaryApp extends StatelessWidget {
           debugShowCheckedModeBanner: false,
           theme: AppTheme.light(),
           darkTheme: AppTheme.dark(),
-          themeMode: ThemeMode.system,
+          themeMode: GetIt.I<AppSettings>().themeMode,
           home: const RootScreen(),
           localizationsDelegates: context.localizationDelegates,
           supportedLocales: context.supportedLocales,

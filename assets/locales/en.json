@@ -153,6 +153,14 @@
           "unknown": "Backup failed ({code})"
         }
       }
+    },
+    "theme": {
+      "title": "Appearance",
+      "subtitle": "Choose how light and dark mode are applied.",
+      "select": "Theme",
+      "option_system": "Follow system setting",
+      "option_light": "Light mode",
+      "option_dark": "Dark mode"
     }
   },
   "cloud_tx": {
