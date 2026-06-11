@@ -30,6 +30,7 @@
 - `third_party/`: 로컬 `google_mobile_ads` 의존성.
 - `asset/`: 앱 이미지, 스플래시, 아이콘.
 - `docs/revenue_cat/`: RevenueCat 콘솔/코드/Android/iOS 설정 문서.
+- `docs/subscription/`: 구독 정책, 플랜 구성, RevenueCat/스토어 운영 전환 문서.
 - `docs/deployment/`: Android/iOS 배포 명령과 체크리스트.
 - `docs/Structure/`: 로컬/클라우드 데이터 저장 구조 문서.
 - `progress.md`: 작업 진행 요약. 사용자가 명시적으로 요청할 때만 업데이트합니다.
@@ -92,10 +93,15 @@ dart run flutter_native_splash:create
 - 수동 권한 필드: `role`(`normal`, `cloud`, `report`, `special`, `admin`), `manualCloud`, `manualReport`, `manualAdsRemoved`. 호환 alias boolean으로 `cloud`, `report`, `adsRemoved`도 허용합니다.
 - 최종 권한은 RevenueCat 권한과 수동 권한을 OR로 합산합니다. `report`, `special`, `admin` role은 Cloud 권한을 포함하며, `special`, `admin`은 전체 유료 기능을 해제합니다.
 - Firestore Rules는 사용자가 본인의 `userEntitlements/{uid}` 문서만 읽을 수 있게 하고, 클라이언트 write는 전부 차단합니다. 수동 권한 변경은 Firebase Console 또는 Admin SDK로만 수행합니다.
-- 플랜 기준:
+- 현재 코드 기준 플랜:
   - Free: 광고 표시, 백업 KST 기준 주 1회, 복원 KST 기준 일 1회, 활성 고정 지출 10개 제한, 결제 수단 5개 제한.
   - Cloud: 광고 제거, 백업/복원 무제한, 고정 지출 무제한, 결제 수단 무제한.
   - Report: Cloud 포함, 통계/CSV/PDF 내보내기 해제.
+- 구독 정책 변경 검토 기준은 `docs/subscription/free_report_subscription_policy.md`에 정리되어 있습니다. 방향은 리포트/통계/CSV/PDF를 무료화하고, 구독은 광고 제거와 클라우드 백업/복원 무제한 및 결제 수단/고정 지출 제한 해제로 단순화하는 것입니다.
+- 리포트 무료화 구현 시 `StatisticsTabScreen`의 Report 권한 게이트와 CSV/PDF 내보내기 제한 문구를 제거합니다. 단, 기존 Report 구독자 보호를 위해 `report` entitlement/product/package는 RevenueCat과 코드에서 즉시 삭제하지 않고 호환용으로 유지할 수 있습니다.
+- 리포트 무료화 이후에도 기존 Report 권한은 Cloud 혜택(광고 제거, 백업/복원 무제한, 결제 수단/고정 지출 제한 해제)을 포함하도록 유지하는 것이 안전합니다.
+- RevenueCat/Play Console 전환 시 신규 판매는 `cloud_monthly` 중심으로 유지하고, `report_monthly`는 Offering 노출과 신규 판매를 중단합니다. 기존 구독자가 있을 수 있으므로 product/entitlement 즉시 삭제는 피합니다.
+- iOS 구독을 다시 도입할 경우 Report 상품은 새로 만들지 않고 Cloud 상품만 구성하는 방향이 권장됩니다.
 - iOS 구독/페이월 화면은 현재 “준비 중”을 표시합니다. App Store 구독 설정이 완료되기 전까지 iOS 구매 플로우를 활성화하지 않습니다.
 - 사용자가 구매를 취소한 경우 정상 취소 흐름으로 처리하고 RevenueCat/API 원문 오류를 사용자에게 노출하지 않습니다.
 - 런타임 설정은 `lib/const/revenuecat_config.dart`에서 `--dart-define`으로 읽습니다.
