@@ -205,6 +205,41 @@ class LocalDatabase extends _$LocalDatabase {
     });
   }
 
+  Stream<List<Map<String, dynamic>>> watchMonthExpensesByCategory(
+    DateTime selectedDate,
+    int? categoryId,
+  ) {
+    final start = DateTime(selectedDate.year, selectedDate.month, 1);
+    final end = DateTime(selectedDate.year, selectedDate.month + 1, 1);
+
+    final query =
+        select(expenses).join([
+            leftOuterJoin(
+              paymentMethods,
+              paymentMethods.id.equalsExp(expenses.paymentMethodId),
+            ),
+          ])
+          ..where(
+            expenses.expenseDate.isBiggerOrEqualValue(start) &
+                expenses.expenseDate.isSmallerThanValue(end) &
+                (categoryId != null
+                    ? expenses.categoryId.equals(categoryId)
+                    : expenses.categoryId.isNull()),
+          )
+          ..orderBy([OrderingTerm.desc(expenses.expenseDate)]);
+
+    return query.watch().map((rows) {
+      return rows
+          .map(
+            (row) => {
+              'expense': row.readTable(expenses),
+              'paymentMethod': row.readTableOrNull(paymentMethods),
+            },
+          )
+          .toList();
+    });
+  }
+
   Stream<List<CategoryExpense>> watchMonthlyCategoryExpense(
     DateTime selectedDate,
   ) {
@@ -214,7 +249,11 @@ class LocalDatabase extends _$LocalDatabase {
         selectOnly(expenses).join([
             leftOuterJoin(category, category.id.equalsExp(expenses.categoryId)),
           ])
-          ..addColumns([category.categoryName, expenses.expense.sum()])
+          ..addColumns([
+            category.categoryName,
+            expenses.expense.sum(),
+            expenses.categoryId,
+          ])
           ..where(
             expenses.expenseDate.isBiggerOrEqualValue(start) &
                 expenses.expenseDate.isSmallerThanValue(end),
@@ -224,7 +263,8 @@ class LocalDatabase extends _$LocalDatabase {
     return query.watch().map((rows) {
       return rows.map((row) {
         return CategoryExpense(
-          category: row.read<String>(category.categoryName) ?? '미분류',
+          categoryId: row.read<int>(expenses.categoryId),
+          category: row.read<String>(category.categoryName) ?? '',
           total: row.read<int>(expenses.expense.sum()) ?? 0,
         );
       }).toList();

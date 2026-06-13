@@ -17,13 +17,11 @@ class ReportStatisticsScreen extends StatefulWidget {
   const ReportStatisticsScreen({super.key});
 
   @override
-  State<ReportStatisticsScreen> createState() =>
-      _ReportStatisticsScreenState();
+  State<ReportStatisticsScreen> createState() => _ReportStatisticsScreenState();
 }
 
 class _ReportStatisticsScreenState extends State<ReportStatisticsScreen> {
-  DateTime _selectedMonth =
-      DateTime(DateTime.now().year, DateTime.now().month);
+  DateTime _selectedMonth = DateTime(DateTime.now().year, DateTime.now().month);
 
   int _monthTotal = 0;
   int _prevMonthTotal = 0;
@@ -51,41 +49,40 @@ class _ReportStatisticsScreenState extends State<ReportStatisticsScreen> {
   }
 
   void _cancelAll() {
-    for (final s in _subs) s.cancel();
+    for (final s in _subs) {
+      s.cancel();
+    }
     _subs.clear();
   }
 
   void _subscribe() {
     _cancelAll();
-    final prev =
-        DateTime(_selectedMonth.year, _selectedMonth.month - 1);
+    final prev = DateTime(_selectedMonth.year, _selectedMonth.month - 1);
 
     _subs.addAll([
-      _db.selectMonthExpense(_selectedMonth).listen(
-        (v) { if (mounted) setState(() => _monthTotal = v); },
-      ),
-      _db.selectMonthExpense(prev).listen(
-        (v) { if (mounted) setState(() => _prevMonthTotal = v); },
-      ),
-      _db.countMonthExpenses(_selectedMonth).listen(
-        (v) { if (mounted) setState(() => _expenseCount = v); },
-      ),
-      _db.watchDailyExpenseTotals(_selectedMonth).listen(
-        (v) { if (mounted) setState(() => _dailyTotals = v); },
-      ),
+      _db.selectMonthExpense(_selectedMonth).listen((v) {
+        if (mounted) setState(() => _monthTotal = v);
+      }),
+      _db.selectMonthExpense(prev).listen((v) {
+        if (mounted) setState(() => _prevMonthTotal = v);
+      }),
+      _db.countMonthExpenses(_selectedMonth).listen((v) {
+        if (mounted) setState(() => _expenseCount = v);
+      }),
+      _db.watchDailyExpenseTotals(_selectedMonth).listen((v) {
+        if (mounted) setState(() => _dailyTotals = v);
+      }),
       _db.watchMonthlyCategoryExpense(_selectedMonth).listen((v) {
         if (mounted) {
           setState(() {
-            _categoryItems = [...v]
-              ..sort((a, b) => b.total.compareTo(a.total));
+            _categoryItems = [...v]..sort((a, b) => b.total.compareTo(a.total));
           });
         }
       }),
       _db.watchMonthlyPaymentMethodExpense(_selectedMonth).listen((v) {
         if (mounted) {
           setState(() {
-            _paymentItems = [...v]
-              ..sort((a, b) => b.total.compareTo(a.total));
+            _paymentItems = [...v]..sort((a, b) => b.total.compareTo(a.total));
           });
         }
       }),
@@ -141,10 +138,7 @@ class _ReportStatisticsScreenState extends State<ReportStatisticsScreen> {
                 ),
               ),
             ),
-            _MonthSelector(
-              month: _selectedMonth,
-              onChanged: _changeMonth,
-            ),
+            _MonthSelector(month: _selectedMonth, onChanged: _changeMonth),
             const SizedBox(height: 12),
             Expanded(
               child: ListView(
@@ -158,11 +152,8 @@ class _ReportStatisticsScreenState extends State<ReportStatisticsScreen> {
                     _CategoryBarCard(
                       items: topItems,
                       currencyCode: currencyCode,
-                    ),
-                    const SizedBox(height: 12),
-                    _CategoryListCard(
-                      items: topItems,
-                      currencyCode: currencyCode,
+                      selectedMonth: _selectedMonth,
+                      totalAmount: _monthTotal,
                     ),
                   ],
                   if (_paymentItems.isNotEmpty) ...[
@@ -185,13 +176,13 @@ class _ReportStatisticsScreenState extends State<ReportStatisticsScreen> {
   Widget _buildSummaryCard(String currencyCode) {
     final daysInMonth =
         DateTime(_selectedMonth.year, _selectedMonth.month + 1, 0).day;
-    final dailyAvg =
-        daysInMonth > 0 ? (_monthTotal / daysInMonth).round() : 0;
+    final dailyAvg = daysInMonth > 0 ? (_monthTotal / daysInMonth).round() : 0;
 
     MapEntry<DateTime, int>? peakEntry;
     if (_dailyTotals.isNotEmpty) {
-      peakEntry = _dailyTotals.entries
-          .reduce((a, b) => a.value >= b.value ? a : b);
+      peakEntry = _dailyTotals.entries.reduce(
+        (a, b) => a.value >= b.value ? a : b,
+      );
     }
 
     final diff = _monthTotal - _prevMonthTotal;
@@ -206,13 +197,14 @@ class _ReportStatisticsScreenState extends State<ReportStatisticsScreen> {
     } else {
       final pct = ((diff.abs() / _prevMonthTotal) * 100).round();
       final amount = CurrencyUtils.formatAmount(diff.abs(), currencyCode);
-      vsText = diff > 0
-          ? 'report.stats.vs_increased'.tr(
-              namedArgs: {'amount': amount, 'pct': '$pct'},
-            )
-          : 'report.stats.vs_decreased'.tr(
-              namedArgs: {'amount': amount, 'pct': '$pct'},
-            );
+      vsText =
+          diff > 0
+              ? 'report.stats.vs_increased'.tr(
+                namedArgs: {'amount': amount, 'pct': '$pct'},
+              )
+              : 'report.stats.vs_decreased'.tr(
+                namedArgs: {'amount': amount, 'pct': '$pct'},
+              );
       vsColor = diff > 0 ? AppColors.danger : Colors.green.shade600;
     }
 
@@ -301,8 +293,7 @@ class _MonthSelector extends StatelessWidget {
         child: Row(
           children: [
             IconButton(
-              onPressed: () =>
-                  onChanged(DateTime(month.year, month.month - 1)),
+              onPressed: () => onChanged(DateTime(month.year, month.month - 1)),
               icon: const Icon(Icons.chevron_left_rounded),
             ),
             Expanded(
@@ -327,8 +318,7 @@ class _MonthSelector extends StatelessWidget {
               ),
             ),
             IconButton(
-              onPressed: () =>
-                  onChanged(DateTime(month.year, month.month + 1)),
+              onPressed: () => onChanged(DateTime(month.year, month.month + 1)),
               icon: const Icon(Icons.chevron_right_rounded),
             ),
           ],
@@ -353,9 +343,9 @@ class _StatBlock extends StatelessWidget {
       children: [
         Text(
           label,
-          style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                color: AppColors.mutedOf(context),
-              ),
+          style: Theme.of(
+            context,
+          ).textTheme.labelSmall?.copyWith(color: AppColors.mutedOf(context)),
         ),
         const SizedBox(height: 4),
         Text(value, style: Theme.of(context).textTheme.titleMedium),
@@ -365,11 +355,7 @@ class _StatBlock extends StatelessWidget {
 }
 
 class _StatRow extends StatelessWidget {
-  const _StatRow({
-    required this.label,
-    required this.value,
-    this.valueColor,
-  });
+  const _StatRow({required this.label, required this.value, this.valueColor});
 
   final String label;
   final String value;
@@ -381,17 +367,17 @@ class _StatRow extends StatelessWidget {
       children: [
         Text(
           label,
-          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: AppColors.mutedOf(context),
-              ),
+          style: Theme.of(
+            context,
+          ).textTheme.bodyMedium?.copyWith(color: AppColors.mutedOf(context)),
         ),
         const Spacer(),
         Text(
           value,
           style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: valueColor,
-                fontWeight: FontWeight.w600,
-              ),
+            color: valueColor,
+            fontWeight: FontWeight.w600,
+          ),
         ),
       ],
     );
@@ -401,16 +387,21 @@ class _StatRow extends StatelessWidget {
 // ── Category charts ─────────────────────────────────────────────────────────
 
 class _CategoryBarCard extends StatelessWidget {
-  const _CategoryBarCard(
-      {required this.items, required this.currencyCode});
+  const _CategoryBarCard({
+    required this.items,
+    required this.currencyCode,
+    required this.selectedMonth,
+    required this.totalAmount,
+  });
 
   final List<CategoryExpense> items;
   final String currencyCode;
+  final DateTime selectedMonth;
+  final int totalAmount;
 
   @override
   Widget build(BuildContext context) {
-    final maxValue =
-        items.map((e) => e.total).fold<int>(0, math.max);
+    final maxValue = items.map((e) => e.total).fold<int>(0, math.max);
     return Card(
       margin: EdgeInsets.zero,
       child: Padding(
@@ -425,47 +416,67 @@ class _CategoryBarCard extends StatelessWidget {
               style: Theme.of(context).textTheme.titleMedium,
             ),
             const SizedBox(height: 12),
-            ...items.map((item) {
-              final ratio =
-                  maxValue == 0 ? 0.0 : (item.total / maxValue);
+            ...items.asMap().entries.map((entry) {
+              final index = entry.key;
+              final item = entry.value;
+              final ratio = maxValue == 0 ? 0.0 : (item.total / maxValue);
+              final pct =
+                  totalAmount == 0
+                      ? 0
+                      : ((item.total / totalAmount) * 100).round();
+              final name =
+                  item.category.isEmpty
+                      ? 'common.unclassified'.tr()
+                      : item.category;
               return Padding(
                 padding: const EdgeInsets.only(bottom: 10),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
+                child: InkWell(
+                  borderRadius: BorderRadius.circular(8),
+                  onTap: () => _showDetail(context, item, name),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 5),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Expanded(
-                          child: Text(
-                            item.category.isEmpty
-                                ? 'common.unclassified'.tr()
-                                : item.category,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
+                        Row(
+                          children: [
+                            CircleAvatar(
+                              radius: 14,
+                              child: Text('${index + 1}'),
+                            ),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: Text(
+                                name,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Text(
+                              '${CurrencyUtils.formatAmount(item.total, currencyCode)}  ($pct%)',
+                              style: Theme.of(context).textTheme.bodyMedium,
+                            ),
+                            const SizedBox(width: 4),
+                            Icon(
+                              Icons.chevron_right,
+                              size: 16,
+                              color: AppColors.mutedOf(context),
+                            ),
+                          ],
                         ),
-                        const SizedBox(width: 8),
-                        Text(
-                          CurrencyUtils.formatAmount(
-                            item.total,
-                            currencyCode,
+                        const SizedBox(height: 6),
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(999),
+                          child: LinearProgressIndicator(
+                            value: ratio,
+                            minHeight: 10,
+                            backgroundColor: AppColors.outlineOf(context),
                           ),
-                          style:
-                              Theme.of(context).textTheme.bodyMedium,
                         ),
                       ],
                     ),
-                    const SizedBox(height: 6),
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(999),
-                      child: LinearProgressIndicator(
-                        value: ratio,
-                        minHeight: 10,
-                        backgroundColor:
-                            AppColors.outlineOf(context),
-                      ),
-                    ),
-                  ],
+                  ),
                 ),
               );
             }),
@@ -474,72 +485,258 @@ class _CategoryBarCard extends StatelessWidget {
       ),
     );
   }
+
+  void _showDetail(BuildContext context, CategoryExpense item, String name) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      builder:
+          (_) => _CategoryDetailSheet(
+            name: name,
+            total: item.total,
+            categoryId: item.categoryId,
+            selectedMonth: selectedMonth,
+            currencyCode: currencyCode,
+          ),
+    );
+  }
 }
 
-class _CategoryListCard extends StatelessWidget {
-  const _CategoryListCard(
-      {required this.items, required this.currencyCode});
+// ── Category detail sheet ───────────────────────────────────────────────────
 
-  final List<CategoryExpense> items;
+class _CategoryDetailSheet extends StatelessWidget {
+  const _CategoryDetailSheet({
+    required this.name,
+    required this.total,
+    required this.categoryId,
+    required this.selectedMonth,
+    required this.currencyCode,
+  });
+
+  final String name;
+  final int total;
+  final int? categoryId;
+  final DateTime selectedMonth;
   final String currencyCode;
 
   @override
   Widget build(BuildContext context) {
-    final total =
-        items.fold<int>(0, (sum, item) => sum + item.total);
-    return Card(
-      margin: EdgeInsets.zero,
-      child: Padding(
-        padding: const EdgeInsets.all(14),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+    final isDark = AppColors.isDark(context);
+
+    return DraggableScrollableSheet(
+      initialChildSize: 0.65,
+      minChildSize: 0.4,
+      maxChildSize: 0.92,
+      expand: false,
+      builder: (context, scrollController) {
+        return Column(
           children: [
-            Text(
-              'report.stats.list_title'.tr(
-                namedArgs: {'count': '${items.length}'},
+            Padding(
+              padding: const EdgeInsets.only(top: 10, bottom: 4),
+              child: Container(
+                width: 36,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: AppColors.outlineOf(context),
+                  borderRadius: BorderRadius.circular(2),
+                ),
               ),
-              style: Theme.of(context).textTheme.titleMedium,
             ),
-            const SizedBox(height: 8),
-            ...items.asMap().entries.map((e) {
-              final index = e.key;
-              final item = e.value;
-              final pct = total == 0
-                  ? 0
-                  : ((item.total / total) * 100).round();
-              return Column(
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 12, 20, 16),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  if (index > 0)
-                    const Divider(height: 1),
-                  ListTile(
-                    dense: true,
-                    contentPadding: EdgeInsets.zero,
-                    leading: CircleAvatar(
-                      radius: 14,
-                      child: Text('${index + 1}'),
+                  Container(
+                    width: 44,
+                    height: 44,
+                    decoration: BoxDecoration(
+                      color: AppColors.primary.withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(12),
                     ),
-                    title: Text(
-                      item.category.isEmpty
-                          ? 'common.unclassified'.tr()
-                          : item.category,
-                    ),
-                    subtitle: Text(
-                      'report.stats.share'
-                          .tr(namedArgs: {'pct': '$pct'}),
-                    ),
-                    trailing: Text(
-                      CurrencyUtils.formatAmount(
-                        item.total,
-                        currencyCode,
-                      ),
+                    child: Icon(
+                      Icons.category_rounded,
+                      color: AppColors.primary,
+                      size: 22,
                     ),
                   ),
+                  const SizedBox(width: 14),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          name,
+                          style: Theme.of(context).textTheme.titleMedium
+                              ?.copyWith(fontWeight: FontWeight.bold),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          DateFormat('yyyy.MM').format(selectedMonth),
+                          style: Theme.of(context).textTheme.bodySmall
+                              ?.copyWith(color: AppColors.mutedOf(context)),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Text(
+                        CurrencyUtils.formatAmount(total, currencyCode),
+                        style: Theme.of(
+                          context,
+                        ).textTheme.titleMedium?.copyWith(
+                          color: AppColors.primary,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      Text(
+                        'report.stats.total_expense'.tr(),
+                        style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                          color: AppColors.mutedOf(context),
+                        ),
+                      ),
+                    ],
+                  ),
                 ],
-              );
-            }),
+              ),
+            ),
+            Divider(height: 1, color: AppColors.outlineOf(context)),
+            Expanded(
+              child: StreamBuilder<List<Map<String, dynamic>>>(
+                stream: GetIt.I<LocalDatabase>().watchMonthExpensesByCategory(
+                  selectedMonth,
+                  categoryId,
+                ),
+                builder: (context, snapshot) {
+                  final data = snapshot.data ?? [];
+                  if (data.isEmpty) {
+                    return Center(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.receipt_long_outlined,
+                            size: 40,
+                            color: AppColors.mutedOf(context),
+                          ),
+                          const SizedBox(height: 12),
+                          Text(
+                            'home.empty'.tr(),
+                            style: TextStyle(color: AppColors.mutedOf(context)),
+                          ),
+                        ],
+                      ),
+                    );
+                  }
+                  return ListView.builder(
+                    controller: scrollController,
+                    padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
+                    itemCount: data.length,
+                    itemBuilder: (context, index) {
+                      final expense = data[index]['expense'] as Expense;
+                      final paymentMethod =
+                          data[index]['paymentMethod'] as PaymentMethod?;
+                      final paymentMethodName =
+                          paymentMethod?.name ?? 'common.unclassified'.tr();
+                      return Container(
+                        margin: const EdgeInsets.only(bottom: 10),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 14,
+                        ),
+                        decoration: BoxDecoration(
+                          color: AppColors.surfaceAltOf(context),
+                          borderRadius: BorderRadius.circular(14),
+                          border: Border.all(
+                            color: AppColors.outlineOf(context),
+                          ),
+                        ),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    expense.expenseName,
+                                    style: Theme.of(context).textTheme.bodyLarge
+                                        ?.copyWith(fontWeight: FontWeight.w600),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                  const SizedBox(height: 6),
+                                  Row(
+                                    children: [
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 8,
+                                          vertical: 3,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color: Theme.of(
+                                            context,
+                                          ).colorScheme.primary.withValues(
+                                            alpha: isDark ? 0.22 : 0.09,
+                                          ),
+                                          borderRadius: BorderRadius.circular(
+                                            999,
+                                          ),
+                                        ),
+                                        child: Text(
+                                          paymentMethodName,
+                                          style: Theme.of(
+                                            context,
+                                          ).textTheme.labelSmall?.copyWith(
+                                            color: AppColors.primary,
+                                          ),
+                                        ),
+                                      ),
+                                      const SizedBox(width: 8),
+                                      Icon(
+                                        Icons.calendar_today_outlined,
+                                        size: 11,
+                                        color: AppColors.mutedOf(context),
+                                      ),
+                                      const SizedBox(width: 3),
+                                      Text(
+                                        DateFormat(
+                                          'MM.dd',
+                                        ).format(expense.expenseDate),
+                                        style: Theme.of(
+                                          context,
+                                        ).textTheme.labelSmall?.copyWith(
+                                          color: AppColors.mutedOf(context),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(width: 16),
+                            Text(
+                              CurrencyUtils.formatAmount(
+                                expense.expense,
+                                currencyCode,
+                              ),
+                              style: Theme.of(context).textTheme.titleMedium
+                                  ?.copyWith(fontWeight: FontWeight.w700),
+                            ),
+                          ],
+                        ),
+                      );
+                    },
+                  );
+                },
+              ),
+            ),
           ],
-        ),
-      ),
+        );
+      },
     );
   }
 }
@@ -576,12 +773,12 @@ class _PaymentMethodCard extends StatelessWidget {
             const SizedBox(height: 12),
             ...items.map((item) {
               final ratio = maxValue == 0 ? 0.0 : (item.total / maxValue);
-              final pct = totalAmount == 0
-                  ? 0
-                  : ((item.total / totalAmount) * 100).round();
-              final name = item.name.isEmpty
-                  ? 'common.unclassified'.tr()
-                  : item.name;
+              final pct =
+                  totalAmount == 0
+                      ? 0
+                      : ((item.total / totalAmount) * 100).round();
+              final name =
+                  item.name.isEmpty ? 'common.unclassified'.tr() : item.name;
               return InkWell(
                 borderRadius: BorderRadius.circular(8),
                 onTap: () => _showDetail(context, item, name),
@@ -633,18 +830,22 @@ class _PaymentMethodCard extends StatelessWidget {
   }
 
   void _showDetail(
-      BuildContext context, PaymentMethodExpense item, String displayName) {
+    BuildContext context,
+    PaymentMethodExpense item,
+    String displayName,
+  ) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       useSafeArea: true,
-      builder: (_) => _PaymentMethodDetailSheet(
-        name: displayName,
-        total: item.total,
-        paymentMethodId: item.paymentMethodId,
-        selectedMonth: selectedMonth,
-        currencyCode: currencyCode,
-      ),
+      builder:
+          (_) => _PaymentMethodDetailSheet(
+            name: displayName,
+            total: item.total,
+            paymentMethodId: item.paymentMethodId,
+            selectedMonth: selectedMonth,
+            currencyCode: currencyCode,
+          ),
     );
   }
 }
@@ -716,18 +917,14 @@ class _PaymentMethodDetailSheet extends StatelessWidget {
                       children: [
                         Text(
                           name,
-                          style: Theme.of(context)
-                              .textTheme
-                              .titleMedium
+                          style: Theme.of(context).textTheme.titleMedium
                               ?.copyWith(fontWeight: FontWeight.bold),
                         ),
                         const SizedBox(height: 2),
                         Text(
                           DateFormat('yyyy.MM').format(selectedMonth),
-                          style:
-                              Theme.of(context).textTheme.bodySmall?.copyWith(
-                                    color: AppColors.mutedOf(context),
-                                  ),
+                          style: Theme.of(context).textTheme.bodySmall
+                              ?.copyWith(color: AppColors.mutedOf(context)),
                         ),
                       ],
                     ),
@@ -737,20 +934,18 @@ class _PaymentMethodDetailSheet extends StatelessWidget {
                     children: [
                       Text(
                         CurrencyUtils.formatAmount(total, currencyCode),
-                        style: Theme.of(context)
-                            .textTheme
-                            .titleMedium
-                            ?.copyWith(
-                              color: AppColors.primary,
-                              fontWeight: FontWeight.bold,
-                            ),
+                        style: Theme.of(
+                          context,
+                        ).textTheme.titleMedium?.copyWith(
+                          color: AppColors.primary,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                       Text(
                         'report.stats.total_expense'.tr(),
-                        style:
-                            Theme.of(context).textTheme.labelSmall?.copyWith(
-                                  color: AppColors.mutedOf(context),
-                                ),
+                        style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                          color: AppColors.mutedOf(context),
+                        ),
                       ),
                     ],
                   ),
@@ -763,9 +958,9 @@ class _PaymentMethodDetailSheet extends StatelessWidget {
               child: StreamBuilder<List<Map<String, dynamic>>>(
                 stream: GetIt.I<LocalDatabase>()
                     .watchMonthExpensesByPaymentMethod(
-                  selectedMonth,
-                  paymentMethodId,
-                ),
+                      selectedMonth,
+                      paymentMethodId,
+                    ),
                 builder: (context, snapshot) {
                   final data = snapshot.data ?? [];
                   if (data.isEmpty) {
@@ -781,8 +976,7 @@ class _PaymentMethodDetailSheet extends StatelessWidget {
                           const SizedBox(height: 12),
                           Text(
                             'home.empty'.tr(),
-                            style: TextStyle(
-                                color: AppColors.mutedOf(context)),
+                            style: TextStyle(color: AppColors.mutedOf(context)),
                           ),
                         ],
                       ),
@@ -800,7 +994,9 @@ class _PaymentMethodDetailSheet extends StatelessWidget {
                       return Container(
                         margin: const EdgeInsets.only(bottom: 10),
                         padding: const EdgeInsets.symmetric(
-                            horizontal: 16, vertical: 14),
+                          horizontal: 16,
+                          vertical: 14,
+                        ),
                         decoration: BoxDecoration(
                           color: AppColors.surfaceAltOf(context),
                           borderRadius: BorderRadius.circular(14),
@@ -817,12 +1013,8 @@ class _PaymentMethodDetailSheet extends StatelessWidget {
                                 children: [
                                   Text(
                                     expense.expenseName,
-                                    style: Theme.of(context)
-                                        .textTheme
-                                        .bodyLarge
-                                        ?.copyWith(
-                                          fontWeight: FontWeight.w600,
-                                        ),
+                                    style: Theme.of(context).textTheme.bodyLarge
+                                        ?.copyWith(fontWeight: FontWeight.w600),
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis,
                                   ),
@@ -831,24 +1023,26 @@ class _PaymentMethodDetailSheet extends StatelessWidget {
                                     children: [
                                       Container(
                                         padding: const EdgeInsets.symmetric(
-                                            horizontal: 8, vertical: 3),
+                                          horizontal: 8,
+                                          vertical: 3,
+                                        ),
                                         decoration: BoxDecoration(
-                                          color: Theme.of(context)
-                                              .colorScheme
-                                              .primary
-                                              .withValues(
-                                                  alpha: isDark ? 0.22 : 0.09),
-                                          borderRadius:
-                                              BorderRadius.circular(999),
+                                          color: Theme.of(
+                                            context,
+                                          ).colorScheme.primary.withValues(
+                                            alpha: isDark ? 0.22 : 0.09,
+                                          ),
+                                          borderRadius: BorderRadius.circular(
+                                            999,
+                                          ),
                                         ),
                                         child: Text(
                                           categoryName,
-                                          style: Theme.of(context)
-                                              .textTheme
-                                              .labelSmall
-                                              ?.copyWith(
-                                                color: AppColors.primary,
-                                              ),
+                                          style: Theme.of(
+                                            context,
+                                          ).textTheme.labelSmall?.copyWith(
+                                            color: AppColors.primary,
+                                          ),
                                         ),
                                       ),
                                       const SizedBox(width: 8),
@@ -859,14 +1053,14 @@ class _PaymentMethodDetailSheet extends StatelessWidget {
                                       ),
                                       const SizedBox(width: 3),
                                       Text(
-                                        DateFormat('MM.dd')
-                                            .format(expense.expenseDate),
-                                        style: Theme.of(context)
-                                            .textTheme
-                                            .labelSmall
-                                            ?.copyWith(
-                                              color: AppColors.mutedOf(context),
-                                            ),
+                                        DateFormat(
+                                          'MM.dd',
+                                        ).format(expense.expenseDate),
+                                        style: Theme.of(
+                                          context,
+                                        ).textTheme.labelSmall?.copyWith(
+                                          color: AppColors.mutedOf(context),
+                                        ),
                                       ),
                                     ],
                                   ),
@@ -876,10 +1070,10 @@ class _PaymentMethodDetailSheet extends StatelessWidget {
                             const SizedBox(width: 16),
                             Text(
                               CurrencyUtils.formatAmount(
-                                  expense.expense, currencyCode),
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .titleMedium
+                                expense.expense,
+                                currencyCode,
+                              ),
+                              style: Theme.of(context).textTheme.titleMedium
                                   ?.copyWith(fontWeight: FontWeight.w700),
                             ),
                           ],

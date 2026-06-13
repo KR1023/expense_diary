@@ -214,11 +214,9 @@
       "peak_day": "Peak Day",
       "peak_day_value": "{date} · {amount}",
       "chart_title": "Category Top {count}",
-      "list_title": "Category Top {count}",
       "payment_method_title": "By Payment Method",
       "empty_month": "No expense data for this month.",
-      "empty_category_list": "No category totals available.",
-      "share": "Share {pct}%"
+      "empty_category_list": "No category totals available."
     }
   },
   "auth": {
