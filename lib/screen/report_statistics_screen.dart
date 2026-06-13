@@ -157,8 +157,7 @@ class _ReportStatisticsScreenState extends State<ReportStatisticsScreen> {
                     style: Theme.of(context).textTheme.titleLarge,
                   ),
                 ),
-                IconButton.filledTonal(
-                  tooltip: 'report.export.title'.tr(),
+                _ReportExportShortcutButton(
                   onPressed: () {
                     Navigator.of(context).push(
                       MaterialPageRoute(
@@ -166,7 +165,6 @@ class _ReportStatisticsScreenState extends State<ReportStatisticsScreen> {
                       ),
                     );
                   },
-                  icon: const Icon(Icons.file_download_outlined),
                 ),
               ],
             ),
@@ -365,6 +363,54 @@ class _ReportStatisticsScreenState extends State<ReportStatisticsScreen> {
             total: total,
             currencyCode: currencyCode,
           ),
+    );
+  }
+}
+
+class _ReportExportShortcutButton extends StatelessWidget {
+  const _ReportExportShortcutButton({required this.onPressed});
+
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    final bgIndex = GetIt.I<AppSettings>().backgroundIndex;
+    final gradient = AppColors.heroGradientForBackground(bgIndex, context);
+
+    return Tooltip(
+      message: 'report.export.title'.tr(),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(999),
+          onTap: onPressed,
+          child: Ink(
+            padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 10),
+            decoration: BoxDecoration(
+              gradient: gradient,
+              borderRadius: BorderRadius.circular(999),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(
+                  Icons.file_download_outlined,
+                  size: 18,
+                  color: Colors.white,
+                ),
+                const SizedBox(width: 6),
+                Text(
+                  'report.export.short_label'.tr(),
+                  style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
     );
   }
 }

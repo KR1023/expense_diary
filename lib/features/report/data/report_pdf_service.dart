@@ -16,12 +16,14 @@ class PdfExportResult {
     required this.transactionCount,
     required this.categoryTopCount,
     required this.paymentMethodTotalCount,
+    required this.previewLines,
   });
 
   final File file;
   final int transactionCount;
   final int categoryTopCount;
   final int paymentMethodTotalCount;
+  final List<String> previewLines;
 }
 
 class ReportPdfService {
@@ -332,7 +334,87 @@ class ReportPdfService {
       transactionCount: txRows.length,
       categoryTopCount: topCategories.length,
       paymentMethodTotalCount: paymentMethodTotals.length,
+      previewLines: _buildPreviewLines(
+        labels: labels,
+        title: _reportTitle(
+          labels: labels,
+          startInclusive: effectiveStart,
+          endExclusive: effectiveEnd,
+          isMonthlyRange: isMonthlyRange,
+          monthAnchor: monthAnchor,
+          languageCode: languageCode,
+        ),
+        totalExpense: totalExpense,
+        txRows: txRows,
+        topCategories: topCategories,
+        paymentMethodTotals: paymentMethodTotals,
+      ),
     );
+  }
+
+  List<String> _buildPreviewLines({
+    required _PdfLabels labels,
+    required String title,
+    required int totalExpense,
+    required List<TypedResult> txRows,
+    required List<_CategoryTotal> topCategories,
+    required List<_PaymentMethodTotal> paymentMethodTotals,
+  }) {
+    final lines = <String>[
+      title,
+      '',
+      labels.summaryDescription,
+      '${labels.totalExpense}: $totalExpense',
+      '${labels.transactions}: ${txRows.length}',
+      '',
+      '${labels.categoryTop} (${topCategories.length})',
+      ...topCategories.take(8).map((item) {
+        final name =
+            item.category.isEmpty ? labels.unclassified : item.category;
+        return '- $name: ${item.total}';
+      }),
+      '',
+      '${labels.paymentMethodTotals} (${paymentMethodTotals.length})',
+      ...paymentMethodTotals.take(8).map((item) {
+        final name = item.name.isEmpty ? labels.noPaymentMethod : item.name;
+        return '- $name: ${item.total}';
+      }),
+      '',
+      labels.transactionsSection,
+      [
+        labels.sequenceHeader,
+        labels.dateHeader,
+        labels.nameHeader,
+        labels.categoryHeader,
+        labels.paymentMethodHeader,
+        labels.amountHeader,
+        labels.memoHeader,
+      ].join(' | '),
+    ];
+
+    for (final entry in txRows.take(30).toList().asMap().entries) {
+      final row = entry.value;
+      final expense = row.readTable(_db.expenses);
+      final category = row.readTableOrNull(_db.category);
+      final paymentMethod = row.readTableOrNull(_db.paymentMethods);
+      lines.add(
+        [
+          '${entry.key + 1}',
+          _dateOnly(expense.expenseDate),
+          expense.expenseName,
+          category?.categoryName ?? '',
+          paymentMethod?.name ?? labels.noPaymentMethod,
+          '${expense.expense}',
+          expense.expenseDetail ?? '',
+        ].join(' | '),
+      );
+    }
+
+    if (txRows.length > 30) {
+      lines.add('... ${txRows.length - 30} more');
+    }
+
+    return lines;
   }
 
   List<_CategoryTotal> _buildTopCategories(List<TypedResult> txRows) {

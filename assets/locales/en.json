@@ -217,7 +217,9 @@
     },
     "export": {
       "title": "Export Report",
+      "short_label": "Export",
       "subtitle": "Choose a range and format to save or share your expense data.",
+      "options_title": "Report settings",
       "format": "Format",
       "csv": "CSV",
       "pdf": "PDF",
@@ -229,6 +231,8 @@
       "selected_range": "Export range: {start} ~ {end}",
       "generate": "Generate",
       "generating": "Generating...",
+      "generating_notice": "Generating the {format} report.",
+      "generating_notice_desc": "Large date ranges may take a moment. The preview will appear below when it is ready.",
       "share": "Share",
       "preview_title": "Generated Preview",
       "preview_empty": "Tap Generate to preview the selected format here.",
