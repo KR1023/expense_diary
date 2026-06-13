@@ -834,6 +834,19 @@ class _CategoryBarCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final maxValue = items.map((e) => e.total).fold<int>(0, math.max);
+    final backgroundIndex = GetIt.I<AppSettings>().backgroundIndex;
+    final accentColor = AppColors.accentColorForBackground(
+      backgroundIndex,
+      context,
+    );
+    final isDark = AppColors.isDark(context);
+    final indicatorColor =
+        isDark ? Color.lerp(accentColor, Colors.white, 0.18)! : accentColor;
+    final trackColor = AppColors.outlineColorOf(
+      backgroundIndex,
+      context,
+    ).withValues(alpha: isDark ? 0.45 : 0.55);
+
     return Card(
       margin: EdgeInsets.zero,
       child: Padding(
@@ -874,7 +887,18 @@ class _CategoryBarCard extends StatelessWidget {
                           children: [
                             CircleAvatar(
                               radius: 14,
-                              child: Text('${index + 1}'),
+                              backgroundColor: indicatorColor.withValues(
+                                alpha: isDark ? 0.28 : 0.14,
+                              ),
+                              child: Text(
+                                '${index + 1}',
+                                style: Theme.of(
+                                  context,
+                                ).textTheme.labelMedium?.copyWith(
+                                  color: indicatorColor,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
                             ),
                             const SizedBox(width: 10),
                             Expanded(
@@ -903,7 +927,8 @@ class _CategoryBarCard extends StatelessWidget {
                           child: LinearProgressIndicator(
                             value: ratio,
                             minHeight: 10,
-                            backgroundColor: AppColors.outlineOf(context),
+                            color: indicatorColor,
+                            backgroundColor: trackColor,
                           ),
                         ),
                       ],
@@ -1289,6 +1314,18 @@ class _PaymentMethodCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final maxValue = items.map((e) => e.total).fold<int>(0, math.max);
     final totalAmount = items.fold<int>(0, (sum, e) => sum + e.total);
+    final backgroundIndex = GetIt.I<AppSettings>().backgroundIndex;
+    final accentColor = AppColors.accentColorForBackground(
+      backgroundIndex,
+      context,
+    );
+    final isDark = AppColors.isDark(context);
+    final indicatorColor =
+        isDark ? Color.lerp(accentColor, Colors.white, 0.18)! : accentColor;
+    final trackColor = AppColors.outlineColorOf(
+      backgroundIndex,
+      context,
+    ).withValues(alpha: isDark ? 0.45 : 0.55);
 
     return Card(
       margin: EdgeInsets.zero,
@@ -1346,7 +1383,8 @@ class _PaymentMethodCard extends StatelessWidget {
                         child: LinearProgressIndicator(
                           value: ratio,
                           minHeight: 10,
-                          backgroundColor: AppColors.outlineOf(context),
+                          color: indicatorColor,
+                          backgroundColor: trackColor,
                         ),
                       ),
                     ],
