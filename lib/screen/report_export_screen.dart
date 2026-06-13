@@ -8,6 +8,7 @@ import 'package:expense_diary/features/report/data/report_csv_service.dart';
 import 'package:expense_diary/features/report/data/report_pdf_service.dart';
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
+import 'package:path/path.dart' as p;
 import 'package:share_plus/share_plus.dart';
 
 enum _ExportFormat { csv, pdf }
@@ -29,7 +30,7 @@ class _ReportExportScreenState extends State<ReportExportScreen> {
   late DateTime _customEnd;
   bool _exporting = false;
   File? _lastFile;
-  String? _lastSummary;
+  _ExportPreview? _preview;
 
   ReportCsvService get _csvService => GetIt.I<ReportCsvService>();
   ReportPdfService get _pdfService => GetIt.I<ReportPdfService>();
@@ -107,8 +108,7 @@ class _ReportExportScreenState extends State<ReportExportScreen> {
                       onSelectionChanged: (value) {
                         setState(() {
                           _format = value.first;
-                          _lastFile = null;
-                          _lastSummary = null;
+                          _clearGeneratedFile();
                         });
                       },
                     ),
@@ -135,6 +135,7 @@ class _ReportExportScreenState extends State<ReportExportScreen> {
                       onSelectionChanged: (value) {
                         setState(() {
                           _rangeType = value.first;
+                          _clearGeneratedFile();
                         });
                       },
                     ),
@@ -145,6 +146,7 @@ class _ReportExportScreenState extends State<ReportExportScreen> {
                         onChanged: (value) {
                           setState(() {
                             _selectedMonth = DateTime(value.year, value.month);
+                            _clearGeneratedFile();
                           });
                         },
                       )
@@ -162,6 +164,7 @@ class _ReportExportScreenState extends State<ReportExportScreen> {
                             if (_customEnd.isBefore(_customStart)) {
                               _customEnd = _customStart;
                             }
+                            _clearGeneratedFile();
                           });
                         },
                         onEndChanged: (value) {
@@ -174,17 +177,13 @@ class _ReportExportScreenState extends State<ReportExportScreen> {
                             if (_customEnd.isBefore(_customStart)) {
                               _customStart = _customEnd;
                             }
+                            _clearGeneratedFile();
                           });
                         },
                       ),
                     const SizedBox(height: 12),
                     Text(
-                      'report.export.selected_range'.tr(
-                        namedArgs: {
-                          'start': DateFormat('yyyy.MM.dd').format(start),
-                          'end': DateFormat('yyyy.MM.dd').format(endInclusive),
-                        },
-                      ),
+                      _rangeLabel(start, endInclusive),
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
                         color: AppColors.mutedOf(context),
                       ),
@@ -218,7 +217,7 @@ class _ReportExportScreenState extends State<ReportExportScreen> {
                             onPressed:
                                 (_exporting || _lastFile == null)
                                     ? null
-                                    : _shareLastFile,
+                                    : () => _shareLastFile(context),
                             icon: const Icon(Icons.share_outlined),
                             label: Text('report.export.share'.tr()),
                           ),
@@ -231,36 +230,10 @@ class _ReportExportScreenState extends State<ReportExportScreen> {
             ),
             const SizedBox(height: 12),
             Expanded(
-              child: Card(
-                margin: EdgeInsets.zero,
-                child: Padding(
-                  padding: const EdgeInsets.all(14),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'report.export.result'.tr(),
-                        style: Theme.of(context).textTheme.titleMedium,
-                      ),
-                      const SizedBox(height: 10),
-                      if (_lastFile == null)
-                        Text(
-                          'report.export.no_file'.tr(),
-                          style: TextStyle(color: AppColors.mutedOf(context)),
-                        )
-                      else ...[
-                        Text(_lastSummary ?? ''),
-                        const SizedBox(height: 6),
-                        Text(
-                          _lastFile!.path,
-                          style: Theme.of(context).textTheme.bodySmall
-                              ?.copyWith(color: AppColors.mutedOf(context)),
-                        ),
-                      ],
-                    ],
-                  ),
-                ),
-              ),
+              child:
+                  _preview == null
+                      ? _ExportPreviewPlaceholder(format: _format)
+                      : _GeneratedPreviewCard(preview: _preview!),
             ),
           ],
         ),
@@ -293,19 +266,32 @@ class _ReportExportScreenState extends State<ReportExportScreen> {
 
     try {
       final (start, endExclusive) = _effectiveRange();
+      final endInclusive = endExclusive.subtract(const Duration(days: 1));
       final languageCode = context.locale.languageCode;
+      final rangeLabel = _rangeLabel(start, endInclusive);
+
       if (_format == _ExportFormat.csv) {
         final result = await _csvService.exportExpensesCsv(
           startInclusive: start,
           endExclusive: endExclusive,
           languageCode: languageCode,
+          isMonthlyRange: _rangeType == _ExportRangeType.month,
+          monthAnchor:
+              _rangeType == _ExportRangeType.month ? _selectedMonth : null,
           fileNamePrefix: _localizedPrefix(languageCode, 'csv'),
         );
+        final lines = await _buildCsvPreviewLines(result.file);
         if (!mounted) return;
         setState(() {
           _lastFile = result.file;
-          _lastSummary = 'report.export.csv_done'.tr(
-            namedArgs: {'count': '${result.rowCount}'},
+          _preview = _ExportPreview(
+            format: _ExportFormat.csv,
+            fileName: p.basename(result.file.path),
+            rangeLabel: rangeLabel,
+            summary: 'report.export.csv_done'.tr(
+              namedArgs: {'count': '${result.rowCount}'},
+            ),
+            rows: lines,
           );
         });
       } else {
@@ -321,14 +307,34 @@ class _ReportExportScreenState extends State<ReportExportScreen> {
         if (!mounted) return;
         setState(() {
           _lastFile = result.file;
-          _lastSummary = 'report.export.pdf_done'.tr(
-            namedArgs: {'count': '${result.transactionCount}'},
+          _preview = _ExportPreview(
+            format: _ExportFormat.pdf,
+            fileName: p.basename(result.file.path),
+            rangeLabel: rangeLabel,
+            summary: 'report.export.pdf_done'.tr(
+              namedArgs: {'count': '${result.transactionCount}'},
+            ),
+            rows: [
+              'report.export.preview_pdf_line_range'.tr(
+                namedArgs: {'range': rangeLabel},
+              ),
+              'report.export.preview_pdf_line_transactions'.tr(
+                namedArgs: {'count': '${result.transactionCount}'},
+              ),
+              'report.export.preview_pdf_line_categories'.tr(
+                namedArgs: {'count': '${result.categoryTopCount}'},
+              ),
+              'report.export.preview_pdf_line_payment_methods'.tr(
+                namedArgs: {'count': '${result.paymentMethodTotalCount}'},
+              ),
+            ],
           );
         });
       }
       _showSnackBar('report.export.done'.tr());
     } catch (e) {
       if (!mounted) return;
+      debugPrint('ReportExportScreen._export failed: $e');
       _showSnackBar('report.export.failed'.tr());
     } finally {
       if (mounted) {
@@ -339,15 +345,42 @@ class _ReportExportScreenState extends State<ReportExportScreen> {
     }
   }
 
-  Future<void> _shareLastFile() async {
+  Future<List<String>> _buildCsvPreviewLines(File file) async {
+    final raw = await file.readAsLines();
+    if (raw.isEmpty) return const [];
+    final summaryIndex = raw.indexWhere((line) => line.trim().isEmpty);
+    if (summaryIndex < 0) {
+      return raw.take(12).toList(growable: false);
+    }
+
+    return [
+      ...raw.take(7),
+      if (summaryIndex > 7) '...',
+      ...raw.skip(summaryIndex + 1).take(8),
+    ];
+  }
+
+  Future<void> _shareLastFile(BuildContext context) async {
     final file = _lastFile;
     if (file == null) return;
 
-    final shareText =
-        _format == _ExportFormat.csv
-            ? 'report.export.csv_share'.tr()
-            : 'report.export.pdf_share'.tr();
-    await Share.shareXFiles([XFile(file.path)], text: shareText);
+    try {
+      final box = context.findRenderObject() as RenderBox?;
+      final shareOrigin =
+          box == null ? null : box.localToGlobal(Offset.zero) & box.size;
+      await Share.shareXFiles([
+        XFile(
+          file.path,
+          name: p.basename(file.path),
+          mimeType:
+              _format == _ExportFormat.csv ? 'text/csv' : 'application/pdf',
+        ),
+      ], sharePositionOrigin: shareOrigin);
+    } catch (e) {
+      if (!mounted) return;
+      debugPrint('ReportExportScreen._shareLastFile failed: $e');
+      _showSnackBar('report.export.share_failed'.tr());
+    }
   }
 
   String _localizedPrefix(String languageCode, String ext) {
@@ -359,10 +392,251 @@ class _ReportExportScreenState extends State<ReportExportScreen> {
     return 'expense_report_${ext}_$range';
   }
 
+  String _rangeLabel(DateTime start, DateTime endInclusive) {
+    return 'report.export.selected_range'.tr(
+      namedArgs: {
+        'start': DateFormat('yyyy.MM.dd').format(start),
+        'end': DateFormat('yyyy.MM.dd').format(endInclusive),
+      },
+    );
+  }
+
+  void _clearGeneratedFile() {
+    _lastFile = null;
+    _preview = null;
+  }
+
   void _showSnackBar(String message) {
     ScaffoldMessenger.of(
       context,
     ).showSnackBar(SnackBar(content: Text(message)));
+  }
+}
+
+class _ExportPreview {
+  const _ExportPreview({
+    required this.format,
+    required this.fileName,
+    required this.rangeLabel,
+    required this.summary,
+    required this.rows,
+  });
+
+  final _ExportFormat format;
+  final String fileName;
+  final String rangeLabel;
+  final String summary;
+  final List<String> rows;
+}
+
+class _ExportPreviewPlaceholder extends StatelessWidget {
+  const _ExportPreviewPlaceholder({required this.format});
+
+  final _ExportFormat format;
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      margin: EdgeInsets.zero,
+      child: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                format == _ExportFormat.csv
+                    ? Icons.table_chart_outlined
+                    : Icons.picture_as_pdf_outlined,
+                size: 42,
+                color: AppColors.mutedOf(context),
+              ),
+              const SizedBox(height: 12),
+              Text(
+                'report.export.preview_empty'.tr(),
+                textAlign: TextAlign.center,
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: AppColors.mutedOf(context),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _GeneratedPreviewCard extends StatelessWidget {
+  const _GeneratedPreviewCard({required this.preview});
+
+  final _ExportPreview preview;
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      margin: EdgeInsets.zero,
+      child: Padding(
+        padding: const EdgeInsets.all(14),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(
+                  preview.format == _ExportFormat.csv
+                      ? Icons.table_chart_outlined
+                      : Icons.picture_as_pdf_outlined,
+                  color: Theme.of(context).colorScheme.primary,
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    'report.export.preview_title'.tr(),
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 10),
+            _PreviewMetaRow(
+              label: 'report.export.file_name'.tr(),
+              value: preview.fileName,
+            ),
+            const SizedBox(height: 6),
+            _PreviewMetaRow(
+              label: 'report.export.range'.tr(),
+              value: preview.rangeLabel,
+            ),
+            const SizedBox(height: 6),
+            _PreviewMetaRow(
+              label: 'report.export.summary'.tr(),
+              value: preview.summary,
+            ),
+            const SizedBox(height: 12),
+            Expanded(
+              child:
+                  preview.format == _ExportFormat.csv
+                      ? _CsvPreview(lines: preview.rows)
+                      : _PdfPreview(lines: preview.rows),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _PreviewMetaRow extends StatelessWidget {
+  const _PreviewMetaRow({required this.label, required this.value});
+
+  final String label;
+  final String value;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        SizedBox(
+          width: 72,
+          child: Text(
+            label,
+            style: Theme.of(
+              context,
+            ).textTheme.labelSmall?.copyWith(color: AppColors.mutedOf(context)),
+          ),
+        ),
+        const SizedBox(width: 8),
+        Expanded(
+          child: Text(value, style: Theme.of(context).textTheme.bodySmall),
+        ),
+      ],
+    );
+  }
+}
+
+class _CsvPreview extends StatelessWidget {
+  const _CsvPreview({required this.lines});
+
+  final List<String> lines;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: AppColors.surfaceAltOf(context),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: AppColors.outlineOf(context)),
+      ),
+      child: SingleChildScrollView(
+        child: SelectableText(
+          lines.isEmpty
+              ? 'report.export.preview_no_rows'.tr()
+              : lines.join('\n'),
+          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+            fontFamily: 'monospace',
+            height: 1.45,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _PdfPreview extends StatelessWidget {
+  const _PdfPreview({required this.lines});
+
+  final List<String> lines;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.surfaceAltOf(context),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: AppColors.outlineOf(context)),
+      ),
+      child: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Row(
+              children: [
+                const Icon(Icons.picture_as_pdf_outlined),
+                const SizedBox(width: 8),
+                Text(
+                  'report.export.pdf'.tr(),
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            ...lines.map(
+              (line) => Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: Text(
+                  line,
+                  style: Theme.of(context).textTheme.bodyMedium,
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'report.export.preview_pdf_note'.tr(),
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: AppColors.mutedOf(context),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }
 

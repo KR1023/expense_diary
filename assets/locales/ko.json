@@ -230,14 +230,21 @@
       "generate": "생성",
       "generating": "생성 중...",
       "share": "공유",
-      "result": "내보내기 결과",
-      "no_file": "아직 생성된 파일이 없습니다.",
+      "preview_title": "생성 결과 미리보기",
+      "preview_empty": "생성 버튼을 누르면 선택한 형식의 미리보기가 여기에 표시됩니다.",
+      "preview_no_rows": "생성된 데이터 행이 없습니다.",
+      "file_name": "파일명",
+      "summary": "요약",
       "done": "보고서가 생성되었습니다.",
       "failed": "보고서 생성에 실패했습니다.",
+      "share_failed": "공유에 실패했습니다.",
       "csv_done": "CSV 생성 완료 · {count}건",
       "pdf_done": "PDF 생성 완료 · {count}건",
-      "csv_share": "지출 보고서 CSV",
-      "pdf_share": "지출 보고서 PDF"
+      "preview_pdf_line_range": "기간: {range}",
+      "preview_pdf_line_transactions": "지출 내역: {count}건",
+      "preview_pdf_line_categories": "분류 요약: {count}개",
+      "preview_pdf_line_payment_methods": "결제 수단 요약: {count}개",
+      "preview_pdf_note": "PDF 파일은 공유 버튼을 통해 파일 앱, 메신저, 메일 등에서 열 수 있습니다."
     }
   },
   "auth": {

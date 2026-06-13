@@ -15,11 +15,13 @@ class PdfExportResult {
     required this.file,
     required this.transactionCount,
     required this.categoryTopCount,
+    required this.paymentMethodTotalCount,
   });
 
   final File file;
   final int transactionCount;
   final int categoryTopCount;
+  final int paymentMethodTotalCount;
 }
 
 class ReportPdfService {
@@ -53,16 +55,27 @@ class ReportPdfService {
     DateTime? monthAnchor,
     String? fileNamePrefix,
   }) async {
+    final (effectiveStart, effectiveEnd) = _effectiveRange(
+      startInclusive: startInclusive,
+      endExclusive: endExclusive,
+      isMonthlyRange: isMonthlyRange,
+      monthAnchor: monthAnchor,
+    );
+
     final txQuery =
         _db.select(_db.expenses).join([
             leftOuterJoin(
               _db.category,
               _db.category.id.equalsExp(_db.expenses.categoryId),
             ),
+            leftOuterJoin(
+              _db.paymentMethods,
+              _db.paymentMethods.id.equalsExp(_db.expenses.paymentMethodId),
+            ),
           ])
           ..where(
-            _db.expenses.expenseDate.isBiggerOrEqualValue(startInclusive) &
-                _db.expenses.expenseDate.isSmallerThanValue(endExclusive),
+            _db.expenses.expenseDate.isBiggerOrEqualValue(effectiveStart) &
+                _db.expenses.expenseDate.isSmallerThanValue(effectiveEnd),
           )
           ..orderBy([OrderingTerm.asc(_db.expenses.expenseDate)]);
     final txRows = await txQuery.get();
@@ -71,6 +84,7 @@ class ReportPdfService {
       (sum, row) => sum + row.readTable(_db.expenses).expense,
     );
     final topCategories = _buildTopCategories(txRows);
+    final paymentMethodTotals = _buildPaymentMethodTotals(txRows);
     final pdfThemeContext = await _buildPdfThemeContext();
     final supportsUnicode = pdfThemeContext.supportsUnicode;
     final labels = _PdfLabels.fromLanguageCode(languageCode);
@@ -104,8 +118,8 @@ class ReportPdfService {
                   _safeText(
                     _reportTitle(
                       labels: labels,
-                      startInclusive: startInclusive,
-                      endExclusive: endExclusive,
+                      startInclusive: effectiveStart,
+                      endExclusive: effectiveEnd,
                       isMonthlyRange: isMonthlyRange,
                       monthAnchor: monthAnchor,
                       languageCode: languageCode,
@@ -190,6 +204,44 @@ class ReportPdfService {
               pw.SizedBox(height: 14),
               pw.Text(
                 _safeText(
+                  '${labels.paymentMethodTotals} (${paymentMethodTotals.length})',
+                  allowUnicode: supportsUnicode,
+                ),
+                style: pw.TextStyle(
+                  fontSize: 14,
+                  fontWeight: pw.FontWeight.bold,
+                ),
+              ),
+              pw.SizedBox(height: 6),
+              pw.TableHelper.fromTextArray(
+                headers: [
+                  _safeText(labels.rankHeader, allowUnicode: supportsUnicode),
+                  _safeText(
+                    labels.paymentMethodHeader,
+                    allowUnicode: supportsUnicode,
+                  ),
+                  _safeText(labels.amountHeader, allowUnicode: supportsUnicode),
+                ],
+                data: paymentMethodTotals
+                    .asMap()
+                    .entries
+                    .map(
+                      (entry) => [
+                        '${entry.key + 1}',
+                        _safeText(
+                          entry.value.name.isEmpty
+                              ? labels.noPaymentMethod
+                              : entry.value.name,
+                          allowUnicode: supportsUnicode,
+                        ),
+                        entry.value.total.toString(),
+                      ],
+                    )
+                    .toList(growable: false),
+              ),
+              pw.SizedBox(height: 14),
+              pw.Text(
+                _safeText(
                   labels.transactionsSection,
                   allowUnicode: supportsUnicode,
                 ),
@@ -201,10 +253,18 @@ class ReportPdfService {
               pw.SizedBox(height: 6),
               pw.TableHelper.fromTextArray(
                 headers: [
+                  _safeText(
+                    labels.sequenceHeader,
+                    allowUnicode: supportsUnicode,
+                  ),
                   _safeText(labels.dateHeader, allowUnicode: supportsUnicode),
                   _safeText(labels.nameHeader, allowUnicode: supportsUnicode),
                   _safeText(
                     labels.categoryHeader,
+                    allowUnicode: supportsUnicode,
+                  ),
+                  _safeText(
+                    labels.paymentMethodHeader,
                     allowUnicode: supportsUnicode,
                   ),
                   _safeText(labels.amountHeader, allowUnicode: supportsUnicode),
@@ -216,10 +276,17 @@ class ReportPdfService {
                   fontWeight: pw.FontWeight.bold,
                 ),
                 data: txRows
-                    .map((row) {
+                    .asMap()
+                    .entries
+                    .map((entry) {
+                      final row = entry.value;
                       final expense = row.readTable(_db.expenses);
                       final category = row.readTableOrNull(_db.category);
+                      final paymentMethod = row.readTableOrNull(
+                        _db.paymentMethods,
+                      );
                       return [
+                        '${entry.key + 1}',
                         _dateOnly(expense.expenseDate),
                         _safeText(
                           expense.expenseName,
@@ -227,6 +294,10 @@ class ReportPdfService {
                         ),
                         _safeText(
                           category?.categoryName ?? '',
+                          allowUnicode: supportsUnicode,
+                        ),
+                        _safeText(
+                          paymentMethod?.name ?? labels.noPaymentMethod,
                           allowUnicode: supportsUnicode,
                         ),
                         expense.expense.toString(),
@@ -260,6 +331,7 @@ class ReportPdfService {
       file: file,
       transactionCount: txRows.length,
       categoryTopCount: topCategories.length,
+      paymentMethodTotalCount: paymentMethodTotals.length,
     );
   }
 
@@ -281,6 +353,27 @@ class ReportPdfService {
       .toList(growable: false)..sort((a, b) => b.total.compareTo(a.total));
 
     return items.take(10).toList(growable: false);
+  }
+
+  List<_PaymentMethodTotal> _buildPaymentMethodTotals(
+    List<TypedResult> txRows,
+  ) {
+    final totals = <String, _PaymentMethodTotal>{};
+    for (final row in txRows) {
+      final expense = row.readTable(_db.expenses);
+      final paymentMethod = row.readTableOrNull(_db.paymentMethods);
+      final id = expense.paymentMethodId;
+      final key = id?.toString() ?? 'none';
+      final current = totals[key];
+      totals[key] = _PaymentMethodTotal(
+        id: id,
+        name: paymentMethod?.name ?? '',
+        total: (current?.total ?? 0) + expense.expense,
+      );
+    }
+
+    return totals.values.toList(growable: false)
+      ..sort((a, b) => b.total.compareTo(a.total));
   }
 
   String _reportTitle({
@@ -308,10 +401,31 @@ class ReportPdfService {
   }
 
   String _dateOnly(DateTime date) {
-    final y = date.year.toString().padLeft(4, '0');
-    final m = date.month.toString().padLeft(2, '0');
-    final d = date.day.toString().padLeft(2, '0');
+    final localDate = date.isUtc ? date.toLocal() : date;
+    final y = localDate.year.toString().padLeft(4, '0');
+    final m = localDate.month.toString().padLeft(2, '0');
+    final d = localDate.day.toString().padLeft(2, '0');
     return '$y-$m-$d';
+  }
+
+  (DateTime, DateTime) _effectiveRange({
+    required DateTime startInclusive,
+    required DateTime endExclusive,
+    required bool isMonthlyRange,
+    required DateTime? monthAnchor,
+  }) {
+    if (isMonthlyRange) {
+      final month = monthAnchor ?? startInclusive;
+      return (
+        DateTime(month.year, month.month, 1),
+        DateTime(month.year, month.month + 1, 1),
+      );
+    }
+
+    return (
+      DateTime(startInclusive.year, startInclusive.month, startInclusive.day),
+      DateTime(endExclusive.year, endExclusive.month, endExclusive.day),
+    );
   }
 
   String _safeText(String value, {required bool allowUnicode}) {
@@ -407,6 +521,18 @@ class _CategoryTotal {
   final int total;
 }
 
+class _PaymentMethodTotal {
+  const _PaymentMethodTotal({
+    required this.id,
+    required this.name,
+    required this.total,
+  });
+
+  final int? id;
+  final String name;
+  final int total;
+}
+
 class _PdfLabels {
   const _PdfLabels({
     required this.documentTitle,
@@ -417,14 +543,18 @@ class _PdfLabels {
     required this.totalExpense,
     required this.transactions,
     required this.categoryTop,
+    required this.paymentMethodTotals,
     required this.transactionsSection,
     required this.rankHeader,
     required this.categoryHeader,
+    required this.paymentMethodHeader,
+    required this.sequenceHeader,
     required this.amountHeader,
     required this.dateHeader,
     required this.nameHeader,
     required this.memoHeader,
     required this.unclassified,
+    required this.noPaymentMethod,
     required this.pageLabel,
   });
 
@@ -436,14 +566,18 @@ class _PdfLabels {
   final String totalExpense;
   final String transactions;
   final String categoryTop;
+  final String paymentMethodTotals;
   final String transactionsSection;
   final String rankHeader;
   final String categoryHeader;
+  final String paymentMethodHeader;
+  final String sequenceHeader;
   final String amountHeader;
   final String dateHeader;
   final String nameHeader;
   final String memoHeader;
   final String unclassified;
+  final String noPaymentMethod;
   final String pageLabel;
 
   factory _PdfLabels.fromLanguageCode(String languageCode) {
@@ -458,14 +592,18 @@ class _PdfLabels {
         totalExpense: '총 지출',
         transactions: '거래 건수',
         categoryTop: '카테고리 TOP',
+        paymentMethodTotals: '결제 수단별 합계',
         transactionsSection: '거래 내역',
         rankHeader: '순위',
         categoryHeader: '카테고리',
+        paymentMethodHeader: '결제 수단',
+        sequenceHeader: '순서',
         amountHeader: '금액',
         dateHeader: '날짜',
         nameHeader: '지출명',
         memoHeader: '메모',
         unclassified: '미분류',
+        noPaymentMethod: '미지정',
         pageLabel: '페이지',
       );
     }
@@ -479,14 +617,18 @@ class _PdfLabels {
       totalExpense: 'Total Expense',
       transactions: 'Transactions',
       categoryTop: 'Category Top',
+      paymentMethodTotals: 'Payment Method Totals',
       transactionsSection: 'Transactions',
       rankHeader: 'Rank',
       categoryHeader: 'Category',
+      paymentMethodHeader: 'Payment Method',
+      sequenceHeader: 'No.',
       amountHeader: 'Amount',
       dateHeader: 'Date',
       nameHeader: 'Name',
       memoHeader: 'Memo',
       unclassified: 'Unclassified',
+      noPaymentMethod: 'Unspecified',
       pageLabel: 'Page',
     );
   }

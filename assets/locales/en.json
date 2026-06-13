@@ -230,14 +230,21 @@
       "generate": "Generate",
       "generating": "Generating...",
       "share": "Share",
-      "result": "Export Result",
-      "no_file": "No file has been generated yet.",
+      "preview_title": "Generated Preview",
+      "preview_empty": "Tap Generate to preview the selected format here.",
+      "preview_no_rows": "No generated data rows.",
+      "file_name": "File",
+      "summary": "Summary",
       "done": "Report generated.",
       "failed": "Failed to generate report.",
+      "share_failed": "Failed to share report.",
       "csv_done": "CSV generated · {count} rows",
       "pdf_done": "PDF generated · {count} rows",
-      "csv_share": "Expense report CSV",
-      "pdf_share": "Expense report PDF"
+      "preview_pdf_line_range": "Range: {range}",
+      "preview_pdf_line_transactions": "Transactions: {count}",
+      "preview_pdf_line_categories": "Category summaries: {count}",
+      "preview_pdf_line_payment_methods": "Payment method summaries: {count}",
+      "preview_pdf_note": "Use Share to open the PDF in Files, mail, messages, or other compatible apps."
     }
   },
   "auth": {
