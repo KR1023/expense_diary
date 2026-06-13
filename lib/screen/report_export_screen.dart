@@ -58,267 +58,272 @@ class _ReportExportScreenState extends State<ReportExportScreen> {
       backgroundColor: Colors.transparent,
       body: AppBackground(
         padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                IconButton(
-                  onPressed: () => Navigator.of(context).pop(),
-                  icon: const Icon(Icons.arrow_back_ios_new_rounded),
-                ),
-                const SizedBox(width: 4),
-                Expanded(
-                  child: Text(
-                    'report.export.title'.tr(),
-                    style: Theme.of(context).textTheme.titleLarge,
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.only(bottom: 24),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  IconButton(
+                    onPressed: () => Navigator.of(context).pop(),
+                    icon: const Icon(Icons.arrow_back_ios_new_rounded),
                   ),
-                ),
-              ],
-            ),
-            Padding(
-              padding: const EdgeInsets.only(left: 12, bottom: 12),
-              child: Text(
-                'report.export.subtitle'.tr(),
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: AppColors.mutedOf(context),
-                ),
-              ),
-            ),
-            Container(
-              width: double.infinity,
-              decoration: BoxDecoration(
-                color: exportTheme.cardColor,
-                borderRadius: BorderRadius.circular(26),
-                border: Border.all(color: exportTheme.outlineColor),
-                boxShadow: [
-                  BoxShadow(
-                    color: exportTheme.accentColor.withValues(
-                      alpha: exportTheme.isDark ? 0.12 : 0.10,
+                  const SizedBox(width: 4),
+                  Expanded(
+                    child: Text(
+                      'report.export.title'.tr(),
+                      style: Theme.of(context).textTheme.titleLarge,
                     ),
-                    blurRadius: 24,
-                    offset: const Offset(0, 12),
                   ),
                 ],
               ),
-              child: Padding(
-                padding: EdgeInsets.all(settingsPadding),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    if (!compactSettings) ...[
-                      Row(
-                        children: [
-                          Container(
-                            width: 42,
-                            height: 42,
-                            decoration: BoxDecoration(
-                              gradient: exportTheme.gradient,
-                              borderRadius: BorderRadius.circular(16),
-                            ),
-                            child: const Icon(
-                              Icons.ios_share_rounded,
-                              color: Colors.white,
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: Text(
-                              'report.export.options_title'.tr(),
-                              style: Theme.of(context).textTheme.titleMedium
-                                  ?.copyWith(fontWeight: FontWeight.w800),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 16),
-                    ],
-                    _SectionLabel(
-                      icon: Icons.insert_drive_file_outlined,
-                      label: 'report.export.format'.tr(),
-                    ),
-                    SizedBox(height: controlGap),
-                    _ExportPillTabs<_ExportFormat>(
-                      value: _format,
-                      compact: compactSettings,
-                      items: [
-                        _ExportPillTabItem(
-                          value: _ExportFormat.csv,
-                          icon: Icons.table_chart_outlined,
-                          label: 'report.export.csv'.tr(),
-                        ),
-                        _ExportPillTabItem(
-                          value: _ExportFormat.pdf,
-                          icon: Icons.picture_as_pdf_outlined,
-                          label: 'report.export.pdf'.tr(),
-                        ),
-                      ],
-                      onChanged: (value) {
-                        setState(() {
-                          _format = value;
-                          _clearGeneratedFile();
-                        });
-                      },
-                    ),
-                    SizedBox(height: sectionGap),
-                    _SectionLabel(
-                      icon: Icons.event_note_outlined,
-                      label: 'report.export.range'.tr(),
-                    ),
-                    SizedBox(height: controlGap),
-                    _ExportPillTabs<_ExportRangeType>(
-                      value: _rangeType,
-                      compact: compactSettings,
-                      items: [
-                        _ExportPillTabItem(
-                          value: _ExportRangeType.month,
-                          icon: Icons.calendar_month_outlined,
-                          label: 'report.export.month'.tr(),
-                        ),
-                        _ExportPillTabItem(
-                          value: _ExportRangeType.custom,
-                          icon: Icons.date_range_outlined,
-                          label: 'report.export.custom'.tr(),
-                        ),
-                      ],
-                      onChanged: (value) {
-                        setState(() {
-                          _rangeType = value;
-                          _clearGeneratedFile();
-                        });
-                      },
-                    ),
-                    SizedBox(height: compactSettings ? 10 : 14),
-                    if (_rangeType == _ExportRangeType.month)
-                      _MonthPicker(
-                        month: _selectedMonth,
-                        onChanged: (value) {
-                          setState(() {
-                            _selectedMonth = DateTime(value.year, value.month);
-                            _clearGeneratedFile();
-                          });
-                        },
-                      )
-                    else
-                      _CustomRangeSelector(
-                        start: _customStart,
-                        end: _customEnd,
-                        onStartChanged: (value) {
-                          setState(() {
-                            _customStart = DateTime(
-                              value.year,
-                              value.month,
-                              value.day,
-                            );
-                            if (_customEnd.isBefore(_customStart)) {
-                              _customEnd = _customStart;
-                            }
-                            _clearGeneratedFile();
-                          });
-                        },
-                        onEndChanged: (value) {
-                          setState(() {
-                            _customEnd = DateTime(
-                              value.year,
-                              value.month,
-                              value.day,
-                            );
-                            if (_customEnd.isBefore(_customStart)) {
-                              _customStart = _customEnd;
-                            }
-                            _clearGeneratedFile();
-                          });
-                        },
-                      ),
-                    SizedBox(height: compactSettings ? 10 : 14),
-                    Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 10,
-                      ),
-                      decoration: BoxDecoration(
-                        color: exportTheme.softAccentColor,
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(
-                          color: exportTheme.accentColor.withValues(
-                            alpha: exportTheme.isDark ? 0.24 : 0.18,
-                          ),
-                        ),
-                      ),
-                      child: Row(
-                        children: [
-                          Icon(
-                            Icons.check_circle_outline_rounded,
-                            size: 18,
-                            color: exportTheme.accentColor,
-                          ),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: Text(
-                              _rangeLabel(start, endInclusive),
-                              style: Theme.of(
-                                context,
-                              ).textTheme.bodySmall?.copyWith(
-                                color: AppColors.inkOf(context),
-                                fontWeight: FontWeight.w700,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    SizedBox(height: sectionGap),
-                    _GradientExportButton(
-                      onPressed: _exporting ? null : _export,
-                      compact: compactSettings,
-                      icon:
-                          _exporting
-                              ? SizedBox(
-                                width: 16,
-                                height: 16,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                  valueColor: AlwaysStoppedAnimation<Color>(
-                                    exportTheme.foregroundColor,
-                                  ),
-                                ),
-                              )
-                              : const Icon(Icons.download_rounded),
-                      label: Text(
-                        _exporting
-                            ? 'report.export.generating'.tr()
-                            : 'report.export.generate'.tr(),
-                      ),
-                    ),
-                    if (_lastFile != null) ...[
-                      const SizedBox(height: 10),
-                      Align(
-                        alignment: Alignment.centerRight,
-                        child: _TextExportActionButton(
-                          onPressed:
-                              _exporting ? null : () => _shareLastFile(context),
-                          icon: const Icon(Icons.share_outlined),
-                          label: Text('report.export.share'.tr()),
-                        ),
-                      ),
-                    ],
-                  ],
+              Padding(
+                padding: const EdgeInsets.only(left: 12, bottom: 12),
+                child: Text(
+                  'report.export.subtitle'.tr(),
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: AppColors.mutedOf(context),
+                  ),
                 ),
               ),
-            ),
-            const SizedBox(height: 12),
-            if (_exporting) ...[
-              _ExportingNotice(format: _format),
+              Container(
+                width: double.infinity,
+                decoration: BoxDecoration(
+                  color: exportTheme.cardColor,
+                  borderRadius: BorderRadius.circular(26),
+                  border: Border.all(color: exportTheme.outlineColor),
+                  boxShadow: [
+                    BoxShadow(
+                      color: exportTheme.accentColor.withValues(
+                        alpha: exportTheme.isDark ? 0.12 : 0.10,
+                      ),
+                      blurRadius: 24,
+                      offset: const Offset(0, 12),
+                    ),
+                  ],
+                ),
+                child: Padding(
+                  padding: EdgeInsets.all(settingsPadding),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      if (!compactSettings) ...[
+                        Row(
+                          children: [
+                            Container(
+                              width: 42,
+                              height: 42,
+                              decoration: BoxDecoration(
+                                gradient: exportTheme.gradient,
+                                borderRadius: BorderRadius.circular(16),
+                              ),
+                              child: const Icon(
+                                Icons.ios_share_rounded,
+                                color: Colors.white,
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Text(
+                                'report.export.options_title'.tr(),
+                                style: Theme.of(context).textTheme.titleMedium
+                                    ?.copyWith(fontWeight: FontWeight.w800),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 16),
+                      ],
+                      _SectionLabel(
+                        icon: Icons.insert_drive_file_outlined,
+                        label: 'report.export.format'.tr(),
+                      ),
+                      SizedBox(height: controlGap),
+                      _ExportPillTabs<_ExportFormat>(
+                        value: _format,
+                        compact: compactSettings,
+                        items: [
+                          _ExportPillTabItem(
+                            value: _ExportFormat.csv,
+                            icon: Icons.table_chart_outlined,
+                            label: 'report.export.csv'.tr(),
+                          ),
+                          _ExportPillTabItem(
+                            value: _ExportFormat.pdf,
+                            icon: Icons.picture_as_pdf_outlined,
+                            label: 'report.export.pdf'.tr(),
+                          ),
+                        ],
+                        onChanged: (value) {
+                          setState(() {
+                            _format = value;
+                            _clearGeneratedFile();
+                          });
+                        },
+                      ),
+                      SizedBox(height: sectionGap),
+                      _SectionLabel(
+                        icon: Icons.event_note_outlined,
+                        label: 'report.export.range'.tr(),
+                      ),
+                      SizedBox(height: controlGap),
+                      _ExportPillTabs<_ExportRangeType>(
+                        value: _rangeType,
+                        compact: compactSettings,
+                        items: [
+                          _ExportPillTabItem(
+                            value: _ExportRangeType.month,
+                            icon: Icons.calendar_month_outlined,
+                            label: 'report.export.month'.tr(),
+                          ),
+                          _ExportPillTabItem(
+                            value: _ExportRangeType.custom,
+                            icon: Icons.date_range_outlined,
+                            label: 'report.export.custom'.tr(),
+                          ),
+                        ],
+                        onChanged: (value) {
+                          setState(() {
+                            _rangeType = value;
+                            _clearGeneratedFile();
+                          });
+                        },
+                      ),
+                      SizedBox(height: compactSettings ? 10 : 14),
+                      if (_rangeType == _ExportRangeType.month)
+                        _MonthPicker(
+                          month: _selectedMonth,
+                          onChanged: (value) {
+                            setState(() {
+                              _selectedMonth = DateTime(
+                                value.year,
+                                value.month,
+                              );
+                              _clearGeneratedFile();
+                            });
+                          },
+                        )
+                      else
+                        _CustomRangeSelector(
+                          start: _customStart,
+                          end: _customEnd,
+                          onStartChanged: (value) {
+                            setState(() {
+                              _customStart = DateTime(
+                                value.year,
+                                value.month,
+                                value.day,
+                              );
+                              if (_customEnd.isBefore(_customStart)) {
+                                _customEnd = _customStart;
+                              }
+                              _clearGeneratedFile();
+                            });
+                          },
+                          onEndChanged: (value) {
+                            setState(() {
+                              _customEnd = DateTime(
+                                value.year,
+                                value.month,
+                                value.day,
+                              );
+                              if (_customEnd.isBefore(_customStart)) {
+                                _customStart = _customEnd;
+                              }
+                              _clearGeneratedFile();
+                            });
+                          },
+                        ),
+                      SizedBox(height: compactSettings ? 10 : 14),
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 10,
+                        ),
+                        decoration: BoxDecoration(
+                          color: exportTheme.softAccentColor,
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(
+                            color: exportTheme.accentColor.withValues(
+                              alpha: exportTheme.isDark ? 0.24 : 0.18,
+                            ),
+                          ),
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(
+                              Icons.check_circle_outline_rounded,
+                              size: 18,
+                              color: exportTheme.accentColor,
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                _rangeLabel(start, endInclusive),
+                                style: Theme.of(
+                                  context,
+                                ).textTheme.bodySmall?.copyWith(
+                                  color: AppColors.inkOf(context),
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      SizedBox(height: sectionGap),
+                      _GradientExportButton(
+                        onPressed: _exporting ? null : _export,
+                        compact: compactSettings,
+                        icon:
+                            _exporting
+                                ? SizedBox(
+                                  width: 16,
+                                  height: 16,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    valueColor: AlwaysStoppedAnimation<Color>(
+                                      exportTheme.foregroundColor,
+                                    ),
+                                  ),
+                                )
+                                : const Icon(Icons.download_rounded),
+                        label: Text(
+                          _exporting
+                              ? 'report.export.generating'.tr()
+                              : 'report.export.generate'.tr(),
+                        ),
+                      ),
+                      if (_lastFile != null) ...[
+                        const SizedBox(height: 10),
+                        Align(
+                          alignment: Alignment.centerRight,
+                          child: _TextExportActionButton(
+                            onPressed:
+                                _exporting
+                                    ? null
+                                    : () => _shareLastFile(context),
+                            icon: const Icon(Icons.share_outlined),
+                            label: Text('report.export.share'.tr()),
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+              ),
               const SizedBox(height: 12),
+              if (_exporting) ...[
+                _ExportingNotice(format: _format),
+                const SizedBox(height: 12),
+              ],
+              _preview == null
+                  ? _ExportPreviewPlaceholder(format: _format)
+                  : _GeneratedPreviewCard(preview: _preview!),
             ],
-            Expanded(
-              child:
-                  _preview == null
-                      ? _ExportPreviewPlaceholder(format: _format)
-                      : _GeneratedPreviewCard(preview: _preview!),
-            ),
-          ],
+          ),
         ),
       ),
     );
@@ -901,6 +906,10 @@ class _GeneratedPreviewCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final exportTheme = _ExportTheme.of(context);
+    final previewHeight =
+        (MediaQuery.sizeOf(context).height * 0.52)
+            .clamp(360.0, 560.0)
+            .toDouble();
 
     return Container(
       width: double.infinity,
@@ -954,7 +963,9 @@ class _GeneratedPreviewCard extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 10),
-            Expanded(
+            SizedBox(
+              height: previewHeight,
+              width: double.infinity,
               child:
                   preview.format == _ExportFormat.csv
                       ? _CsvPreview(lines: preview.rows)

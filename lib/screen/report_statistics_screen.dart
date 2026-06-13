@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:expense_diary/const/app_theme.dart';
 import 'dart:math' as math;
+import 'dart:ui' as ui;
 
 import 'package:easy_localization/easy_localization.dart';
 import 'package:expense_diary/component/common/app_background.dart';
@@ -425,6 +426,8 @@ enum _TrendRange {
   final int monthCount;
 }
 
+enum _BreakdownChartMode { bar, pie }
+
 // ── Trend charts ────────────────────────────────────────────────────────────
 
 class _MonthlyTrendCard extends StatelessWidget {
@@ -668,79 +671,99 @@ class _HorizontalAmountChart extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 4),
-        SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: items
-                .map((item) {
-                  final ratio = maxValue == 0 ? 0.0 : item.amount / maxValue;
-                  final barHeight = math.max(8.0, chartHeight * ratio);
-                  final accent =
-                      item.selected ? selectedBarColor : unselectedBarColor;
-                  final content = SizedBox(
-                    width: itemWidth,
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        SizedBox(
-                          height: 24,
-                          child: Text(
-                            item.amount == 0
-                                ? ''
-                                : _chartAmountLabel(item.amount),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: Theme.of(
-                              context,
-                            ).textTheme.labelSmall?.copyWith(
-                              color:
-                                  item.selected
-                                      ? selectedBarColor
-                                      : AppColors.mutedOf(context),
-                            ),
-                          ),
-                        ),
-                        SizedBox(
-                          height: chartHeight,
-                          child: Align(
-                            alignment: Alignment.bottomCenter,
-                            child: AnimatedContainer(
-                              duration: const Duration(milliseconds: 220),
-                              width: barWidth,
-                              height: item.amount == 0 ? 8 : barHeight,
-                              decoration: BoxDecoration(
-                                color: item.amount == 0 ? zeroBarColor : accent,
-                                borderRadius: BorderRadius.circular(barRadius),
+        LayoutBuilder(
+          builder: (context, constraints) {
+            final contentWidth = itemWidth * items.length;
+            return SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: ConstrainedBox(
+                constraints: BoxConstraints(minWidth: constraints.maxWidth),
+                child: Row(
+                  mainAxisAlignment:
+                      contentWidth < constraints.maxWidth
+                          ? MainAxisAlignment.center
+                          : MainAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: items
+                      .map((item) {
+                        final ratio =
+                            maxValue == 0 ? 0.0 : item.amount / maxValue;
+                        final barHeight = math.max(8.0, chartHeight * ratio);
+                        final accent =
+                            item.selected
+                                ? selectedBarColor
+                                : unselectedBarColor;
+                        final content = SizedBox(
+                          width: itemWidth,
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              SizedBox(
+                                height: 24,
+                                child: Text(
+                                  item.amount == 0
+                                      ? ''
+                                      : _chartAmountLabel(item.amount),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: Theme.of(
+                                    context,
+                                  ).textTheme.labelSmall?.copyWith(
+                                    color:
+                                        item.selected
+                                            ? selectedBarColor
+                                            : AppColors.mutedOf(context),
+                                  ),
+                                ),
                               ),
-                            ),
+                              SizedBox(
+                                height: chartHeight,
+                                child: Align(
+                                  alignment: Alignment.bottomCenter,
+                                  child: AnimatedContainer(
+                                    duration: const Duration(milliseconds: 220),
+                                    width: barWidth,
+                                    height: item.amount == 0 ? 8 : barHeight,
+                                    decoration: BoxDecoration(
+                                      color:
+                                          item.amount == 0
+                                              ? zeroBarColor
+                                              : accent,
+                                      borderRadius: BorderRadius.circular(
+                                        barRadius,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                item.label,
+                                style: Theme.of(
+                                  context,
+                                ).textTheme.labelSmall?.copyWith(
+                                  color:
+                                      item.selected
+                                          ? selectedBarColor
+                                          : AppColors.mutedOf(context),
+                                ),
+                              ),
+                            ],
                           ),
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          item.label,
-                          style: Theme.of(
-                            context,
-                          ).textTheme.labelSmall?.copyWith(
-                            color:
-                                item.selected
-                                    ? selectedBarColor
-                                    : AppColors.mutedOf(context),
-                          ),
-                        ),
-                      ],
-                    ),
-                  );
+                        );
 
-                  if (onTap == null) return content;
-                  return InkWell(
-                    borderRadius: BorderRadius.circular(12),
-                    onTap: () => onTap!(item.keyDate),
-                    child: content,
-                  );
-                })
-                .toList(growable: false),
-          ),
+                        if (onTap == null) return content;
+                        return InkWell(
+                          borderRadius: BorderRadius.circular(12),
+                          onTap: () => onTap!(item.keyDate),
+                          child: content,
+                        );
+                      })
+                      .toList(growable: false),
+                ),
+              ),
+            );
+          },
         ),
       ],
     );
@@ -864,7 +887,7 @@ class _StatRow extends StatelessWidget {
 
 // ── Category charts ─────────────────────────────────────────────────────────
 
-class _CategoryBarCard extends StatelessWidget {
+class _CategoryBarCard extends StatefulWidget {
   const _CategoryBarCard({
     required this.items,
     required this.currencyCode,
@@ -878,7 +901,15 @@ class _CategoryBarCard extends StatelessWidget {
   final int totalAmount;
 
   @override
+  State<_CategoryBarCard> createState() => _CategoryBarCardState();
+}
+
+class _CategoryBarCardState extends State<_CategoryBarCard> {
+  _BreakdownChartMode _mode = _BreakdownChartMode.bar;
+
+  @override
   Widget build(BuildContext context) {
+    final items = widget.items;
     final maxValue = items.map((e) => e.total).fold<int>(0, math.max);
     final backgroundIndex = GetIt.I<AppSettings>().backgroundIndex;
     final accentColor = AppColors.accentColorForBackground(
@@ -900,89 +931,119 @@ class _CategoryBarCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              'report.stats.chart_title'.tr(
-                namedArgs: {'count': '${items.length}'},
-              ),
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
-            const SizedBox(height: 12),
-            ...items.asMap().entries.map((entry) {
-              final index = entry.key;
-              final item = entry.value;
-              final ratio = maxValue == 0 ? 0.0 : (item.total / maxValue);
-              final pct =
-                  totalAmount == 0
-                      ? 0
-                      : ((item.total / totalAmount) * 100).round();
-              final name =
-                  item.category.isEmpty
-                      ? 'common.unclassified'.tr()
-                      : item.category;
-              return Padding(
-                padding: const EdgeInsets.only(bottom: 10),
-                child: InkWell(
-                  borderRadius: BorderRadius.circular(8),
-                  onTap: () => _showDetail(context, item, name),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 5),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            CircleAvatar(
-                              radius: 14,
-                              backgroundColor: indicatorColor.withValues(
-                                alpha: isDark ? 0.28 : 0.14,
-                              ),
-                              child: Text(
-                                '${index + 1}',
-                                style: Theme.of(
-                                  context,
-                                ).textTheme.labelMedium?.copyWith(
-                                  color: indicatorColor,
-                                  fontWeight: FontWeight.w700,
-                                ),
-                              ),
-                            ),
-                            const SizedBox(width: 10),
-                            Expanded(
-                              child: Text(
-                                name,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            Text(
-                              '${CurrencyUtils.formatAmount(item.total, currencyCode)}  ($pct%)',
-                              style: Theme.of(context).textTheme.bodyMedium,
-                            ),
-                            const SizedBox(width: 4),
-                            Icon(
-                              Icons.chevron_right,
-                              size: 16,
-                              color: AppColors.mutedOf(context),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 6),
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(999),
-                          child: LinearProgressIndicator(
-                            value: ratio,
-                            minHeight: 10,
-                            color: indicatorColor,
-                            backgroundColor: trackColor,
-                          ),
-                        ),
-                      ],
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    'report.stats.chart_title'.tr(
+                      namedArgs: {'count': '${items.length}'},
                     ),
+                    style: Theme.of(context).textTheme.titleMedium,
                   ),
                 ),
-              );
-            }),
+                _BreakdownChartModeTabs(
+                  value: _mode,
+                  onChanged: (value) => setState(() => _mode = value),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            if (_mode == _BreakdownChartMode.pie)
+              _BreakdownPieChart<CategoryExpense>(
+                items: items,
+                amountOf: (item) => item.total,
+                labelOf:
+                    (item) =>
+                        item.category.isEmpty
+                            ? 'common.unclassified'.tr()
+                            : item.category,
+                currencyCode: widget.currencyCode,
+                totalAmount: widget.totalAmount,
+                onTap: (item) {
+                  final name =
+                      item.category.isEmpty
+                          ? 'common.unclassified'.tr()
+                          : item.category;
+                  _showDetail(context, item, name);
+                },
+              )
+            else
+              ...items.asMap().entries.map((entry) {
+                final index = entry.key;
+                final item = entry.value;
+                final ratio = maxValue == 0 ? 0.0 : (item.total / maxValue);
+                final pct =
+                    widget.totalAmount == 0
+                        ? 0
+                        : ((item.total / widget.totalAmount) * 100).round();
+                final name =
+                    item.category.isEmpty
+                        ? 'common.unclassified'.tr()
+                        : item.category;
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 10),
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(8),
+                    onTap: () => _showDetail(context, item, name),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 5),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              CircleAvatar(
+                                radius: 14,
+                                backgroundColor: indicatorColor.withValues(
+                                  alpha: isDark ? 0.28 : 0.14,
+                                ),
+                                child: Text(
+                                  '${index + 1}',
+                                  style: Theme.of(
+                                    context,
+                                  ).textTheme.labelMedium?.copyWith(
+                                    color: indicatorColor,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 10),
+                              Expanded(
+                                child: Text(
+                                  name,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              Text(
+                                '${CurrencyUtils.formatAmount(item.total, widget.currencyCode)}  ($pct%)',
+                                style: Theme.of(context).textTheme.bodyMedium,
+                              ),
+                              const SizedBox(width: 4),
+                              Icon(
+                                Icons.chevron_right,
+                                size: 16,
+                                color: AppColors.mutedOf(context),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 6),
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(999),
+                            child: LinearProgressIndicator(
+                              value: ratio,
+                              minHeight: 10,
+                              color: indicatorColor,
+                              backgroundColor: trackColor,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                );
+              }),
           ],
         ),
       ),
@@ -1000,11 +1061,366 @@ class _CategoryBarCard extends StatelessWidget {
             name: name,
             total: item.total,
             categoryId: item.categoryId,
-            selectedMonth: selectedMonth,
-            currencyCode: currencyCode,
+            selectedMonth: widget.selectedMonth,
+            currencyCode: widget.currencyCode,
           ),
     );
   }
+}
+
+class _BreakdownChartModeTabs extends StatelessWidget {
+  const _BreakdownChartModeTabs({required this.value, required this.onChanged});
+
+  final _BreakdownChartMode value;
+  final ValueChanged<_BreakdownChartMode> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final backgroundIndex = GetIt.I<AppSettings>().backgroundIndex;
+    final accentColor = AppColors.accentColorForBackground(
+      backgroundIndex,
+      context,
+    );
+    final outlineColor = AppColors.outlineColorOf(backgroundIndex, context);
+
+    return Container(
+      padding: const EdgeInsets.all(3),
+      decoration: BoxDecoration(
+        color: accentColor.withValues(
+          alpha: AppColors.isDark(context) ? 0.16 : 0.09,
+        ),
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(color: outlineColor),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          _BreakdownChartModeButton(
+            selected: value == _BreakdownChartMode.bar,
+            icon: Icons.bar_chart_rounded,
+            label: 'report.stats.chart_bar'.tr(),
+            onTap: () => onChanged(_BreakdownChartMode.bar),
+          ),
+          _BreakdownChartModeButton(
+            selected: value == _BreakdownChartMode.pie,
+            icon: Icons.pie_chart_outline_rounded,
+            label: 'report.stats.chart_pie'.tr(),
+            onTap: () => onChanged(_BreakdownChartMode.pie),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _BreakdownChartModeButton extends StatelessWidget {
+  const _BreakdownChartModeButton({
+    required this.selected,
+    required this.icon,
+    required this.label,
+    required this.onTap,
+  });
+
+  final bool selected;
+  final IconData icon;
+  final String label;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final backgroundIndex = GetIt.I<AppSettings>().backgroundIndex;
+    final accentColor = AppColors.accentColorForBackground(
+      backgroundIndex,
+      context,
+    );
+    final foreground = selected ? Colors.white : accentColor;
+
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(999),
+        onTap: selected ? null : onTap,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 160),
+          padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 6),
+          decoration: BoxDecoration(
+            color: selected ? accentColor : Colors.transparent,
+            borderRadius: BorderRadius.circular(999),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(icon, size: 15, color: foreground),
+              const SizedBox(width: 4),
+              Text(
+                label,
+                style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                  color: foreground,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _BreakdownPieChart<T> extends StatelessWidget {
+  const _BreakdownPieChart({
+    required this.items,
+    required this.amountOf,
+    required this.labelOf,
+    required this.currencyCode,
+    required this.totalAmount,
+    required this.onTap,
+  });
+
+  final List<T> items;
+  final int Function(T item) amountOf;
+  final String Function(T item) labelOf;
+  final String currencyCode;
+  final int totalAmount;
+  final ValueChanged<T> onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = _breakdownPalette(context, items.length);
+    final total =
+        totalAmount == 0
+            ? items.fold<int>(0, (sum, item) => sum + amountOf(item))
+            : totalAmount;
+
+    return Column(
+      children: [
+        SizedBox(
+          height: 176,
+          child: Row(
+            children: [
+              SizedBox.square(
+                dimension: 150,
+                child: CustomPaint(
+                  painter: _PieChartPainter<T>(
+                    items: items,
+                    amountOf: amountOf,
+                    colors: colors,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                flex: 6,
+                child: ListView.separated(
+                  physics: const NeverScrollableScrollPhysics(),
+                  itemCount: items.length,
+                  separatorBuilder: (_, __) => const SizedBox(height: 7),
+                  itemBuilder: (context, index) {
+                    final item = items[index];
+                    final amount = amountOf(item);
+                    final pct =
+                        total == 0 ? 0 : ((amount / total) * 100).round();
+                    return InkWell(
+                      borderRadius: BorderRadius.circular(10),
+                      onTap: () => onTap(item),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 2),
+                        child: Row(
+                          children: [
+                            Container(
+                              width: 10,
+                              height: 10,
+                              decoration: BoxDecoration(
+                                color: colors[index],
+                                shape: BoxShape.circle,
+                              ),
+                            ),
+                            const SizedBox(width: 7),
+                            Expanded(
+                              child: Text(
+                                labelOf(item),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: Theme.of(context).textTheme.bodySmall,
+                              ),
+                            ),
+                            const SizedBox(width: 6),
+                            Text(
+                              '$pct%',
+                              style: Theme.of(
+                                context,
+                              ).textTheme.labelSmall?.copyWith(
+                                color: AppColors.mutedOf(context),
+                                fontWeight: FontWeight.w800,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 8),
+        ...items.asMap().entries.map((entry) {
+          final item = entry.value;
+          final amount = amountOf(item);
+          final pct = total == 0 ? 0 : ((amount / total) * 100).round();
+          return InkWell(
+            borderRadius: BorderRadius.circular(12),
+            onTap: () => onTap(item),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 5),
+              child: Row(
+                children: [
+                  Container(
+                    width: 28,
+                    height: 28,
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(
+                      color: colors[entry.key].withValues(alpha: 0.16),
+                      shape: BoxShape.circle,
+                    ),
+                    child: Text(
+                      '${entry.key + 1}',
+                      style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                        color: colors[entry.key],
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      labelOf(item),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    '${CurrencyUtils.formatAmount(amount, currencyCode)}  ($pct%)',
+                    style: Theme.of(context).textTheme.bodyMedium,
+                  ),
+                  const SizedBox(width: 4),
+                  Icon(
+                    Icons.chevron_right,
+                    size: 16,
+                    color: AppColors.mutedOf(context),
+                  ),
+                ],
+              ),
+            ),
+          );
+        }),
+      ],
+    );
+  }
+}
+
+class _PieChartPainter<T> extends CustomPainter {
+  const _PieChartPainter({
+    required this.items,
+    required this.amountOf,
+    required this.colors,
+  });
+
+  final List<T> items;
+  final int Function(T item) amountOf;
+  final List<Color> colors;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final total = items.fold<double>(0, (sum, item) => sum + amountOf(item));
+    final diameter = math.min(size.width, size.height);
+    final rect = Rect.fromCenter(
+      center: Offset(size.width / 2, size.height / 2),
+      width: diameter,
+      height: diameter,
+    );
+    final paint =
+        Paint()
+          ..style = PaintingStyle.fill
+          ..isAntiAlias = true;
+
+    if (total <= 0) {
+      paint.color = colors.first.withValues(alpha: 0.18);
+      canvas.drawArc(rect, -math.pi / 2, math.pi * 2, true, paint);
+      return;
+    }
+
+    var start = -math.pi / 2;
+    final labelPainters = <({TextPainter painter, Offset offset})>[];
+
+    for (var i = 0; i < items.length; i++) {
+      final amount = amountOf(items[i]);
+      final sweep = (amount / total) * math.pi * 2;
+      if (sweep <= 0) continue;
+      paint.color = colors[i];
+      canvas.drawArc(rect, start, sweep, true, paint);
+
+      final pct = ((amount / total) * 100).round();
+      if (pct > 0) {
+        final angle = start + sweep / 2;
+        final labelRadius = diameter * 0.30;
+        final center = rect.center;
+        final textPainter = TextPainter(
+          text: TextSpan(
+            text: '$pct%',
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 12,
+              fontWeight: FontWeight.w900,
+            ),
+          ),
+          textDirection: ui.TextDirection.ltr,
+        )..layout();
+        labelPainters.add((
+          painter: textPainter,
+          offset: Offset(
+            center.dx + math.cos(angle) * labelRadius - textPainter.width / 2,
+            center.dy + math.sin(angle) * labelRadius - textPainter.height / 2,
+          ),
+        ));
+      }
+
+      start += sweep;
+    }
+
+    for (final label in labelPainters) {
+      label.painter.paint(canvas, label.offset);
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _PieChartPainter<T> oldDelegate) {
+    return oldDelegate.items != items || oldDelegate.colors != colors;
+  }
+}
+
+List<Color> _breakdownPalette(BuildContext context, int count) {
+  final backgroundIndex = GetIt.I<AppSettings>().backgroundIndex;
+  final gradient = AppColors.heroGradientForBackground(
+    backgroundIndex,
+    context,
+  );
+  final accent = AppColors.accentColorForBackground(backgroundIndex, context);
+  final base = <Color>[
+    accent,
+    if (gradient.colors.length > 1) gradient.colors.last,
+    Colors.teal,
+    Colors.orange,
+    Colors.indigo,
+    Colors.pink,
+  ];
+  final isDark = AppColors.isDark(context);
+  return List.generate(count, (index) {
+    final color = base[index % base.length];
+    return isDark ? Color.lerp(color, Colors.white, 0.12)! : color;
+  });
 }
 
 // ── Category detail sheet ───────────────────────────────────────────────────
@@ -1345,7 +1761,7 @@ class _CategoryDetailSheet extends StatelessWidget {
 
 // ── Payment method card ─────────────────────────────────────────────────────
 
-class _PaymentMethodCard extends StatelessWidget {
+class _PaymentMethodCard extends StatefulWidget {
   const _PaymentMethodCard({
     required this.items,
     required this.currencyCode,
@@ -1357,7 +1773,15 @@ class _PaymentMethodCard extends StatelessWidget {
   final DateTime selectedMonth;
 
   @override
+  State<_PaymentMethodCard> createState() => _PaymentMethodCardState();
+}
+
+class _PaymentMethodCardState extends State<_PaymentMethodCard> {
+  _BreakdownChartMode _mode = _BreakdownChartMode.bar;
+
+  @override
   Widget build(BuildContext context) {
+    final items = widget.items;
     final maxValue = items.map((e) => e.total).fold<int>(0, math.max);
     final totalAmount = items.fold<int>(0, (sum, e) => sum + e.total);
     final backgroundIndex = GetIt.I<AppSettings>().backgroundIndex;
@@ -1380,64 +1804,94 @@ class _PaymentMethodCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              'report.stats.payment_method_title'.tr(),
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
-            const SizedBox(height: 12),
-            ...items.map((item) {
-              final ratio = maxValue == 0 ? 0.0 : (item.total / maxValue);
-              final pct =
-                  totalAmount == 0
-                      ? 0
-                      : ((item.total / totalAmount) * 100).round();
-              final name =
-                  item.name.isEmpty ? 'common.unclassified'.tr() : item.name;
-              return InkWell(
-                borderRadius: BorderRadius.circular(8),
-                onTap: () => _showDetail(context, item, name),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 5),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Expanded(
-                            child: Text(
-                              name,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          Text(
-                            '${CurrencyUtils.formatAmount(item.total, currencyCode)}  ($pct%)',
-                            style: Theme.of(context).textTheme.bodyMedium,
-                          ),
-                          const SizedBox(width: 4),
-                          Icon(
-                            Icons.chevron_right,
-                            size: 16,
-                            color: AppColors.mutedOf(context),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 6),
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(999),
-                        child: LinearProgressIndicator(
-                          value: ratio,
-                          minHeight: 10,
-                          color: indicatorColor,
-                          backgroundColor: trackColor,
-                        ),
-                      ),
-                    ],
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    'report.stats.payment_method_title'.tr(),
+                    style: Theme.of(context).textTheme.titleMedium,
                   ),
                 ),
-              );
-            }),
+                _BreakdownChartModeTabs(
+                  value: _mode,
+                  onChanged: (value) => setState(() => _mode = value),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            if (_mode == _BreakdownChartMode.pie)
+              _BreakdownPieChart<PaymentMethodExpense>(
+                items: items,
+                amountOf: (item) => item.total,
+                labelOf:
+                    (item) =>
+                        item.name.isEmpty
+                            ? 'common.unclassified'.tr()
+                            : item.name,
+                currencyCode: widget.currencyCode,
+                totalAmount: totalAmount,
+                onTap: (item) {
+                  final name =
+                      item.name.isEmpty
+                          ? 'common.unclassified'.tr()
+                          : item.name;
+                  _showDetail(context, item, name);
+                },
+              )
+            else
+              ...items.map((item) {
+                final ratio = maxValue == 0 ? 0.0 : (item.total / maxValue);
+                final pct =
+                    totalAmount == 0
+                        ? 0
+                        : ((item.total / totalAmount) * 100).round();
+                final name =
+                    item.name.isEmpty ? 'common.unclassified'.tr() : item.name;
+                return InkWell(
+                  borderRadius: BorderRadius.circular(8),
+                  onTap: () => _showDetail(context, item, name),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 5),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                name,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Text(
+                              '${CurrencyUtils.formatAmount(item.total, widget.currencyCode)}  ($pct%)',
+                              style: Theme.of(context).textTheme.bodyMedium,
+                            ),
+                            const SizedBox(width: 4),
+                            Icon(
+                              Icons.chevron_right,
+                              size: 16,
+                              color: AppColors.mutedOf(context),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 6),
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(999),
+                          child: LinearProgressIndicator(
+                            value: ratio,
+                            minHeight: 10,
+                            color: indicatorColor,
+                            backgroundColor: trackColor,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              }),
           ],
         ),
       ),
@@ -1459,8 +1913,8 @@ class _PaymentMethodCard extends StatelessWidget {
             name: displayName,
             total: item.total,
             paymentMethodId: item.paymentMethodId,
-            selectedMonth: selectedMonth,
-            currencyCode: currencyCode,
+            selectedMonth: widget.selectedMonth,
+            currencyCode: widget.currencyCode,
           ),
     );
   }

@@ -211,6 +211,8 @@
       "daily_distribution": "Daily Distribution",
       "daily_distribution_desc": "See which days concentrated your spending in this month.",
       "chart_title": "Category Top {count}",
+      "chart_bar": "Bar",
+      "chart_pie": "Pie",
       "payment_method_title": "By Payment Method",
       "empty_month": "No expense data for this month.",
       "empty_category_list": "No category totals available."

@@ -1117,3 +1117,41 @@ userEntitlements/{uid}
 - `assets/locales/ko.json`
 - `assets/locales/en.json`
 - `AGENTS.md`
+
+---
+
+### 35. 통계 차트 표시 방식 및 보고서 내보내기 안정화
+
+**배경**
+- 통계 화면의 분류별/결제수단별 지출을 막대 차트와 원형 차트로 전환해 볼 수 있도록 개선.
+- 보고서 내보내기 페이지가 스크롤 가능한 구조가 된 뒤 Android에서 생성 결과 미리보기 레이아웃 오류가 발생하여 수정.
+
+**변경 내용**
+- 분류별 지출 TOP 카드에 차트 보기 탭 추가
+  - 막대 차트 / 원형 차트 전환 지원
+  - 원형 차트는 도넛형이 아닌 완전 원형 차트로 표시
+  - 각 원형 조각 위에 비율 퍼센트 표시
+- 결제 수단별 지출 카드에 차트 보기 탭 추가
+  - 막대 차트 / 원형 차트 전환 지원
+  - 원형 차트는 완전 원형 차트와 비율 퍼센트 표시 적용
+- 월 지출 추세 차트 정렬 개선
+  - 차트 데이터가 화면 폭보다 짧을 때 가운데 정렬되도록 수정
+- 보고서 내보내기 화면 안정화
+  - 페이지 전체 스크롤 유지
+  - 생성 결과 미리보기 영역은 유한 높이를 갖도록 수정
+  - CSV/PDF 미리보기 내부 스크롤 유지
+  - Android에서 `RenderFlex children have non-zero flex but incoming height constraints are unbounded` 오류가 발생하지 않도록 `Expanded` 제거
+- 차트 보기 탭 문구 로케일 추가
+  - 한국어: 막대 / 원형
+  - 영어: Bar / Pie
+
+**검증**
+- `flutter analyze lib/screen/report_export_screen.dart lib/screen/report_statistics_screen.dart` 통과
+- `git diff --check` 통과
+- `dart format lib/screen/report_export_screen.dart` 실행 완료. 단, 샌드박스 밖 Dart telemetry 파일 권한 문제로 명령 종료 코드는 1을 반환했으나 파일 포맷은 적용됨.
+
+**관련 파일**
+- `lib/screen/report_statistics_screen.dart`
+- `lib/screen/report_export_screen.dart`
+- `assets/locales/ko.json`
+- `assets/locales/en.json`
