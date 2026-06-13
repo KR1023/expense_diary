@@ -85,6 +85,7 @@ class ReportPdfService {
       0,
       (sum, row) => sum + row.readTable(_db.expenses).expense,
     );
+    final amountFormatter = NumberFormat.decimalPattern(languageCode);
     final topCategories = _buildTopCategories(txRows);
     final paymentMethodTotals = _buildPaymentMethodTotals(txRows);
     final pdfThemeContext = await _buildPdfThemeContext();
@@ -154,7 +155,7 @@ class ReportPdfService {
                       labels.totalExpense,
                       allowUnicode: supportsUnicode,
                     ),
-                    totalExpense.toString(),
+                    _formatAmount(totalExpense, amountFormatter),
                   ],
                   [
                     _safeText(
@@ -198,7 +199,7 @@ class ReportPdfService {
                               : entry.value.category,
                           allowUnicode: supportsUnicode,
                         ),
-                        entry.value.total.toString(),
+                        _formatAmount(entry.value.total, amountFormatter),
                       ],
                     )
                     .toList(growable: false),
@@ -236,7 +237,7 @@ class ReportPdfService {
                               : entry.value.name,
                           allowUnicode: supportsUnicode,
                         ),
-                        entry.value.total.toString(),
+                        _formatAmount(entry.value.total, amountFormatter),
                       ],
                     )
                     .toList(growable: false),
@@ -302,7 +303,7 @@ class ReportPdfService {
                           paymentMethod?.name ?? labels.noPaymentMethod,
                           allowUnicode: supportsUnicode,
                         ),
-                        expense.expense.toString(),
+                        _formatAmount(expense.expense, amountFormatter),
                         _safeText(
                           expense.expenseDetail ?? '',
                           allowUnicode: supportsUnicode,
@@ -345,6 +346,7 @@ class ReportPdfService {
           languageCode: languageCode,
         ),
         totalExpense: totalExpense,
+        amountFormatter: amountFormatter,
         txRows: txRows,
         topCategories: topCategories,
         paymentMethodTotals: paymentMethodTotals,
@@ -356,6 +358,7 @@ class ReportPdfService {
     required _PdfLabels labels,
     required String title,
     required int totalExpense,
+    required NumberFormat amountFormatter,
     required List<TypedResult> txRows,
     required List<_CategoryTotal> topCategories,
     required List<_PaymentMethodTotal> paymentMethodTotals,
@@ -364,20 +367,20 @@ class ReportPdfService {
       title,
       '',
       labels.summaryDescription,
-      '${labels.totalExpense}: $totalExpense',
+      '${labels.totalExpense}: ${_formatAmount(totalExpense, amountFormatter)}',
       '${labels.transactions}: ${txRows.length}',
       '',
       '${labels.categoryTop} (${topCategories.length})',
       ...topCategories.take(8).map((item) {
         final name =
             item.category.isEmpty ? labels.unclassified : item.category;
-        return '- $name: ${item.total}';
+        return '- $name: ${_formatAmount(item.total, amountFormatter)}';
       }),
       '',
       '${labels.paymentMethodTotals} (${paymentMethodTotals.length})',
       ...paymentMethodTotals.take(8).map((item) {
         final name = item.name.isEmpty ? labels.noPaymentMethod : item.name;
-        return '- $name: ${item.total}';
+        return '- $name: ${_formatAmount(item.total, amountFormatter)}';
       }),
       '',
       labels.transactionsSection,
@@ -404,7 +407,7 @@ class ReportPdfService {
           expense.expenseName,
           category?.categoryName ?? '',
           paymentMethod?.name ?? labels.noPaymentMethod,
-          '${expense.expense}',
+          _formatAmount(expense.expense, amountFormatter),
           expense.expenseDetail ?? '',
         ].join(' | '),
       );
@@ -488,6 +491,10 @@ class ReportPdfService {
     final m = localDate.month.toString().padLeft(2, '0');
     final d = localDate.day.toString().padLeft(2, '0');
     return '$y-$m-$d';
+  }
+
+  String _formatAmount(int amount, NumberFormat formatter) {
+    return formatter.format(amount);
   }
 
   (DateTime, DateTime) _effectiveRange({

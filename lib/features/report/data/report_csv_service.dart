@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:drift/drift.dart';
@@ -126,7 +127,9 @@ class ReportCsvService {
     );
     final baseName = fileNamePrefix ?? 'expense_report';
     final file = File(p.join(exportDir.path, '${baseName}_$timestamp.csv'));
-    await file.writeAsString(csv.toString());
+    // Excel/Numbers on mobile can mis-detect plain UTF-8 CSV as legacy
+    // encodings. A UTF-8 BOM keeps Korean text readable after sharing.
+    await file.writeAsBytes([0xEF, 0xBB, 0xBF, ...utf8.encode(csv.toString())]);
 
     return CsvExportResult(file: file, rowCount: result.length);
   }
