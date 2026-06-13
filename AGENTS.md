@@ -90,17 +90,15 @@ dart run flutter_native_splash:create
 - RevenueCat은 Android에 재통합되어 있습니다. iOS는 `SubscriptionService._configure()`에서 현재 비활성화되어 있으며, App Store 구독 설정이 준비될 때까지 Free처럼 동작합니다.
 - Firebase UID는 `lib/main.dart`에서 `loginUser()` / `logoutUser()`를 통해 RevenueCat app user ID와 연결합니다.
 - Firestore `userEntitlements/{uid}` 문서로 계정별 수동 권한을 지원합니다. 문서가 없으면 role은 `normal`, 수동 권한은 없음으로 처리합니다.
-- 수동 권한 필드: `role`(`normal`, `cloud`, `report`, `special`, `admin`), `manualCloud`, `manualReport`, `manualAdsRemoved`. 호환 alias boolean으로 `cloud`, `report`, `adsRemoved`도 허용합니다.
-- 최종 권한은 RevenueCat 권한과 수동 권한을 OR로 합산합니다. `report`, `special`, `admin` role은 Cloud 권한을 포함하며, `special`, `admin`은 전체 유료 기능을 해제합니다.
+- 수동 권한 필드: `role`(`normal`, `cloud`, `special`, `admin`), `manualCloud`, `manualAdsRemoved`. 호환 alias boolean으로 `cloud`, `adsRemoved`도 허용합니다.
+- 최종 권한은 RevenueCat 권한과 수동 권한을 OR로 합산합니다. `cloud` role은 Cloud 권한을 포함하며, `special`, `admin`은 전체 유료 기능을 해제합니다.
 - Firestore Rules는 사용자가 본인의 `userEntitlements/{uid}` 문서만 읽을 수 있게 하고, 클라이언트 write는 전부 차단합니다. 수동 권한 변경은 Firebase Console 또는 Admin SDK로만 수행합니다.
 - 현재 코드 기준 플랜:
-  - Free: 광고 표시, 백업 KST 기준 주 1회, 복원 KST 기준 일 1회, 활성 고정 지출 10개 제한, 결제 수단 5개 제한.
+  - Free: 광고 표시, 백업 KST 기준 주 1회, 복원 KST 기준 일 1회, 활성 고정 지출 10개 제한, 결제 수단 5개 제한, 통계/CSV/PDF 무료 제공.
   - Cloud: 광고 제거, 백업/복원 무제한, 고정 지출 무제한, 결제 수단 무제한.
-  - Report: Cloud 포함, 통계/CSV/PDF 내보내기 해제.
-- 구독 정책 변경 검토 기준은 `docs/subscription/free_report_subscription_policy.md`에 정리되어 있습니다. 방향은 리포트/통계/CSV/PDF를 무료화하고, 구독은 광고 제거와 클라우드 백업/복원 무제한 및 결제 수단/고정 지출 제한 해제로 단순화하는 것입니다.
-- 리포트 무료화 구현 시 `StatisticsTabScreen`의 Report 권한 게이트와 CSV/PDF 내보내기 제한 문구를 제거합니다. 단, 기존 Report 구독자 보호를 위해 `report` entitlement/product/package는 RevenueCat과 코드에서 즉시 삭제하지 않고 호환용으로 유지할 수 있습니다.
-- 리포트 무료화 이후에도 기존 Report 권한은 Cloud 혜택(광고 제거, 백업/복원 무제한, 결제 수단/고정 지출 제한 해제)을 포함하도록 유지하는 것이 안전합니다.
-- RevenueCat/Play Console 전환 시 신규 판매는 `cloud_monthly` 중심으로 유지하고, `report_monthly`는 Offering 노출과 신규 판매를 중단합니다. 기존 구독자가 있을 수 있으므로 product/entitlement 즉시 삭제는 피합니다.
+- Report 플랜은 앱 코드의 UI/권한/구매 경로에서 제거되었습니다. `role: report`, `manualReport`, `report` alias는 더 이상 유료 권한으로 해석하지 않습니다.
+- 구독 정책 변경 기준은 `docs/subscription/free_report_subscription_policy.md`에 정리되어 있습니다. 방향은 리포트/통계/CSV/PDF를 무료화하고, 구독은 광고 제거와 클라우드 백업/복원 무제한 및 결제 수단/고정 지출 제한 해제로 단순화하는 것입니다.
+- RevenueCat/Play Console 전환 시 신규 판매는 `cloud_monthly` 중심으로 유지하고, `report_monthly`는 Offering 노출과 신규 판매를 중단합니다.
 - iOS 구독을 다시 도입할 경우 Report 상품은 새로 만들지 않고 Cloud 상품만 구성하는 방향이 권장됩니다.
 - iOS 구독/페이월 화면은 현재 “준비 중”을 표시합니다. App Store 구독 설정이 완료되기 전까지 iOS 구매 플로우를 활성화하지 않습니다.
 - 사용자가 구매를 취소한 경우 정상 취소 흐름으로 처리하고 RevenueCat/API 원문 오류를 사용자에게 노출하지 않습니다.
@@ -109,19 +107,17 @@ dart run flutter_native_splash:create
   - `RC_IOS_PUBLIC_SDK_KEY`
   - `RC_TEST_STORE_KEY` (test store override)
   - `RC_FORCE_ENTITLED` (UI/dev 테스트용. release에 포함 금지)
-  - `RC_ENTITLEMENT_CLOUD`, `RC_ENTITLEMENT_REPORT`
-  - `RC_OFFERING_CLOUD`, `RC_OFFERING_REPORT`
-- 기본 entitlement ID는 `cloud`, `report`입니다.
-- 기본 offering/package ID는 `cloud_monthly`, `report_monthly`입니다.
+  - `RC_ENTITLEMENT_CLOUD`
+  - `RC_OFFERING_CLOUD`
+- 기본 entitlement ID는 `cloud`입니다.
+- 기본 offering/package ID는 `cloud_monthly`입니다.
 
 Android release build 예시:
 ```bash
 flutter build appbundle \
   --dart-define=RC_ANDROID_PUBLIC_SDK_KEY=goog_xxx \
   --dart-define=RC_ENTITLEMENT_CLOUD=cloud \
-  --dart-define=RC_ENTITLEMENT_REPORT=report \
-  --dart-define=RC_OFFERING_CLOUD=cloud_monthly \
-  --dart-define=RC_OFFERING_REPORT=report_monthly
+  --dart-define=RC_OFFERING_CLOUD=cloud_monthly
 ```
 
 ## 백업 / 복원

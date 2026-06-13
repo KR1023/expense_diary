@@ -1001,6 +1001,58 @@ userEntitlements/{uid}
 
 ---
 
+### 33. 통계/CSV/PDF 무료화 및 Report 플랜 제거
+
+**배경**
+- Report 플랜 구독자가 없는 상태에서 통계/CSV/PDF 기능을 무료 제공하기로 결정.
+- 유료 구독은 Cloud 단일 플랜으로 단순화하고, 광고 제거와 백업/복원 무제한 및 사용 제한 해제에 집중하도록 정책 변경.
+
+**변경 내용**
+- 통계 탭의 Report 권한 체크, 잠금 아이콘, Paywall 이동 로직 제거
+- 통계 보기, CSV 내보내기, PDF 내보내기를 Free 사용자도 즉시 사용할 수 있도록 변경
+- 구독 화면에서 Report 플랜 카드와 Report 구매 경로 제거
+- Paywall을 Cloud 플랜 전용으로 단순화
+- `SubscriptionPlan.report`, `isReportEntitled`, `_reportEntitled`, `RevenueCatConfig.entitlementReport`, `RevenueCatConfig.offeringReport` 제거
+- Firestore 수동 권한의 `role: report`, `manualReport`, `report` alias는 더 이상 유료 권한으로 해석하지 않도록 변경
+- CSV/PDF 화면의 "Report 플랜 전용" 문구 제거
+- Android/iOS 배포 문서에서 Report 관련 dart-define 제거
+- `docs/subscription/free_report_subscription_policy.md`에 구현 완료 상태와 남은 운영 콘솔 작업 정리
+
+**현재 플랜 구조**
+
+| 플랜 | 기능 |
+|---|---|
+| Free | 광고 표시, 백업 주 1회, 복원 일 1회, 결제 수단 5개 제한, 고정 지출 10개 제한, 통계/CSV/PDF 무료 제공 |
+| Cloud | 광고 제거, 백업/복원 무제한, 결제 수단 무제한, 고정 지출 무제한 |
+
+**남은 운영 작업**
+- RevenueCat Offering에서 `report_monthly` package 제거
+- Google Play Console에서 `report_monthly` 신규 구매 중단 또는 비활성화
+- Android 실기기에서 Cloud 구매/복원 흐름 수동 확인
+
+**검증**
+- `flutter analyze lib/core/subscription/subscription_service.dart lib/const/revenuecat_config.dart lib/screen/statistics_tab_screen.dart lib/screen/subscription_screen.dart lib/screen/paywall_screen.dart lib/screen/config_screen.dart lib/screen/report_csv_export_screen.dart lib/screen/report_pdf_export_screen.dart` 통과
+- `git diff --check` 통과
+- 앱 코드/번역/배포 문서에서 Report 런타임 참조 제거 확인
+
+**관련 파일**
+- `lib/core/subscription/subscription_service.dart`
+- `lib/const/revenuecat_config.dart`
+- `lib/screen/statistics_tab_screen.dart`
+- `lib/screen/subscription_screen.dart`
+- `lib/screen/paywall_screen.dart`
+- `lib/screen/config_screen.dart`
+- `lib/screen/report_csv_export_screen.dart`
+- `lib/screen/report_pdf_export_screen.dart`
+- `assets/locales/ko.json`
+- `assets/locales/en.json`
+- `docs/subscription/free_report_subscription_policy.md`
+- `docs/deployment/android.md`
+- `docs/deployment/ios.md`
+- `AGENTS.md`
+
+---
+
 ## 문서
 
 | 파일 | 내용 |

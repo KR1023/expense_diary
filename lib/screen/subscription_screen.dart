@@ -47,8 +47,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen>
   }
 
   Future<void> _loadOfferings() async {
-    if (Platform.isIOS ||
-        GetIt.I<SubscriptionService>().currentPlan == SubscriptionPlan.report) {
+    if (Platform.isIOS) {
       if (mounted) setState(() => _isLoading = false);
       return;
     }
@@ -89,7 +88,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen>
     return DateFormat('yyyy.MM.dd').format(parsed.toLocal());
   }
 
-  Future<void> _navigateToPaywall(String entitlement) async {
+  Future<void> _navigateToPaywall() async {
     if (!Platform.isIOS) {
       final user = GetIt.I<AuthRepository>().currentUser;
       if (user == null) {
@@ -107,11 +106,9 @@ class _SubscriptionScreenState extends State<SubscriptionScreen>
     }
 
     if (!mounted) return;
-    final result = await Navigator.of(context).push<bool>(
-      MaterialPageRoute(
-        builder: (_) => PaywallScreen(entitlement: entitlement),
-      ),
-    );
+    final result = await Navigator.of(
+      context,
+    ).push<bool>(MaterialPageRoute(builder: (_) => const PaywallScreen()));
     if (!mounted) return;
     if (result == true) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -267,40 +264,21 @@ class _SubscriptionScreenState extends State<SubscriptionScreen>
           const SizedBox(height: 20),
 
           // 업그레이드 섹션
-          if (plan != SubscriptionPlan.report) ...[
+          if (plan == SubscriptionPlan.free) ...[
             _SectionLabel('subscription.upgrade_section'.tr()),
             const SizedBox(height: 8),
-            if (plan == SubscriptionPlan.free)
-              _PlanOfferCard(
-                icon: Icons.backup_outlined,
-                title: 'subscription.plan_cloud'.tr(),
-                price: _priceFor(RevenueCatConfig.offeringCloud),
-                features: [
-                  'subscription.feature_ads'.tr(),
-                  'subscription.feature_backup'.tr(),
-                  'subscription.feature_recurring'.tr(),
-                  'subscription.feature_payment'.tr(),
-                ],
-                buttonLabel: 'subscription.subscribe'.tr(),
-                onTap:
-                    () => _navigateToPaywall(RevenueCatConfig.entitlementCloud),
-              ),
-            if (plan == SubscriptionPlan.free) const SizedBox(height: 12),
             _PlanOfferCard(
-              icon: Icons.bar_chart_rounded,
-              title: 'subscription.plan_report'.tr(),
-              price: _priceFor(RevenueCatConfig.offeringReport),
+              icon: Icons.backup_outlined,
+              title: 'subscription.plan_cloud'.tr(),
+              price: _priceFor(RevenueCatConfig.offeringCloud),
               features: [
-                'subscription.feature_cloud_all'.tr(),
-                'subscription.feature_stats'.tr(),
-                'subscription.feature_export'.tr(),
+                'subscription.feature_ads'.tr(),
+                'subscription.feature_backup'.tr(),
+                'subscription.feature_recurring'.tr(),
+                'subscription.feature_payment'.tr(),
               ],
-              buttonLabel:
-                  plan == SubscriptionPlan.free
-                      ? 'subscription.subscribe'.tr()
-                      : 'subscription.upgrade'.tr(),
-              onTap:
-                  () => _navigateToPaywall(RevenueCatConfig.entitlementReport),
+              buttonLabel: 'subscription.subscribe'.tr(),
+              onTap: _navigateToPaywall,
             ),
             const SizedBox(height: 20),
           ],
@@ -366,25 +344,6 @@ class _SubscriptionScreenState extends State<SubscriptionScreen>
             'subscription.feature_backup'.tr(),
             'subscription.feature_recurring'.tr(),
             'subscription.feature_payment'.tr(),
-          ],
-          isActive: true,
-        );
-      case SubscriptionPlan.report:
-        final expiry = _expirationFor(RevenueCatConfig.entitlementReport);
-        return _CurrentPlanCard(
-          planLabel: 'subscription.plan_report'.tr(),
-          icon: Icons.workspace_premium_rounded,
-          subtitle:
-              expiry != null
-                  ? 'subscription.next_renewal'.tr(namedArgs: {'date': expiry})
-                  : null,
-          features: [
-            'subscription.feature_ads'.tr(),
-            'subscription.feature_backup'.tr(),
-            'subscription.feature_recurring'.tr(),
-            'subscription.feature_payment'.tr(),
-            'subscription.feature_stats'.tr(),
-            'subscription.feature_export'.tr(),
           ],
           isActive: true,
         );

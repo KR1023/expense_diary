@@ -18,17 +18,9 @@ class RevenueCatConfig {
     'RC_ENTITLEMENT_CLOUD',
     defaultValue: 'cloud',
   );
-  static const String entitlementReport = String.fromEnvironment(
-    'RC_ENTITLEMENT_REPORT',
-    defaultValue: 'report',
-  );
 
   static const String offeringCloud = String.fromEnvironment(
     'RC_OFFERING_CLOUD',
     defaultValue: 'cloud_monthly',
-  );
-  static const String offeringReport = String.fromEnvironment(
-    'RC_OFFERING_REPORT',
-    defaultValue: 'report_monthly',
   );
 }

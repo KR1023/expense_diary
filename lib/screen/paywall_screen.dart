@@ -10,9 +10,7 @@ import 'package:get_it/get_it.dart';
 import 'package:purchases_flutter/purchases_flutter.dart';
 
 class PaywallScreen extends StatefulWidget {
-  const PaywallScreen({super.key, required this.entitlement});
-
-  final String entitlement;
+  const PaywallScreen({super.key});
 
   @override
   State<PaywallScreen> createState() => _PaywallScreenState();
@@ -54,12 +52,8 @@ class _PaywallScreenState extends State<PaywallScreen> {
 
   Package? get _targetPackage {
     if (_offering == null) return null;
-    final packageId =
-        widget.entitlement == RevenueCatConfig.entitlementCloud
-            ? RevenueCatConfig.offeringCloud
-            : RevenueCatConfig.offeringReport;
     return _offering!.availablePackages
-        .where((p) => p.identifier == packageId)
+        .where((p) => p.identifier == RevenueCatConfig.offeringCloud)
         .firstOrNull;
   }
 
@@ -106,8 +100,6 @@ class _PaywallScreenState extends State<PaywallScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final isCloud = widget.entitlement == RevenueCatConfig.entitlementCloud;
-
     if (Platform.isIOS) {
       return Scaffold(
         backgroundColor: Colors.transparent,
@@ -165,18 +157,14 @@ class _PaywallScreenState extends State<PaywallScreen> {
             ),
             const SizedBox(height: 16),
             Text(
-              isCloud
-                  ? 'paywall.cloud.title'.tr()
-                  : 'paywall.report.title'.tr(),
+              'paywall.cloud.title'.tr(),
               style: Theme.of(
                 context,
               ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
             Text(
-              isCloud
-                  ? 'paywall.cloud.description'.tr()
-                  : 'paywall.report.description'.tr(),
+              'paywall.cloud.description'.tr(),
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                 color: AppColors.mutedOf(context),
               ),
@@ -191,7 +179,7 @@ class _PaywallScreenState extends State<PaywallScreen> {
                 margin: EdgeInsets.zero,
                 child: ListTile(
                   leading: Icon(
-                    isCloud ? Icons.backup_outlined : Icons.bar_chart_rounded,
+                    Icons.backup_outlined,
                     color: AppColors.primary,
                   ),
                   title: Text(_targetPackage!.storeProduct.title),

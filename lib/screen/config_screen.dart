@@ -764,8 +764,6 @@ class _ConfigScreenState extends State<ConfigScreen> {
                             'subscription.plan_free'.tr(),
                           SubscriptionPlan.cloud =>
                             'subscription.plan_cloud'.tr(),
-                          SubscriptionPlan.report =>
-                            'subscription.plan_report'.tr(),
                         };
                         return Card(
                           margin: EdgeInsets.zero,

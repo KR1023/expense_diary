@@ -58,9 +58,7 @@ flutter build ipa \
   --dart-define=ADMOB_IOS_BANNER_ID=ca-app-pub-5444803558030319/5504549409 \
   --dart-define=RC_IOS_PUBLIC_SDK_KEY=appl_nfQCULthfEqbagScUuIkVIQbneG \
   --dart-define=RC_ENTITLEMENT_CLOUD=cloud \
-  --dart-define=RC_ENTITLEMENT_REPORT=report \
-  --dart-define=RC_OFFERING_CLOUD=cloud_monthly \
-  --dart-define=RC_OFFERING_REPORT=report_monthly
+  --dart-define=RC_OFFERING_CLOUD=cloud_monthly
 ```
 
 결과물: `build/ios/ipa/*.ipa`

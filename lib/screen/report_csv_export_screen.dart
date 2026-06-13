@@ -66,7 +66,7 @@ class _ReportCsvExportScreenState extends State<ReportCsvExportScreen> {
             Padding(
               padding: const EdgeInsets.only(left: 12, bottom: 12),
               child: Text(
-                'Report 플랜 전용. 로컬 SQLite 거래 내역을 CSV로 저장하고 공유할 수 있습니다.',
+                '로컬 지출 내역을 CSV로 저장하고 공유할 수 있습니다.',
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                   color: AppColors.mutedOf(context),
                 ),

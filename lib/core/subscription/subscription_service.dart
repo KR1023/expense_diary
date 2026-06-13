@@ -6,13 +6,11 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:purchases_flutter/purchases_flutter.dart';
 
-enum SubscriptionPlan { free, cloud, report }
+enum SubscriptionPlan { free, cloud }
 
 class SubscriptionService extends ChangeNotifier {
   bool _cloudEntitled = false;
-  bool _reportEntitled = false;
   bool _manualCloudEntitled = false;
-  bool _manualReportEntitled = false;
   bool _manualAdsRemoved = false;
   bool _isConfigured = false;
   String _manualRole = 'normal';
@@ -24,26 +22,16 @@ class SubscriptionService extends ChangeNotifier {
     defaultValue: false,
   );
 
-  // Report 플랜은 Cloud 플랜 기능을 포함한다.
   bool get isCloudEntitled =>
       _forceEntitled ||
       _hasFullAccessRole ||
       _hasCloudRole ||
       _manualCloudEntitled ||
-      _manualReportEntitled ||
-      _cloudEntitled ||
-      _reportEntitled;
-  bool get isReportEntitled =>
-      _forceEntitled ||
-      _hasFullAccessRole ||
-      _hasReportRole ||
-      _manualReportEntitled ||
-      _reportEntitled;
+      _cloudEntitled;
 
   bool get isAdsRemoved => isCloudEntitled || _manualAdsRemoved;
 
   SubscriptionPlan get currentPlan {
-    if (isReportEntitled) return SubscriptionPlan.report;
     if (isCloudEntitled) return SubscriptionPlan.cloud;
     return SubscriptionPlan.free;
   }
@@ -53,9 +41,7 @@ class SubscriptionService extends ChangeNotifier {
 
   bool get _hasFullAccessRole =>
       _manualRole == 'admin' || _manualRole == 'special';
-  bool get _hasCloudRole =>
-      _manualRole == 'cloud' || _manualRole == 'report' || _hasFullAccessRole;
-  bool get _hasReportRole => _manualRole == 'report' || _hasFullAccessRole;
+  bool get _hasCloudRole => _manualRole == 'cloud' || _hasFullAccessRole;
 
   static Future<SubscriptionService> init() async {
     final service = SubscriptionService();
@@ -95,9 +81,6 @@ class SubscriptionService extends ChangeNotifier {
       _customerInfo = info;
       _cloudEntitled = info.entitlements.active.containsKey(
         RevenueCatConfig.entitlementCloud,
-      );
-      _reportEntitled = info.entitlements.active.containsKey(
-        RevenueCatConfig.entitlementReport,
       );
       notifyListeners();
     } catch (e) {
@@ -179,20 +162,13 @@ class SubscriptionService extends ChangeNotifier {
               .get();
       final data = doc.data();
       if (data == null) {
-        _setManualEntitlements(
-          role: 'normal',
-          cloud: false,
-          report: false,
-          adsRemoved: false,
-        );
+        _setManualEntitlements(role: 'normal', cloud: false, adsRemoved: false);
         return;
       }
 
       _setManualEntitlements(
         role: (data['role'] as String?)?.trim().toLowerCase() ?? 'normal',
         cloud: data['manualCloud'] as bool? ?? data['cloud'] as bool? ?? false,
-        report:
-            data['manualReport'] as bool? ?? data['report'] as bool? ?? false,
         adsRemoved:
             data['manualAdsRemoved'] as bool? ??
             data['adsRemoved'] as bool? ??
@@ -200,34 +176,22 @@ class SubscriptionService extends ChangeNotifier {
       );
     } catch (e) {
       debugPrint('SubscriptionService._loadManualEntitlements error: $e');
-      _setManualEntitlements(
-        role: 'normal',
-        cloud: false,
-        report: false,
-        adsRemoved: false,
-      );
+      _setManualEntitlements(role: 'normal', cloud: false, adsRemoved: false);
     }
   }
 
   void _setManualEntitlements({
     required String role,
     required bool cloud,
-    required bool report,
     required bool adsRemoved,
   }) {
     _manualRole = role.isEmpty ? 'normal' : role;
     _manualCloudEntitled = cloud;
-    _manualReportEntitled = report;
     _manualAdsRemoved = adsRemoved;
     notifyListeners();
   }
 
   void _clearManualEntitlements() {
-    _setManualEntitlements(
-      role: 'normal',
-      cloud: false,
-      report: false,
-      adsRemoved: false,
-    );
+    _setManualEntitlements(role: 'normal', cloud: false, adsRemoved: false);
   }
 }

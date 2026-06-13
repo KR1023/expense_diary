@@ -373,13 +373,11 @@
     "manage_section": "Manage Subscription",
     "plan_free": "Free",
     "plan_cloud": "Cloud Plan",
-    "plan_report": "Report Plan",
     "free_desc": "Free tier · Limited features",
     "per_month": "/ mo",
     "next_renewal": "Next renewal: {date}",
     "subscribe": "Subscribe",
     "purchase_success": "Subscription activated successfully.",
-    "upgrade": "Upgrade to Report Plan",
     "restore": "Restore Purchases",
     "cancel": "Cancel Subscription",
     "cancel_dialog_title": "Cancel Subscription",
@@ -392,14 +390,11 @@
     "feature_payment_free": "Up to 5 payment methods",
     "feature_recurring": "Unlimited fixed expenses",
     "feature_payment": "Unlimited payment methods",
-    "feature_stats": "Monthly statistics",
-    "feature_export": "CSV / PDF export",
-    "feature_cloud_all": "All Cloud Plan features",
     "ios_free_desc": "All features are currently free on iOS.",
     "limit_recurring_title": "Fixed Expense Limit Reached",
-    "limit_recurring_msg": "Free plan allows up to 10 fixed expenses.\nSubscribe to Cloud or Report plan for unlimited.",
+    "limit_recurring_msg": "Free plan allows up to 10 fixed expenses.\nSubscribe to Cloud plan for unlimited.",
     "limit_payment_title": "Payment Method Limit Reached",
-    "limit_payment_msg": "Free plan allows up to 5 payment methods.\nSubscribe to Cloud or Report plan for unlimited.",
+    "limit_payment_msg": "Free plan allows up to 5 payment methods.\nSubscribe to Cloud plan for unlimited.",
     "upgrade_plan": "Upgrade Plan",
     "ios_coming_soon_title": "Coming Soon",
     "ios_coming_soon_desc": "Subscription service for iOS is currently under preparation.\nIt will be available soon.",
@@ -414,10 +409,6 @@
     "cloud": {
       "title": "Cloud Backup",
       "description": "Back up and restore your data to the cloud. Keep your data safe even when switching devices."
-    },
-    "report": {
-      "title": "Statistics & Reports",
-      "description": "Access monthly statistics and CSV/PDF export features."
     }
   },
   "error": {

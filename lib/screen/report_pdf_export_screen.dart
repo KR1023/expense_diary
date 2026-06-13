@@ -67,7 +67,7 @@ class _ReportPdfExportScreenState extends State<ReportPdfExportScreen> {
             Padding(
               padding: const EdgeInsets.only(left: 12, bottom: 12),
               child: Text(
-                'Report 플랜 전용. 월간 요약 + 카테고리 TOP + 거래 리스트가 포함된 PDF를 생성합니다.',
+                '월간 요약, 분류별 합계, 지출 내역이 포함된 PDF 보고서를 생성합니다.',
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                   color: AppColors.mutedOf(context),
                 ),

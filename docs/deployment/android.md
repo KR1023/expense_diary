@@ -42,9 +42,7 @@ flutter build appbundle \
   --dart-define=RC_ANDROID_PUBLIC_SDK_KEY=goog_BWfATQigKwKTGYMoNlyeAVwpJFB \
   --dart-define=RC_IOS_PUBLIC_SDK_KEY=appl_nfQCULthfEqbagScUuIkVIQbneG \
   --dart-define=RC_ENTITLEMENT_CLOUD=cloud \
-  --dart-define=RC_ENTITLEMENT_REPORT=report \
-  --dart-define=RC_OFFERING_CLOUD=cloud_monthly \
-  --dart-define=RC_OFFERING_REPORT=report_monthly
+  --dart-define=RC_OFFERING_CLOUD=cloud_monthly
 ```
 
 결과물: `build/app/outputs/bundle/release/app-release.aab`
