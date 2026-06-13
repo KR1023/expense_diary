@@ -138,6 +138,35 @@ class LocalDatabase extends _$LocalDatabase {
     return query.watchSingle().map((row) => row.read(count) ?? 0);
   }
 
+  Stream<Map<DateTime, int>> watchMonthlyExpenseTotalsInRange({
+    required DateTime startMonth,
+    required DateTime endMonth,
+  }) {
+    final start = DateTime(startMonth.year, startMonth.month, 1);
+    final end = DateTime(endMonth.year, endMonth.month + 1, 1);
+    final query = select(expenses)..where(
+      (t) =>
+          t.expenseDate.isBiggerOrEqualValue(start) &
+          t.expenseDate.isSmallerThanValue(end),
+    );
+
+    return query.watch().map((rows) {
+      final result = <DateTime, int>{};
+      var cursor = DateTime(start.year, start.month, 1);
+      while (!cursor.isAfter(DateTime(endMonth.year, endMonth.month, 1))) {
+        result[cursor] = 0;
+        cursor = DateTime(cursor.year, cursor.month + 1, 1);
+      }
+
+      for (final expense in rows) {
+        final date = expense.expenseDate;
+        final monthKey = DateTime(date.year, date.month, 1);
+        result[monthKey] = (result[monthKey] ?? 0) + expense.expense;
+      }
+      return result;
+    });
+  }
+
   Stream<List<PaymentMethodExpense>> watchMonthlyPaymentMethodExpense(
     DateTime selectedDate,
   ) {

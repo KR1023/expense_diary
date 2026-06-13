@@ -1065,3 +1065,55 @@ userEntitlements/{uid}
 | `docs/deployment/ios.md` | iOS 배포 절차 및 트러블슈팅 |
 | `docs/Structure/local_data_storage.md` | 로컬 데이터 저장 구조 |
 | `docs/Structure/cloud_storage.md` | 클라우드 저장 구조 (Firestore + Storage) |
+
+---
+
+### 34. 통계 화면 1스텝 진입 및 차트/내보내기 개편
+
+**배경**
+- 통계 탭에서 별도 메뉴를 거치지 않고 지출 통계를 바로 확인하도록 화면 흐름을 단순화.
+- 통계/CSV/PDF 무료화 이후 내보내기 기능을 통계 화면의 부가 기능으로 정리.
+- 월별/일별 지출 흐름을 차트로 확인하고, 차트에서 상세 지출 목록까지 바로 확인할 수 있도록 개선.
+
+**변경 내용**
+- 통계 탭 클릭 시 `지출 통계` 화면으로 바로 진입하도록 `StatisticsTabScreen` 단순화
+- 통계 화면 우측 상단에 내보내기 버튼 추가
+- CSV/PDF 통합 내보내기 화면 추가
+  - 파일 형식 선택: CSV / PDF
+  - 기간 선택: 월별 / 직접 선택
+  - 생성 후 공유 지원
+- 월 지출 추세 차트 추가
+  - 3개월 / 6개월 / 12개월 범위 선택
+  - 막대 클릭 시 통계 기준 월은 이동하지 않고 일별 지출 분포만 해당 월로 갱신
+  - KRW는 `(만원)` 단위로 표시하고, 막대 위에는 숫자만 출력
+- 일별 지출 분포 차트 추가
+  - 선택된 월의 일자별 지출 금액을 가로 스크롤 막대 차트로 표시
+  - 날짜 막대 클릭 시 해당 날짜의 지출 목록 드로어 출력
+- 분류별 지출 TOP 카드 개선
+  - 금액과 퍼센티지를 같은 카드에 통합
+  - 별도 퍼센트 전용 TOP 카드는 제거
+  - 분류 항목 클릭 시 해당 분류 지출 목록 드로어 출력
+- 결제 수단별 지출 드로어 유지 및 스타일 통일
+- 통계 차트 막대 색상을 설정의 배경 선택 테마와 연동
+- 일별/분류별/결제수단별 상세 드로어를 지출 내역 탭의 일자 상세 드로어 스타일 기준으로 통일
+  - 투명 bottom sheet 배경
+  - 배경 선택 테마 기반 카드 색상
+  - 배경 선택 테마 기반 hero gradient 헤더
+  - 내부 카드/빈 상태/테두리 색상 테마 연동
+- 보고서 CSV/PDF 쿼리는 기간 끝값 중복 집계를 피하기 위해 half-open range로 변경
+
+**검증**
+- `flutter analyze lib/screen/report_statistics_screen.dart` 통과
+- `git diff --check` 통과
+- `jq empty assets/locales/ko.json && jq empty assets/locales/en.json` 통과
+
+**관련 파일**
+- `lib/screen/statistics_tab_screen.dart`
+- `lib/screen/report_statistics_screen.dart`
+- `lib/screen/report_export_screen.dart`
+- `lib/database/drift_database.dart`
+- `lib/features/report/data/report_csv_service.dart`
+- `lib/features/report/data/report_pdf_service.dart`
+- `assets/locales/ko.json`
+- `assets/locales/en.json`
+- `AGENTS.md`

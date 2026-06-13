@@ -32,10 +32,8 @@ class ReportCsvService {
             ),
           ])
           ..where(
-            _db.expenses.expenseDate.isBetweenValues(
-              startInclusive,
-              endExclusive,
-            ),
+            _db.expenses.expenseDate.isBiggerOrEqualValue(startInclusive) &
+                _db.expenses.expenseDate.isSmallerThanValue(endExclusive),
           )
           ..orderBy([OrderingTerm.asc(_db.expenses.expenseDate)]);
 

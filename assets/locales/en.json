@@ -190,15 +190,6 @@
     }
   },
   "report": {
-    "menu": {
-      "subtitle": "Detailed statistics and CSV/PDF reports are available.",
-      "item_stats_title": "Expense Statistics",
-      "item_stats_subtitle": "Monthly summary + category & payment analysis",
-      "item_csv_title": "Download CSV Report",
-      "item_csv_subtitle": "Export CSV by month or custom range",
-      "item_pdf_title": "Download PDF Report",
-      "item_pdf_subtitle": "Monthly summary PDF (minimal template)"
-    },
     "stats": {
       "title": "Expense Statistics",
       "subtitle": "Analyze monthly expenses by various criteria.",
@@ -213,10 +204,40 @@
       "vs_no_prev": "No previous data",
       "peak_day": "Peak Day",
       "peak_day_value": "{date} · {amount}",
+      "monthly_trend": "Monthly Trend",
+      "range_3m": "3M",
+      "range_6m": "6M",
+      "range_12m": "12M",
+      "daily_distribution": "Daily Distribution",
+      "daily_distribution_desc": "See which days concentrated your spending in this month.",
       "chart_title": "Category Top {count}",
       "payment_method_title": "By Payment Method",
       "empty_month": "No expense data for this month.",
       "empty_category_list": "No category totals available."
+    },
+    "export": {
+      "title": "Export Report",
+      "subtitle": "Choose a range and format to save or share your expense data.",
+      "format": "Format",
+      "csv": "CSV",
+      "pdf": "PDF",
+      "range": "Range",
+      "month": "Month",
+      "custom": "Custom",
+      "start_date": "Start Date",
+      "end_date": "End Date",
+      "selected_range": "Export range: {start} ~ {end}",
+      "generate": "Generate",
+      "generating": "Generating...",
+      "share": "Share",
+      "result": "Export Result",
+      "no_file": "No file has been generated yet.",
+      "done": "Report generated.",
+      "failed": "Failed to generate report.",
+      "csv_done": "CSV generated · {count} rows",
+      "pdf_done": "PDF generated · {count} rows",
+      "csv_share": "Expense report CSV",
+      "pdf_share": "Expense report PDF"
     }
   },
   "auth": {

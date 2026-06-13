@@ -190,15 +190,6 @@
     }
   },
   "report": {
-    "menu": {
-      "subtitle": "상세 통계와 CSV/PDF 보고서를 사용할 수 있습니다.",
-      "item_stats_title": "지출 통계",
-      "item_stats_subtitle": "월별 요약 + 분류·결제 수단별 분석",
-      "item_csv_title": "CSV 보고서 다운로드",
-      "item_csv_subtitle": "월/기간 기준 CSV 내보내기",
-      "item_pdf_title": "PDF 보고서 다운로드",
-      "item_pdf_subtitle": "월간 요약 PDF (최소 템플릿)"
-    },
     "stats": {
       "title": "지출 통계",
       "subtitle": "월별 지출을 다양한 기준으로 분석합니다.",
@@ -213,10 +204,40 @@
       "vs_no_prev": "전월 데이터 없음",
       "peak_day": "최대 지출일",
       "peak_day_value": "{date} · {amount}",
+      "monthly_trend": "월 지출 추세",
+      "range_3m": "3개월",
+      "range_6m": "6개월",
+      "range_12m": "12개월",
+      "daily_distribution": "일별 지출 분포",
+      "daily_distribution_desc": "선택한 월 안에서 지출이 몰린 날짜를 확인합니다.",
       "chart_title": "분류별 지출 TOP {count}",
       "payment_method_title": "결제 수단별 지출",
       "empty_month": "해당 월의 지출 데이터가 없습니다.",
       "empty_category_list": "분류 합계 목록이 없습니다."
+    },
+    "export": {
+      "title": "보고서 내보내기",
+      "subtitle": "기간과 파일 형식을 선택해 지출 데이터를 저장하고 공유합니다.",
+      "format": "파일 형식",
+      "csv": "CSV",
+      "pdf": "PDF",
+      "range": "기간",
+      "month": "월별",
+      "custom": "직접 선택",
+      "start_date": "시작일",
+      "end_date": "종료일",
+      "selected_range": "내보내기 범위: {start} ~ {end}",
+      "generate": "생성",
+      "generating": "생성 중...",
+      "share": "공유",
+      "result": "내보내기 결과",
+      "no_file": "아직 생성된 파일이 없습니다.",
+      "done": "보고서가 생성되었습니다.",
+      "failed": "보고서 생성에 실패했습니다.",
+      "csv_done": "CSV 생성 완료 · {count}건",
+      "pdf_done": "PDF 생성 완료 · {count}건",
+      "csv_share": "지출 보고서 CSV",
+      "pdf_share": "지출 보고서 PDF"
     }
   },
   "auth": {
